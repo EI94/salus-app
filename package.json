@@ -6,10 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "cd salus-frontend && npm install && npm run build",
+    "build": "cd salus-frontend && npm install --legacy-peer-deps && DISABLE_WORKBOX=true npm run build",
     "vercel-build": "npm run build",
-    "install-client": "cd salus-frontend && npm install",
-    "build-client": "cd salus-frontend && npm run build"
+    "install-client": "cd salus-frontend && npm install --legacy-peer-deps",
+    "build-client": "cd salus-frontend && DISABLE_WORKBOX=true npm run build"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
