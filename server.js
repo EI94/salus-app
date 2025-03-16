@@ -28,6 +28,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Route principale per health check
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'online',
+    message: 'Salus API è in esecuzione',
+    env: process.env.NODE_ENV,
+    time: new Date().toISOString()
+  });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/auth/users', userRoutes);
@@ -39,12 +49,29 @@ app.use('/api/health', healthRoutes);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-  // Set static folder
-  app.use(express.static('salus-frontend/build'));
-
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'salus-frontend', 'build', 'index.html'));
-  });
+  // Verifica se la directory del frontend esiste
+  try {
+    const frontendPath = path.resolve(__dirname, 'salus-frontend', 'build');
+    const fs = require('fs');
+    
+    if (fs.existsSync(frontendPath)) {
+      // Set static folder
+      app.use(express.static(frontendPath));
+      
+      app.get('*', (req, res) => {
+        // Escludiamo le route API dal redirect a index.html
+        if (!req.path.startsWith('/api/')) {
+          res.sendFile(path.join(frontendPath, 'index.html'));
+        }
+      });
+      
+      console.log('Frontend static files configurati correttamente');
+    } else {
+      console.log('Directory frontend non trovata: ' + frontendPath);
+    }
+  } catch (err) {
+    console.error('Errore nella configurazione dei file statici:', err);
+  }
 }
 
 // Gestione errori
