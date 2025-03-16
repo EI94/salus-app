@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "cd salus-frontend && npm install --legacy-peer-deps && npm run build",
+    "build": "cd salus-frontend && npm install --legacy-peer-deps && CI=false GENERATE_SOURCEMAP=false npm run build",
     "vercel-build": "npm run build",
     "install-client": "cd salus-frontend && npm install --legacy-peer-deps",
     "build-client": "cd salus-frontend && DISABLE_WORKBOX=true npm run build"
