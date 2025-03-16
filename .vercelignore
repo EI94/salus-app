@@ -1,0 +1,13 @@
+README.md
+CHANGELOG.md
+DEPLOYMENT.md
+MONGODB_SETUP.md
+VERCEL_DEPLOYMENT.md
+CHECKLIST.md
+.env
+.git
+.gitignore
+node_modules
+salus-frontend
+salus-mvp
+*.log 
