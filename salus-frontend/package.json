@@ -14,10 +14,17 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
+  "devDependencies": {
+    "customize-cra": "^1.0.0",
+    "react-app-rewired": "^2.2.1",
+    "postcss-loader": "^7.3.3",
+    "style-loader": "^3.3.3",
+    "css-loader": "^6.8.1"
+  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "CI=false GENERATE_SOURCEMAP=false NODE_OPTIONS=--openssl-legacy-provider npx create-react-app build",
-    "test": "react-scripts test",
+    "start": "react-app-rewired start",
+    "build": "DISABLE_WORKBOX=true react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

@@ -1,6 +1,6 @@
 {
   "short_name": "Salus",
-  "name": "Salus Health App",
+  "name": "Salus - Monitoraggio Salute",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,14 +8,19 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo.svg",
-      "type": "image/svg+xml",
+      "src": "logo192.png",
+      "type": "image/png",
       "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#4A90E2",
+  "theme_color": "#2196f3",
   "background_color": "#ffffff",
   "orientation": "portrait",
   "description": "App per il monitoraggio della salute personale",
