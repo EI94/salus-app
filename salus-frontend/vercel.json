@@ -1,0 +1,25 @@
+{
+  "name": "salus-app",
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node"
+    }
+  ],
+  "cleanUrls": true,
+  "env": {
+    "REACT_APP_API_URL": "https://salus-backend.onrender.com/api"
+  },
+  "headers": [
+    {
+      "source": "/service-worker.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
+} 

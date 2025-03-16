@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sfondo circolare -->
+  <circle cx="256" cy="256" r="240" fill="#4A90E2" />
+  <circle cx="256" cy="256" r="220" fill="#3C78D8" />
+  
+  <!-- Simbolo di Salus (caduceo stilizzato) -->
+  <path d="M256 110C212.4 110 180 142.4 180 186V326C180 369.6 212.4 402 256 402C299.6 402 332 369.6 332 326V186C332 142.4 299.6 110 256 110Z" fill="white" />
+  
+  <!-- Bordi del simbolo -->
+  <path d="M256 130C223.5 130 200 153.5 200 186V326C200 358.5 223.5 382 256 382C288.5 382 312 358.5 312 326V186C312 153.5 288.5 130 256 130Z" fill="#3C78D8" />
+  
+  <!-- Serpenti stilizzati -->
+  <path d="M220 170C220 170 240 190 256 190C272 190 292 170 292 170" stroke="white" stroke-width="12" stroke-linecap="round" />
+  <path d="M220 210C220 210 240 230 256 230C272 230 292 210 292 210" stroke="white" stroke-width="12" stroke-linecap="round" />
+  <path d="M220 250C220 250 240 270 256 270C272 270 292 250 292 250" stroke="white" stroke-width="12" stroke-linecap="round" />
+  <path d="M220 290C220 290 240 310 256 310C272 310 292 290 292 290" stroke="white" stroke-width="12" stroke-linecap="round" />
+  <path d="M220 330C220 330 240 350 256 350C272 350 292 330 292 330" stroke="white" stroke-width="12" stroke-linecap="round" />
+  
+  <!-- Cerchio centrale -->
+  <circle cx="256" cy="256" r="30" fill="white" />
+  <circle cx="256" cy="256" r="20" fill="#4A90E2" />
+</svg> 
