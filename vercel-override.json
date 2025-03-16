@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "git": {
+    "deploymentEnabled": {
+      "master": true
+    }
+  },
+  "buildCommand": "echo 'Building backend only'",
+  "outputDirectory": "."
+} 

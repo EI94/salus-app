@@ -9,5 +9,10 @@
   ],
   "env": {
     "NODE_ENV": "production"
+  },
+  "git": {
+    "deploymentEnabled": {
+      "master": true
+    }
   }
 } 
