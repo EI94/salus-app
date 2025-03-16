@@ -16,7 +16,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "npx react-scripts build",
+    "build": "CI=false GENERATE_SOURCEMAP=false NODE_OPTIONS=--openssl-legacy-provider npx create-react-app build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
