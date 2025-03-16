@@ -8,6 +8,5 @@ CHECKLIST.md
 .git
 .gitignore
 node_modules
-salus-frontend
 salus-mvp
 *.log 
