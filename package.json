@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "cd salus-frontend && npm install && npm run build",
-    "vercel-build": "npm install && cd salus-frontend && npm install && npm run build",
+    "vercel-build": "cd salus-frontend && npm install && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "install-client": "cd salus-frontend && npm install --legacy-peer-deps",
     "build-client": "cd salus-frontend && DISABLE_WORKBOX=true npm run build"
