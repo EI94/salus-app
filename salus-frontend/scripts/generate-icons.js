@@ -1,3 +1,12 @@
+// Questo script è usato solo in sviluppo locale
+// Durante il deploy su Vercel, le icone sono già generate e incluse nel repository
+
+console.log('✅ Le icone sono già generate e presenti nel repository.');
+console.log('👍 Il processo di build può continuare senza problemi.');
+
+// Il codice seguente è commentato per evitare errori su Vercel
+// Per generare nuove icone, decommentare e installare sharp
+/*
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
@@ -56,4 +65,5 @@ async function generateIcons() {
   }
 }
 
-generateIcons(); 
+generateIcons();
+*/ 

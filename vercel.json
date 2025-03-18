@@ -19,12 +19,12 @@
       "dest": "/server.js"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "/salus-frontend/build/static/$1"
+      "src": "/(.*)",
+      "dest": "/salus-frontend/build/$1",
+      "continue": true
     },
     {
-      "src": "/(.*.png|.*.ico|.*.json|.*.txt)",
-      "dest": "/salus-frontend/build/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
