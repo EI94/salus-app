@@ -6,6 +6,7 @@ import WellnessTracker from './WellnessTracker';
 import MedicationTracker from './MedicationTracker';
 import NotificationCenter from './NotificationCenter';
 import AIAssistantWidget from './AIAssistantWidget';
+import { useTranslation } from 'react-i18next';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -260,6 +261,281 @@ function App() {
     if (!showNotificationCenter) {
       setNotificationCount(0);
     }
+  };
+
+  // Nuovo componente LoginForm con design migliorato
+  const LoginForm = ({ isRegister, setIsRegister, handleLogin, handleRegister }) => {
+    const { t } = useTranslation();
+    const [formData, setFormData] = useState({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+    const [formErrors, setFormErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    
+    const validateForm = () => {
+      const errors = {};
+      
+      if (isRegister && !formData.name.trim()) {
+        errors.name = t('nameRequired');
+      }
+      
+      if (!formData.email.trim()) {
+        errors.email = t('emailRequired');
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        errors.email = t('emailInvalid');
+      }
+      
+      if (!formData.password) {
+        errors.password = t('passwordRequired');
+      } else if (formData.password.length < 6) {
+        errors.password = t('passwordTooShort');
+      }
+      
+      if (isRegister && formData.password !== formData.confirmPassword) {
+        errors.confirmPassword = t('passwordsMustMatch');
+      }
+      
+      setFormErrors(errors);
+      return Object.keys(errors).length === 0;
+    };
+    
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+      
+      // Rimuovi l'errore quando l'utente inizia a digitare
+      if (formErrors[name]) {
+        setFormErrors({
+          ...formErrors,
+          [name]: null
+        });
+      }
+    };
+    
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      
+      if (!validateForm()) return;
+      
+      setIsLoading(true);
+      
+      try {
+        if (isRegister) {
+          await handleRegister(formData.name, formData.email, formData.password);
+        } else {
+          await handleLogin(formData.email, formData.password);
+        }
+      } catch (error) {
+        console.error('Form submission error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    const togglePasswordVisibility = () => {
+      setShowPassword(!showPassword);
+    };
+    
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-card-inner">
+            <div className="auth-header">
+              <h2 className="auth-title">{isRegister ? t('register') : t('login')}</h2>
+              <p className="auth-subtitle">
+                {isRegister 
+                  ? t('createAccountToTrackHealth') 
+                  : t('welcomeBack')}
+              </p>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="auth-form">
+              {isRegister && (
+                <div className="form-group">
+                  <label htmlFor="name" className="form-label">
+                    {t('name')}
+                  </label>
+                  <div className="input-group">
+                    <span className="input-icon">
+                      <i className="fas fa-user"></i>
+                    </span>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className={`form-control ${formErrors.name ? 'is-invalid' : ''}`}
+                      placeholder={t('enterYourName')}
+                    />
+                  </div>
+                  {formErrors.name && <div className="error-message">{formErrors.name}</div>}
+                </div>
+              )}
+              
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">
+                  {t('email')}
+                </label>
+                <div className="input-group">
+                  <span className="input-icon">
+                    <i className="fas fa-envelope"></i>
+                  </span>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`form-control ${formErrors.email ? 'is-invalid' : ''}`}
+                    placeholder={t('enterYourEmail')}
+                  />
+                </div>
+                {formErrors.email && <div className="error-message">{formErrors.email}</div>}
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="password" className="form-label">
+                  {t('password')}
+                </label>
+                <div className="input-group">
+                  <span className="input-icon">
+                    <i className="fas fa-lock"></i>
+                  </span>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={`form-control ${formErrors.password ? 'is-invalid' : ''}`}
+                    placeholder={t('enterYourPassword')}
+                  />
+                  <button 
+                    type="button" 
+                    className="password-toggle" 
+                    onClick={togglePasswordVisibility}
+                  >
+                    <i className={`fas fa-${showPassword ? 'eye-slash' : 'eye'}`}></i>
+                  </button>
+                </div>
+                {formErrors.password && <div className="error-message">{formErrors.password}</div>}
+              </div>
+              
+              {isRegister && (
+                <div className="form-group">
+                  <label htmlFor="confirmPassword" className="form-label">
+                    {t('confirmPassword')}
+                  </label>
+                  <div className="input-group">
+                    <span className="input-icon">
+                      <i className="fas fa-lock"></i>
+                    </span>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className={`form-control ${formErrors.confirmPassword ? 'is-invalid' : ''}`}
+                      placeholder={t('confirmYourPassword')}
+                    />
+                  </div>
+                  {formErrors.confirmPassword && <div className="error-message">{formErrors.confirmPassword}</div>}
+                </div>
+              )}
+              
+              {!isRegister && (
+                <div className="form-group text-right">
+                  <a href="#" className="forgot-password">
+                    {t('forgotPassword')}
+                  </a>
+                </div>
+              )}
+              
+              <button
+                type="submit"
+                className={`auth-submit-button ${isLoading ? 'loading' : ''}`}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <span className="spinner"></span>
+                ) : (
+                  <span>
+                    {isRegister ? t('register') : t('login')}
+                    <i className="fas fa-arrow-right"></i>
+                  </span>
+                )}
+              </button>
+            </form>
+            
+            <div className="auth-separator">
+              <span>{t('or')}</span>
+            </div>
+            
+            <div className="social-login">
+              <button type="button" className="social-button google">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" />
+                {t('continueWithGoogle')}
+              </button>
+              <button type="button" className="social-button apple">
+                <i className="fab fa-apple"></i>
+                {t('continueWithApple')}
+              </button>
+            </div>
+            
+            <div className="auth-footer">
+              <p>
+                {isRegister ? t('alreadyHaveAccount') : t('dontHaveAccount')}
+                <button
+                  type="button"
+                  className="auth-toggle-button"
+                  onClick={() => setIsRegister(!isRegister)}
+                >
+                  {isRegister ? t('login') : t('register')}
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="auth-illustration">
+          <img 
+            src="https://img.freepik.com/free-vector/health-medical-insurance-composition_1284-53823.jpg?w=900&t=st=1710867742~exp=1710868342~hmac=cc0e148d9db440c6b4ee2f8f4e7d3f5c6abdb3de2eba7adfea57ff22c72f1302" 
+            alt="Health monitoring illustration" 
+            className="illustration-image"
+          />
+          <div className="illustration-content">
+            <h2>{t('healthMonitoringMadeEasy')}</h2>
+            <ul className="feature-list">
+              <li>
+                <i className="fas fa-check-circle"></i>
+                {t('trackSymptoms')}
+              </li>
+              <li>
+                <i className="fas fa-check-circle"></i>
+                {t('monitorMedications')}
+              </li>
+              <li>
+                <i className="fas fa-check-circle"></i>
+                {t('aiAssistant')}
+              </li>
+              <li>
+                <i className="fas fa-check-circle"></i>
+                {t('healthInsights')}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -576,171 +852,16 @@ function App() {
       <main className="app-content">
         <div className="container">
           {!userId ? (
-            <div className="auth-container card fade-in">
-              <div className="card-header">
-                <h2 className="text-center">
-                  <i className="fas fa-heartbeat" style={{ color: 'var(--primary-600)', marginRight: '10px' }}></i>
-                  Salus
-                </h2>
-                <p className="text-center text-muted">Il tuo assistente personale per la salute</p>
-              </div>
-              
-              {/* Disclaimer medico */}
-              <div className="medical-disclaimer">
-                <div className="disclaimer-icon">
-                  <i className="fas fa-exclamation-triangle"></i>
-                </div>
-                <div className="disclaimer-content">
-                  <h4>Importante: Salus non sostituisce il medico</h4>
-                  <p>
-                    Salus è progettato per aiutarti a monitorare la tua salute, non per sostituire la consulenza medica professionale. 
-                    Le informazioni fornite da questa app, inclusi i consigli dell'assistente, sono puramente informativi e non costituiscono diagnosi, 
-                    trattamento o consulenza medica.
-                  </p>
-                  <p className="disclaimer-warning">
-                    <strong>Consulta sempre un medico</strong> prima di prendere decisioni sulla tua salute o se hai sintomi preoccupanti. 
-                    In caso di emergenza, chiama immediatamente il 118 o recati al pronto soccorso più vicino.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="card-body">
-                <div className="tabs">
-                  <div 
-                    className={`tab ${!isRegistering ? 'active' : ''}`} 
-                    onClick={() => setIsRegistering(false)}
-                  >
-                    {t('login')}
-                  </div>
-                  <div 
-                    className={`tab ${isRegistering ? 'active' : ''}`}
-                    onClick={() => setIsRegistering(true)}
-                  >
-                    {t('register')}
-                  </div>
-                </div>
-                
-                {isRegistering ? (
-                  <form className="auth-form">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="username">
-                        <i className="fas fa-user"></i> {t('name')}
-                      </label>
-                      <input
-                        type="text"
-                        id="username"
-                        className="form-control"
-                        placeholder={t('name')}
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="register-email">
-                        <i className="fas fa-envelope"></i> {t('email')}
-                      </label>
-                      <input
-                        type="email"
-                        id="register-email"
-                        className="form-control"
-                        placeholder={t('email')}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="register-password">
-                        <i className="fas fa-lock"></i> {t('password')}
-                      </label>
-                      <input
-                        type="password"
-                        id="register-password"
-                        className="form-control"
-                        placeholder="Crea una password sicura"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                    </div>
-                    
-                    <button 
-                      type="button"
-                      className="btn btn-primary btn-lg w-100 mt-4"
-                      onClick={handleRegister}
-                      disabled={!username || !email || !password}
-                    >
-                      <i className="fas fa-user-plus"></i> {t('register')}
-                    </button>
-                  </form>
-                ) : (
-                  <form className="auth-form">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="login-email">
-                        <i className="fas fa-envelope"></i> {t('email')}
-                      </label>
-                      <input
-                        type="email"
-                        id="login-email"
-                        className="form-control"
-                        placeholder={t('email')}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="login-password">
-                        <i className="fas fa-lock"></i> {t('password')}
-                      </label>
-                      <input
-                        type="password"
-                        id="login-password"
-                        className="form-control"
-                        placeholder="La tua password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <div className="d-flex justify-between align-center">
-                        <div className="form-check">
-                          <input type="checkbox" id="remember" className="form-check-input" />
-                          <label htmlFor="remember" className="form-check-label">Ricordami</label>
-                        </div>
-                        <button className="text-primary" style={{background: 'none', border: 'none', cursor: 'pointer'}} onClick={() => alert('Funzionalità di reset password non ancora implementata.')}>Password dimenticata?</button>
-                      </div>
-                    </div>
-                    
-                    <button 
-                      type="button"
-                      className="btn btn-primary btn-lg w-100 mt-4"
-                      onClick={handleLogin}
-                      disabled={!email || !password}
-                    >
-                      <i className="fas fa-sign-in-alt"></i> {t('login')}
-                    </button>
-                  </form>
-                )}
-              </div>
-              
-              <div className="card-footer text-center">
-                <p>
-                  {isRegistering 
-                    ? 'Hai già un account?' 
-                    : 'Non hai ancora un account?'
-                  }
-                  <button 
-                    className="btn btn-link" 
-                    onClick={() => setIsRegistering(!isRegistering)}
-                  >
-                    {isRegistering ? 'Accedi' : 'Registrati'}
-                  </button>
-                </p>
-              </div>
-            </div>
+            <LoginForm
+              isRegister={isRegistering}
+              setIsRegister={(value) => {
+                setIsRegistering(value);
+                setEmail('');
+                setPassword('');
+              }}
+              handleLogin={handleLogin}
+              handleRegister={handleRegister}
+            />
           ) : (
             <>
               {/* Dashboard */}
