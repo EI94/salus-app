@@ -32,7 +32,7 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "vercel-build": "CI=false npm run build",
+    "vercel-build": "export CI=false && npm run build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "generate-icons": "node scripts/generate-icons.js"
