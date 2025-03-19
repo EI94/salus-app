@@ -88,26 +88,27 @@ function App() {
     setShowSettings(false);
   };
 
-  const handleRegister = async () => {
+  // Funzione per la registrazione
+  const handleRegister = async (name, emailValue, passwordValue) => {
     try {
       // Validazione dei campi
-      if (!username || username.length < 3) {
+      if (!name || name.length < 3) {
         alert(t('nameValidation'));
         return;
       }
       
-      if (!email || !email.includes('@')) {
+      if (!emailValue || !emailValue.includes('@')) {
         alert(t('emailValidation'));
         return;
       }
       
-      if (!password || password.length < 6) {
+      if (!passwordValue || passwordValue.length < 6) {
         alert(t('passwordValidation'));
         return;
       }
       
       // Modifica l'endpoint per usare la versione corretta dell'API
-      await API.post('/user/register', { name: username, email, password });
+      await API.post('/user/register', { name: name, email: emailValue, password: passwordValue });
       alert(t('confirmEmail'));
       setIsRegistering(false);
     } catch (error) {
@@ -116,19 +117,19 @@ function App() {
     }
   };
 
-  const handleLogin = async () => {
+  // Funzione per il login
+  const handleLogin = async (emailValue, passwordValue) => {
     try {
-      if (!email || !password) {
-        alert('Compila tutti i campi richiesti');
+      if (!emailValue || !passwordValue) {
+        alert(t('Compila tutti i campi richiesti'));
         return;
       }
       
-      console.log('Tentativo di login con:', { email });
+      console.log('Tentativo di login con:', { email: emailValue });
       
-      // Modifica l'endpoint per usare la versione corretta dell'API
       const response = await API.post('/user/login', { 
-        email, 
-        password 
+        email: emailValue, 
+        password: passwordValue 
       });
       
       console.log('Risposta login:', response.data);
@@ -207,7 +208,7 @@ function App() {
 
   // Nuovo componente LoginForm con design migliorato
   const LoginForm = ({ isRegister, setIsRegister, handleLogin, handleRegister }) => {
-    const { t } = useTranslation();
+    // Stato per il form
     const [formData, setFormData] = useState({
       name: '',
       email: '',
@@ -218,6 +219,7 @@ function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     
+    // Validazione del form
     const validateForm = () => {
       const errors = {};
       
@@ -245,6 +247,7 @@ function App() {
       return Object.keys(errors).length === 0;
     };
     
+    // Gestione del cambiamento dei campi del form
     const handleChange = (e) => {
       const { name, value } = e.target;
       setFormData({
@@ -252,7 +255,7 @@ function App() {
         [name]: value
       });
       
-      // Rimuovi l'errore quando l'utente inizia a digitare
+      // Resetta l'errore quando l'utente modifica il campo
       if (formErrors[name]) {
         setFormErrors({
           ...formErrors,
@@ -261,23 +264,24 @@ function App() {
       }
     };
     
+    // Gestione dell'invio del form
     const handleSubmit = async (e) => {
       e.preventDefault();
       
-      if (!validateForm()) return;
-      
-      setIsLoading(true);
-      
-      try {
-        if (isRegister) {
-          await handleRegister(formData.name, formData.email, formData.password);
-        } else {
-          await handleLogin(formData.email, formData.password);
+      if (validateForm()) {
+        setIsLoading(true);
+        
+        try {
+          if (isRegister) {
+            await handleRegister(formData.name, formData.email, formData.password);
+          } else {
+            await handleLogin(formData.email, formData.password);
+          }
+        } catch (error) {
+          console.error('Errore:', error);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error('Form submission error:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
     
