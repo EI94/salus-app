@@ -1,20 +1,18 @@
 import axios from 'axios';
 
-// Determina l'URL di base in base all'ambiente
-const isDevelopment = process.env.NODE_ENV === 'development';
-const baseURL = isDevelopment 
-  ? 'http://localhost:3001/api' 
-  : 'https://www.wearesalusapp.com/api';
+// URL dell'API - definisce un URL finale indipendentemente dall'ambiente
+const baseURL = 'https://www.wearesalusapp.com/api';
 
 // Crea una istanza di axios con configurazione personalizzata
 const API = axios.create({
   baseURL,
   timeout: 15000, // 15 secondi
-  withCredentials: true, // Necessario per i cookie CORS
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+    'Accept': 'application/json',
+    'Access-Control-Allow-Origin': '*'
+  },
+  withCredentials: false // Imposta esplicitamente a false per evitare problemi CORS
 });
 
 // Interceptor per aggiungere il token di autenticazione alle richieste
@@ -48,8 +46,6 @@ API.interceptors.response.use(
       localStorage.removeItem('userId');
       localStorage.removeItem('userName');
       localStorage.removeItem('token');
-      // Redirect alla pagina di login se necessario
-      // window.location.href = '/';
     }
     
     return Promise.reject(error);
