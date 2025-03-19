@@ -1,278 +1,289 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/AIAssistant.css';
-import axios from 'axios';
 
 const AIAssistant = () => {
+  // Stati per i messaggi e l'input
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
+  const [recentSymptoms, setRecentSymptoms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Suggerimenti predefiniti
+  const [suggestions, setSuggestions] = useState([
+    "Come posso gestire il mio mal di testa?",
+    "Quali sono i sintomi dell'influenza?",
+    "Consigli per dormire meglio",
+    "Quando dovrei consultare un medico per la febbre?",
+    "Come posso ridurre lo stress?"
+  ]);
+  
+  // Riferimento per scorrere automaticamente alla fine della chat
   const messagesEndRef = useRef(null);
-  const [showWelcome, setShowWelcome] = useState(true);
-
-  // Suggerimenti predefiniti per l'utente
-  const predefinedSuggestions = [
-    'Come posso ridurre il dolore alla schiena?',
-    'Quali cibi devo evitare con l\'ipertensione?',
-    'È normale avere mal di testa ogni giorno?',
-    'Quanto sonno è raccomandato per un adulto?',
-    'Come posso migliorare la qualità del sonno?'
-  ];
-
-  // Risposte predefinite in base alla domanda
-  const getAIResponse = (question) => {
-    const lowerQuestion = question.toLowerCase();
+  
+  // Caricamento dei dati iniziali
+  useEffect(() => {
+    // Aggiungi un messaggio di benvenuto
+    const welcomeMessage = {
+      id: Date.now(),
+      text: "Ciao! Sono Salus, il tuo assistente sanitario virtuale. Come posso aiutarti oggi?",
+      sender: 'ai',
+      timestamp: new Date().toISOString()
+    };
     
-    // Risposte predefinite per domande specifiche
-    if (lowerQuestion.includes('mal di testa') || lowerQuestion.includes('emicrania')) {
-      return 'I mal di testa frequenti possono essere causati da stress, disidratazione, tensione muscolare o problemi alla vista. Se persiste per più di una settimana, ti consiglio di consultare il tuo medico. Nel frattempo, prova a riposare in una stanza buia, bere molta acqua e fare stretching per il collo.';
-    } else if (lowerQuestion.includes('sonno') || lowerQuestion.includes('dormire')) {
-      return 'Gli adulti dovrebbero dormire tra 7-9 ore per notte. Per migliorare la qualità del sonno: mantieni orari regolari, evita caffeina e schermi nelle ore serali, crea un ambiente confortevole e fresco per dormire e fai attività fisica durante il giorno, ma non troppo vicino all\'ora di andare a letto.';
-    } else if (lowerQuestion.includes('schiena') || lowerQuestion.includes('dolore')) {
-      return 'Per il mal di schiena, prova a mantenere una postura corretta, fare esercizi di rinforzo per il core, evitare di stare seduto troppo a lungo e utilizzare un supporto lombare. L\'applicazione di calore o ghiaccio può anche alleviare il dolore. Se il dolore è intenso o persiste, consulta un medico.';
-    } else if (lowerQuestion.includes('cibo') || lowerQuestion.includes('dieta') || lowerQuestion.includes('mangiare')) {
-      return 'Una dieta equilibrata dovrebbe includere frutta, verdura, proteine magre, cereali integrali e grassi sani. Per l\'ipertensione, limita il sale, l\'alcol e i cibi processati. Aumenta il consumo di potassio con banane, patate e legumi. Ricorda di consultare un nutrizionista per consigli personalizzati.';
-    } else if (lowerQuestion.includes('stress') || lowerQuestion.includes('ansia')) {
-      return 'Per gestire lo stress, prova tecniche di respirazione profonda, meditazione, yoga o altre attività rilassanti. Mantieni uno stile di vita equilibrato con esercizio regolare, alimentazione sana e sonno adeguato. La condivisione dei tuoi sentimenti con amici o un professionista può anche essere molto utile.';
-    } else {
-      // Risposta generica per altre domande
-      return 'Grazie per la tua domanda. Per una risposta più accurata e personalizzata, ti consiglio di consultare il tuo medico o un professionista sanitario. Ricorda che l\'app Salus è progettata per aiutarti a monitorare la tua salute, ma non sostituisce il parere medico professionale.';
-    }
-  };
-
-  // Funzione per generare nuovi suggerimenti basati sulla conversazione
-  const generateNewSuggestions = () => {
-    const newSuggestions = [
-      'Come posso gestire lo stress quotidiano?',
-      'Quali sono i sintomi dell\'anemia?',
-      'Quanto esercizio fisico è consigliato ogni settimana?',
-      'Come posso migliorare la mia digestione?',
-      'Quali vitamine dovrei assumere ogni giorno?',
-    ];
+    setMessages([welcomeMessage]);
     
-    setSuggestions(newSuggestions);
-  };
-
-  // Simulazione della risposta dell'AI
-  const simulateAIResponse = (userMessage) => {
+    // Simula il caricamento dei sintomi recenti
+    const fetchRecentSymptoms = async () => {
+      try {
+        console.log("Modalità demo: uso dati di esempio per i sintomi recenti");
+        
+        // Simula un ritardo di caricamento
+        setTimeout(() => {
+          // Dati di esempio per i sintomi recenti
+          const symptomData = [
+            { id: 1, name: "Mal di testa", intensity: 3, date: "2023-07-18" },
+            { id: 2, name: "Stanchezza", intensity: 4, date: "2023-07-19" },
+            { id: 3, name: "Tosse", intensity: 2, date: "2023-07-20" }
+          ];
+          
+          setRecentSymptoms(symptomData);
+          
+          // Aggiorna i suggerimenti con sintomi recenti
+          if (Array.isArray(symptomData) && symptomData.length > 0) {
+            const symptomSuggestions = [
+              `Come posso gestire il mio ${symptomData[0].name.toLowerCase()}?`,
+              `Quanto dovrebbe durare la ${symptomData[symptomData.length - 1].name.toLowerCase()}?`
+            ];
+            
+            setSuggestions(prevSuggestions => {
+              // Prendi i primi 3 suggerimenti predefiniti e aggiungi quelli basati sui sintomi
+              return [...prevSuggestions.slice(0, 3), ...symptomSuggestions];
+            });
+          }
+          
+          setLoading(false);
+        }, 1500);
+      } catch (err) {
+        console.error('Errore nel caricamento dei sintomi recenti:', err);
+        setError('Errore nel caricamento dei dati: ' + err.message);
+        setLoading(false);
+      }
+    };
+    
+    fetchRecentSymptoms();
+  }, []);
+  
+  // Effetto per scorrere alla fine della chat quando vengono aggiunti messaggi
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+  
+  // Funzione per generare una risposta dell'assistente AI
+  const generateAIResponse = (userMessage) => {
     setIsTyping(true);
     
-    try {
-      console.log("Invio messaggio all'AI:", userMessage);
+    // Simula un ritardo di risposta per un effetto più realistico
+    setTimeout(() => {
+      let response = "Mi dispiace, non ho una risposta per questa domanda. Potresti provare a chiedere qualcos'altro?";
       
-      // In un ambiente di produzione, qui chiamiamo l'API
-      // Questa parte è simulata per evitare l'errore 405
-      /*
-      axios.post('https://www.wearesalusapp.com/api/ai/chat', {
-        message: userMessage
-      }).then(response => {
-        // Elaboriamo la risposta dell'API
-      }).catch(error => {
-        console.error("Errore nella chiamata API:", error);
-      });
-      */
+      // Semplici risposte predefinite basate su parole chiave
+      const lowercaseMessage = userMessage.toLowerCase();
       
-      // Invece, simuliamo una risposta dopo un breve ritardo
-      setTimeout(() => {
-        const aiResponse = getAIResponse(userMessage);
-        
-        setMessages(prevMessages => [
-          ...prevMessages, 
-          { 
-            text: aiResponse, 
-            sender: 'ai', 
-            timestamp: new Date().toISOString() 
-          }
-        ]);
-        
-        setIsTyping(false);
-        generateNewSuggestions();
-      }, 1500);
-    } catch (error) {
-      console.error("Errore nella chiamata API:", error);
+      if (lowercaseMessage.includes('mal di testa')) {
+        response = "Per il mal di testa, puoi provare:\n\n1. Riposo in un ambiente buio e silenzioso\n2. Applicare impacchi freddi sulla fronte\n3. Bere molta acqua per evitare la disidratazione\n4. Prendere un analgesico come paracetamolo o ibuprofene secondo le indicazioni\n\nSe il mal di testa è grave, improvviso o accompagnato da altri sintomi come confusione o rigidità al collo, consulta immediatamente un medico.";
+      } else if (lowercaseMessage.includes('influenza') || lowercaseMessage.includes('sintomi')) {
+        response = "I sintomi comuni dell'influenza includono:\n\n• Febbre alta improvvisa (38°C o più)\n• Dolori muscolari e articolari\n• Stanchezza e debolezza\n• Mal di testa\n• Tosse secca\n• Mal di gola\n• Congestione nasale\n• Brividi e sudorazione\n\nIl riposo, l'idratazione e farmaci da banco per alleviare i sintomi sono generalmente consigliati. Consulta un medico se i sintomi sono gravi o se fai parte di un gruppo a rischio.";
+      } else if (lowercaseMessage.includes('dormire') || lowercaseMessage.includes('sonno')) {
+        response = "Per migliorare la qualità del sonno:\n\n1. Mantieni un orario regolare per andare a letto e svegliarti\n2. Crea un ambiente confortevole, buio e fresco\n3. Limita l'uso di dispositivi elettronici prima di dormire\n4. Evita caffeina, alcol e pasti pesanti nelle ore serali\n5. Fai attività fisica regolare, ma non poco prima di dormire\n6. Prova tecniche di rilassamento come la meditazione\n\nSe continui ad avere problemi di sonno, considera di consultare un medico.";
+      } else if (lowercaseMessage.includes('febbre')) {
+        response = "Dovresti consultare un medico per la febbre nei seguenti casi:\n\n• Se supera i 39,4°C\n• Se dura più di tre giorni\n• Se è accompagnata da forte mal di testa, rigidità del collo, eruzione cutanea, confusione, difficoltà respiratorie\n• Nei bambini molto piccoli o negli anziani\n• Se hai condizioni mediche preesistenti\n\nIn caso di febbre, è importante mantenersi idratati e riposare adeguatamente.";
+      } else if (lowercaseMessage.includes('stress')) {
+        response = "Per ridurre lo stress puoi provare:\n\n1. Tecniche di respirazione profonda e meditazione\n2. Attività fisica regolare\n3. Mantenere una dieta equilibrata\n4. Dormire a sufficienza\n5. Limitare caffeina e alcol\n6. Attività piacevoli e hobby\n7. Trascorrere tempo all'aria aperta\n8. Limitare l'uso dei dispositivi digitali\n\nSe lo stress interferisce con la tua vita quotidiana, considera di parlare con un professionista della salute mentale.";
+      } else if (lowercaseMessage.includes('tosse')) {
+        response = "Per la tosse, ecco alcuni consigli:\n\n1. Bevi molti liquidi per mantenerti idratato\n2. Usa un umidificatore o fai docce calde per allentare il muco\n3. Miele e limone in acqua calda possono aiutare (non per bambini sotto 1 anno)\n4. Caramelle per la gola o sciroppi possono dare sollievo temporaneo\n\nSe la tosse persiste più di 2 settimane, è accompagnata da febbre alta, sangue, o difficoltà respiratorie, consulta un medico.";
+      } else if (lowercaseMessage.includes('stanchezza') || lowercaseMessage.includes('affaticamento')) {
+        response = "La stanchezza persistente può essere causata da:\n\n• Mancanza di sonno o sonno di scarsa qualità\n• Stress e ansia\n• Dieta sbilanciata o disidratazione\n• Sedentarietà o eccesso di attività fisica\n• Condizioni mediche come anemia o problemi tiroidei\n\nMigliorare le abitudini di sonno, fare esercizio regolare, mantenere una dieta equilibrata e gestire lo stress possono aiutare. Se la stanchezza persiste o è grave, consulta un medico.";
+      } else if (lowercaseMessage.includes('medico') || lowercaseMessage.includes('dottore')) {
+        response = "È importante consultare un medico quando:\n\n• I sintomi sono gravi o peggiorano rapidamente\n• Hai dolore intenso o improvviso\n• Hai difficoltà a respirare o dolore al petto\n• Hai febbre alta persistente\n• Noti cambiamenti inspiegabili nel tuo corpo o nella tua salute\n• I sintomi interferiscono con la tua vita quotidiana\n\nRicorda che questa app non sostituisce il parere medico professionale.";
+      }
+      
+      const newMessage = {
+        id: Date.now(),
+        text: response,
+        sender: 'ai',
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages(prevMessages => [...prevMessages, newMessage]);
       setIsTyping(false);
-    }
+    }, 1500);
   };
-
-  // Gestione dell'invio di un messaggio
-  const handleSendMessage = (e) => {
+  
+  // Funzione per inviare un messaggio
+  const sendMessage = (e) => {
     e.preventDefault();
     
-    if (input.trim() === '') return;
+    if (!input.trim()) return;
     
-    // Aggiungiamo il messaggio dell'utente
-    setMessages(prevMessages => [
-      ...prevMessages, 
-      { 
-        text: input, 
-        sender: 'user', 
-        timestamp: new Date().toISOString() 
-      }
-    ]);
+    // Crea il messaggio dell'utente
+    const userMessage = {
+      id: Date.now(),
+      text: input,
+      sender: 'user',
+      timestamp: new Date().toISOString()
+    };
     
-    // Simuliamo la risposta dell'AI
-    simulateAIResponse(input);
+    // Aggiungi il messaggio alla chat
+    setMessages(prevMessages => [...prevMessages, userMessage]);
     
-    // Reset dell'input
+    // Genera la risposta dell'assistente
+    generateAIResponse(input);
+    
+    // Resetta l'input
     setInput('');
-    
-    // Nascondiamo il messaggio di benvenuto
-    if (showWelcome) {
-      setShowWelcome(false);
-    }
   };
-
-  // Gestione del click su un suggerimento
+  
+  // Funzione per gestire i click sui suggerimenti
   const handleSuggestionClick = (suggestion) => {
-    // Aggiungiamo il messaggio dell'utente
-    setMessages(prevMessages => [
-      ...prevMessages, 
-      { 
-        text: suggestion, 
-        sender: 'user', 
-        timestamp: new Date().toISOString() 
-      }
-    ]);
+    // Crea il messaggio dell'utente dal suggerimento
+    const userMessage = {
+      id: Date.now(),
+      text: suggestion,
+      sender: 'user',
+      timestamp: new Date().toISOString()
+    };
     
-    // Simuliamo la risposta dell'AI
-    simulateAIResponse(suggestion);
+    // Aggiungi il messaggio alla chat
+    setMessages(prevMessages => [...prevMessages, userMessage]);
     
-    // Nascondiamo il messaggio di benvenuto
-    if (showWelcome) {
-      setShowWelcome(false);
-    }
+    // Genera la risposta dell'assistente
+    generateAIResponse(suggestion);
   };
-
-  // Scorrimento automatico verso l'ultimo messaggio
-  useEffect(() => {
+  
+  // Scorre alla fine della chat
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Caricamento iniziale dei suggerimenti
-  useEffect(() => {
-    // Imposta i suggerimenti predefiniti all'avvio
-    if (Array.isArray(predefinedSuggestions)) {
-      setSuggestions(predefinedSuggestions);
-    } else {
-      // Se per qualche motivo predefinedSuggestions non è un array, usa un array vuoto
-      setSuggestions([]);
-    }
-  }, []);
-
-  // Formattazione dell'orario
-  const formatTime = (timestamp) => {
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    } catch (error) {
-      console.error("Errore nella formattazione dell'orario:", error);
-      return "";
-    }
   };
+  
+  // Funzione per formattare la data
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+  
+  // Aggiorna i suggerimenti in base ai sintomi recenti
+  useEffect(() => {
+    if (loading) return;
+    
+    // Verifica che recentSymptoms sia un array prima di usare map
+    if (Array.isArray(recentSymptoms) && recentSymptoms.length > 0) {
+      const symptomSuggestions = [
+        `Come posso gestire il mio ${recentSymptoms[0].name.toLowerCase()}?`,
+        `È normale avere ${recentSymptoms[recentSymptoms.length - 1].name.toLowerCase()} per diversi giorni?`
+      ];
+      
+      setSuggestions(prevSuggestions => {
+        // Assicurati che prevSuggestions sia un array prima di usare slice
+        const baseSuggestions = Array.isArray(prevSuggestions) ? prevSuggestions.slice(0, 3) : [
+          "Come posso gestire il mio mal di testa?",
+          "Quali sono i sintomi dell'influenza?",
+          "Consigli per dormire meglio"
+        ];
+        
+        return [...baseSuggestions, ...symptomSuggestions];
+      });
+    }
+  }, [recentSymptoms, loading]);
 
   return (
-    <div className="ai-assistant-container">
-      <div className="assistant-header">
-        <h1 className="page-title">Assistente Virtuale</h1>
-      </div>
+    <div className="ai-assistant">
+      <header className="assistant-header">
+        <h2>Assistente Salus</h2>
+        <p className="assistant-subtitle">Risposte immediate alle tue domande sulla salute</p>
+      </header>
       
-      <div className="chat-container">
-        <div className="messages-container">
-          {showWelcome && messages.length === 0 && (
-            <div className="welcome-message">
-              <div className="assistant-avatar">
-                <i className="fas fa-robot"></i>
-              </div>
-              <div className="welcome-content">
-                <h2>Ciao, sono il tuo assistente virtuale!</h2>
-                <p>Sono qui per rispondere alle tue domande sulla salute e il benessere. Non sono un medico, ma posso fornirti informazioni generali e consigli utili.</p>
-                <p>Come posso aiutarti oggi?</p>
-              </div>
-            </div>
-          )}
-          
-          {messages && messages.length > 0 && messages.map((message, index) => (
-            <div 
-              key={index} 
-              className={`message ${message.sender === 'user' ? 'user-message' : 'ai-message'}`}
-            >
-              {message.sender === 'ai' && (
-                <div className="message-avatar">
-                  <i className="fas fa-robot"></i>
+      {loading ? (
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Inizializzazione dell'assistente...</p>
+        </div>
+      ) : error ? (
+        <div className="error-state">
+          <i className="fas fa-exclamation-triangle"></i>
+          <p>{error}</p>
+        </div>
+      ) : (
+        <>
+          <div className="chat-container">
+            <div className="messages">
+              {messages.map(message => (
+                <div 
+                  key={message.id} 
+                  className={`message ${message.sender}`}
+                >
+                  <div className="message-content">
+                    {message.text.split('\n').map((line, index) => (
+                      <React.Fragment key={index}>
+                        {line}
+                        {index < message.text.split('\n').length - 1 && <br />}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  <div className="message-timestamp">
+                    {formatTimestamp(message.timestamp)}
+                  </div>
                 </div>
-              )}
-              <div className="message-content">
-                <div className="message-text">{message.text}</div>
-                <div className="message-time">{formatTime(message.timestamp)}</div>
-              </div>
-              {message.sender === 'user' && (
-                <div className="message-avatar user">
-                  <i className="fas fa-user"></i>
-                </div>
-              )}
-            </div>
-          ))}
-          
-          {isTyping && (
-            <div className="message ai-message">
-              <div className="message-avatar">
-                <i className="fas fa-robot"></i>
-              </div>
-              <div className="message-content">
+              ))}
+              
+              {isTyping && (
                 <div className="typing-indicator">
-                  <span></span>
-                  <span></span>
-                  <span></span>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
                 </div>
-              </div>
+              )}
+              
+              <div ref={messagesEndRef}></div>
             </div>
-          )}
-          
-          <div ref={messagesEndRef}></div>
-        </div>
-        
-        <div className="suggestions-container">
-          <h3>Suggerimenti</h3>
-          <div className="suggestions-list">
-            {suggestions && suggestions.length > 0 && suggestions.map((suggestion, index) => (
-              <button 
-                key={index} 
-                className="suggestion-btn"
-                onClick={() => handleSuggestionClick(suggestion)}
+            
+            <div className="suggestions-container">
+              {suggestions.map((suggestion, index) => (
+                <button 
+                  key={index}
+                  className="suggestion-chip"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+            
+            <form className="input-container" onSubmit={sendMessage}>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Fai una domanda sulla salute..."
                 disabled={isTyping}
+              />
+              <button 
+                type="submit" 
+                disabled={!input.trim() || isTyping}
               >
-                {suggestion}
+                <i className="fas fa-paper-plane"></i>
               </button>
-            ))}
+            </form>
           </div>
-        </div>
-        
-        <form className="input-container" onSubmit={handleSendMessage}>
-          <input 
-            type="text" 
-            placeholder="Scrivi un messaggio..." 
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isTyping}
-          />
-          <button 
-            type="submit" 
-            className="send-btn"
-            disabled={input.trim() === '' || isTyping}
-          >
-            <i className="fas fa-paper-plane"></i>
-          </button>
-        </form>
-      </div>
-      
-      <div className="disclaimer">
-        <i className="fas fa-info-circle"></i>
-        <span>
-          Le informazioni fornite sono solo a scopo educativo e non sostituiscono
-          il parere medico professionale. Consulta sempre il tuo medico per decisioni 
-          relative alla tua salute.
-        </span>
-      </div>
+          
+          <div className="assistant-disclaimer">
+            <p><strong>Nota:</strong> Questo assistente fornisce informazioni generali sulla salute e non sostituisce la consulenza medica professionale. In caso di emergenza o problemi di salute seri, consulta un medico.</p>
+          </div>
+        </>
+      )}
     </div>
   );
 };
