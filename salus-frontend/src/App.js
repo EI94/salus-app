@@ -24,73 +24,13 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
 
-  // Dizionario di traduzioni
-  const translations = {
-    it: {
-      login: 'Accedi',
-      register: 'Registrati',
-      email: 'Email',
-      password: 'Password',
-      name: 'Nome',
-      symptoms: 'Sintomi',
-      wellness: 'Benessere',
-      medications: 'Farmaci',
-      assistant: 'Salus',
-      settings: 'Impostazioni',
-      darkMode: 'Modalità scura',
-      logout: 'Esci',
-      language: 'Lingua',
-      welcomeTitle: 'Benvenuto su Salus!',
-      welcomeMessage: 'Grazie per esserti registrato. Salus ti aiuterà a monitorare la tua salute.',
-      confirmEmail: 'Ti abbiamo inviato un\'email di conferma. Per favore, controlla la tua casella di posta.'
-    },
-    en: {
-      login: 'Login',
-      register: 'Register',
-      email: 'Email',
-      password: 'Password',
-      name: 'Name',
-      symptoms: 'Symptoms',
-      wellness: 'Wellness',
-      medications: 'Medications',
-      assistant: 'Salus',
-      settings: 'Settings',
-      darkMode: 'Dark mode',
-      logout: 'Logout',
-      language: 'Language',
-      welcomeTitle: 'Welcome to Salus!',
-      welcomeMessage: 'Thank you for registering. Salus will help you monitor your health.',
-      confirmEmail: 'We\'ve sent you a confirmation email. Please check your inbox.'
-    },
-    es: {
-      login: 'Iniciar sesión',
-      register: 'Registrarse',
-      email: 'Correo electrónico',
-      password: 'Contraseña',
-      name: 'Nombre',
-      symptoms: 'Síntomas',
-      wellness: 'Bienestar',
-      medications: 'Medicamentos',
-      assistant: 'Salus',
-      settings: 'Configuración',
-      darkMode: 'Modo oscuro',
-      logout: 'Cerrar sesión',
-      language: 'Idioma',
-      welcomeTitle: '¡Bienvenido a Salus!',
-      welcomeMessage: 'Gracias por registrarte. Salus te ayudará a monitorear tu salud.',
-      confirmEmail: 'Te hemos enviado un correo de confirmación. Por favor, revisa tu bandeja de entrada.'
-    }
-  };
+  const { t, i18n } = useTranslation();
 
-  // Funzione per ottenere le traduzioni nella lingua selezionata
-  const t = (key) => {
-    return translations[language]?.[key] || translations['it'][key] || key;
-  };
-
-  // Salva la lingua nelle preferenze
+  // Salva la lingua nelle preferenze e aggiorna i18n
   useEffect(() => {
     localStorage.setItem('language', language);
-  }, [language]);
+    i18n.changeLanguage(language);
+  }, [language, i18n]);
 
   // Controlla lo stato della connessione
   useEffect(() => {
@@ -166,7 +106,8 @@ function App() {
         return;
       }
       
-      await API.post('/auth/register', { name: username, email, password });
+      // Modifica l'endpoint per usare la versione corretta dell'API
+      await API.post('/user/register', { name: username, email, password });
       alert(t('confirmEmail'));
       setIsRegistering(false);
     } catch (error) {
@@ -184,7 +125,8 @@ function App() {
       
       console.log('Tentativo di login con:', { email });
       
-      const response = await API.post('/auth/login', { 
+      // Modifica l'endpoint per usare la versione corretta dell'API
+      const response = await API.post('/user/login', { 
         email, 
         password 
       });

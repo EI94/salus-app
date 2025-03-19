@@ -11,11 +11,13 @@
     "chart.js": "^4.4.1",
     "customize-cra": "^1.0.0",
     "date-fns": "^2.30.0",
+    "i18next": "^24.2.3",
     "react": "^18.2.0",
     "react-app-rewired": "^2.2.1",
     "react-calendar": "^4.8.0",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^15.4.1",
     "react-router-dom": "^6.22.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
@@ -29,7 +31,7 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "CI=false react-app-rewired build",
+    "build": "react-app-rewired build",
     "vercel-build": "CI=false npm run build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
