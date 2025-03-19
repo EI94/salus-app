@@ -1,0 +1,490 @@
+.home-container {
+  padding: 1.5rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.home-header {
+  margin-bottom: 2rem;
+}
+
+.home-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0284c7;
+  margin-bottom: 0.5rem;
+}
+
+.date-display {
+  color: #64748b;
+  font-size: 1rem;
+}
+
+/* Loading */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(2, 132, 199, 0.3);
+  border-radius: 50%;
+  border-top-color: #0284c7;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Statistiche */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  padding: 1.25rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-right: 1rem;
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-content h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Azioni rapide */
+.quick-actions-section {
+  margin-bottom: 2rem;
+}
+
+.quick-actions-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.quick-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background-color: #f0f9ff;
+}
+
+.quick-action-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.quick-action-card span {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Layout principale */
+.home-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.home-content-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.home-content-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Sintomi recenti */
+.recent-symptoms, .reminders {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.recent-symptoms h2, .reminders h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.symptoms-list, .reminders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.symptom-item, .reminder-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.symptom-item:hover, .reminder-item:hover {
+  background-color: #f1f5f9;
+}
+
+.symptom-intensity {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-right: 0.75rem;
+  color: #1f2937;
+}
+
+.symptom-details, .reminder-details {
+  flex: 1;
+}
+
+.symptom-name, .reminder-title {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.symptom-date, .reminder-time {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.symptom-action, .reminder-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.reminder-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+}
+
+.reminder-icon.medication {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.reminder-icon.appointment {
+  background-color: #d1fae5;
+  color: #059669;
+}
+
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: #e0f2fe;
+  color: #0284c7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background-color: #0284c7;
+  color: white;
+}
+
+.view-all-link, .view-trends-link, .ask-more-link {
+  display: block;
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  color: #0284c7;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.view-all-link:hover, .view-trends-link:hover, .ask-more-link:hover {
+  background-color: #f1f5f9;
+}
+
+/* Box informativi */
+.health-trends-box, .personalized-advice-box {
+  background-color: #e0f2fe;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.health-trends-box h3, .personalized-advice-box h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0c4a6e;
+  margin-bottom: 1rem;
+}
+
+.health-trends-box p, .personalized-advice-box p {
+  color: #1e3a8a;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.trends-chart {
+  height: 150px;
+  margin: 1rem 0;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.empty-list {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.empty-list p {
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  background-color: #0284c7;
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #0369a1;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .home-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .loading-state, .stat-card, .quick-action-card, .recent-symptoms, .reminders {
+    background-color: #1f2937;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  }
+  
+  .home-header h1 {
+    color: #38bdf8;
+  }
+  
+  .date-display {
+    color: #9ca3af;
+  }
+  
+  .stat-icon {
+    background-color: #082f49;
+    color: #38bdf8;
+  }
+  
+  .stat-content h3 {
+    color: #9ca3af;
+  }
+  
+  .stat-value {
+    color: #e5e7eb;
+  }
+  
+  .quick-actions-header {
+    color: #e5e7eb;
+  }
+  
+  .quick-action-card:hover {
+    background-color: #111827;
+  }
+  
+  .quick-action-icon {
+    background-color: #082f49;
+    color: #38bdf8;
+  }
+  
+  .quick-action-card span {
+    color: #e5e7eb;
+  }
+  
+  .symptom-item, .reminder-item {
+    background-color: #374151;
+  }
+  
+  .symptom-item:hover, .reminder-item:hover {
+    background-color: #4b5563;
+  }
+  
+  .symptom-name, .reminder-title {
+    color: #e5e7eb;
+  }
+  
+  .symptom-date, .reminder-time {
+    color: #9ca3af;
+  }
+  
+  .btn-icon {
+    background-color: #082f49;
+    color: #38bdf8;
+  }
+  
+  .btn-icon:hover {
+    background-color: #38bdf8;
+    color: #082f49;
+  }
+  
+  .view-all-link, .view-trends-link, .ask-more-link {
+    background-color: #374151;
+    color: #38bdf8;
+  }
+  
+  .view-all-link:hover, .view-trends-link:hover, .ask-more-link:hover {
+    background-color: #4b5563;
+  }
+  
+  .health-trends-box, .personalized-advice-box {
+    background-color: #1e40af;
+  }
+  
+  .health-trends-box h3, .personalized-advice-box h3 {
+    color: #bfdbfe;
+  }
+  
+  .health-trends-box p, .personalized-advice-box p {
+    color: #dbeafe;
+  }
+  
+  .trends-chart {
+    background-color: rgba(30, 41, 59, 0.5);
+    color: #9ca3af;
+  }
+  
+  .empty-list p {
+    color: #9ca3af;
+  }
+  
+  .btn-primary {
+    background-color: #0284c7;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0369a1;
+  }
+} 

@@ -163,10 +163,11 @@ a:hover {
   color: inherit;
 }
 
-.app-logo img {
-  height: 40px; /* Ridotto da un valore più grande */
+.app-logo img, .auth-logo img, .login-logo img, .register-logo img {
+  height: 32px; /* Dimensione ridotta per tutti i logo */
   width: auto;
   margin-right: 0.75rem;
+  object-fit: contain;
 }
 
 .nav-links {
@@ -200,18 +201,21 @@ a:hover {
   gap: 1rem;
 }
 
-.user-profile {
+.user-profile, .notification-icon, .logout-icon {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
   padding: 0.5rem;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  background-color: #f1f5f9;
+  width: 40px;
+  height: 40px;
 }
 
-.user-profile:hover {
-  background-color: #f1f5f9;
+.user-profile:hover, .notification-icon:hover, .logout-icon:hover {
+  background-color: #e2e8f0;
 }
 
 .user-avatar {
@@ -273,14 +277,50 @@ a:hover {
   color: #0284c7;
 }
 
+/* Navigazione inferiore mobile */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem 0;
+  z-index: 100;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  padding: 0.5rem;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.bottom-nav-item i {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.bottom-nav-item.active {
+  color: #0284c7;
+}
+
+.bottom-nav-item:hover {
+  color: #0284c7;
+}
+
 /* Media Queries */
 @media (max-width: 768px) {
   .navbar {
     padding: 0.5rem;
-  }
-  
-  .app-logo img {
-    height: 32px; /* Ulteriormente ridotto su mobile */
   }
   
   .nav-links {
@@ -321,7 +361,7 @@ a:hover {
     color: #e5e7eb;
   }
   
-  .navbar {
+  .navbar, .bottom-nav {
     background-color: #1f2937;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
@@ -340,8 +380,12 @@ a:hover {
     background-color: #075985;
   }
   
-  .user-profile:hover {
+  .user-profile, .notification-icon, .logout-icon {
     background-color: #374151;
+  }
+  
+  .user-profile:hover, .notification-icon:hover, .logout-icon:hover {
+    background-color: #4b5563;
   }
   
   .user-avatar {
@@ -374,6 +418,20 @@ a:hover {
   .mobile-menu-open .nav-links {
     background-color: #1f2937;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  }
+  
+  .bottom-nav {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+  
+  .bottom-nav-item {
+    color: #9ca3af;
+  }
+  
+  .bottom-nav-item.active,
+  .bottom-nav-item:hover {
+    color: #38bdf8;
   }
 }
 
@@ -414,6 +472,31 @@ a:hover {
   justify-content: flex-end;
   padding-top: var(--space-md);
   border-top: 1px solid var(--gray-100);
+}
+
+/* Home page styles */
+.quick-actions-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937; /* Scuro su sfondo chiaro per maggiore contrasto */
+  margin-bottom: 1rem;
+}
+
+.health-trends-box, .personalized-advice-box {
+  background-color: #e0f2fe; /* Sfondo più chiaro */
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.health-trends-box h3, .personalized-advice-box h3 {
+  color: #0c4a6e; /* Testo più scuro per contrasto */
+  margin-bottom: 0.75rem;
+}
+
+.health-trends-box p, .personalized-advice-box p {
+  color: #1e3a8a; /* Blu scuro per maggior contrasto sul sfondo chiaro */
+  line-height: 1.5;
 }
 
 /* Form elements */
@@ -594,6 +677,77 @@ a:hover {
   color: var(--red-700);
 }
 
+/* Login & Registrazione */
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background-color: #f9fafb;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.auth-logo, .login-logo, .register-logo {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.auth-form .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.auth-form .btn-submit {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.auth-footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.auth-footer a {
+  color: #0284c7;
+  font-weight: 500;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
 /* Utilità */
 .text-center {
   text-align: center;
@@ -699,5 +853,37 @@ a:hover {
 
   .onboarding-container {
     background: linear-gradient(135deg, var(--gray-900), var(--gray-800));
+  }
+  
+  .auth-container {
+    background-color: #111827;
+  }
+  
+  .auth-card {
+    background-color: #1f2937;
+  }
+  
+  .auth-title {
+    color: #e5e7eb;
+  }
+  
+  .auth-subtitle, .auth-footer {
+    color: #9ca3af;
+  }
+  
+  .quick-actions-header {
+    color: #e5e7eb; /* Chiaro su sfondo scuro per contrasto in dark mode */
+  }
+  
+  .health-trends-box, .personalized-advice-box {
+    background-color: #1e40af; /* Blu scuro in dark mode */
+  }
+  
+  .health-trends-box h3, .personalized-advice-box h3 {
+    color: #bfdbfe; /* Celeste chiaro per contrasto */
+  }
+  
+  .health-trends-box p, .personalized-advice-box p {
+    color: #dbeafe; /* Azzurro chiaro per contrasto su sfondo scuro */
   }
 } 

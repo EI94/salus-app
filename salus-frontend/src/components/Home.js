@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/Home.css';
+import './Home.css';
 
 const Home = ({ userId, userName }) => {
   // Stato per i dati dell'utente
@@ -30,58 +30,20 @@ const Home = ({ userId, userName }) => {
         setStats({
           totalSymptoms: 12,
           activeMedications: 3,
-          wellnessScore: 85,
+          wellnessScore: 75,
           aiInteractions: 5
         });
 
         // Sintomi recenti
         setRecentSymptoms([
-          {
-            id: '1',
-            name: 'Mal di testa',
-            severity: 'medium',
-            time: '2 ore fa',
-            duration: '45 minuti'
-          },
-          {
-            id: '2',
-            name: 'Vertigini',
-            severity: 'low',
-            time: 'Ieri',
-            duration: '10 minuti'
-          },
-          {
-            id: '3',
-            name: 'Dolore articolare',
-            severity: 'high',
-            time: 'Ieri',
-            duration: '3 ore'
-          }
+          { id: 1, name: 'Mal di testa', intensity: 3, date: '2023-07-15' },
+          { id: 2, name: 'Dolore alla schiena', intensity: 4, date: '2023-07-14' }
         ]);
 
         // Promemoria
         setReminders([
-          {
-            id: '1',
-            type: 'medication',
-            title: 'Tachipirina',
-            time: '08:00',
-            date: new Date().toLocaleDateString()
-          },
-          {
-            id: '2',
-            type: 'appointment',
-            title: 'Visita dal medico',
-            time: '15:30',
-            date: new Date(Date.now() + 86400000).toLocaleDateString()
-          },
-          {
-            id: '3',
-            type: 'task',
-            title: 'Aggiorna dati pressione',
-            time: '20:00',
-            date: new Date().toLocaleDateString()
-          }
+          { id: 1, title: 'Paracetamolo', time: '08:00', type: 'medication' },
+          { id: 2, title: 'Visita cardiologica', time: '14:30', type: 'appointment', date: '2023-07-22' }
         ]);
 
         setLoading(false);
@@ -96,24 +58,33 @@ const Home = ({ userId, userName }) => {
 
   // Funzione per determinare il colore in base al punteggio di benessere
   const getWellnessColor = (score) => {
-    if (score >= 80) return '#10b981';
-    if (score >= 60) return '#f59e0b';
-    return '#ef4444';
+    if (score >= 80) return '#10b981'; // Verde
+    if (score >= 60) return '#0ea5e9'; // Blu
+    if (score >= 40) return '#f59e0b'; // Arancione
+    return '#ef4444'; // Rosso
   };
 
-  // Funzione per determinare il colore in base alla gravità
-  const getSeverityColor = (severity) => {
-    switch (severity) {
-      case 'low': return 'severity-low';
-      case 'medium': return 'severity-medium';
-      case 'high': return 'severity-high';
-      default: return 'severity-low';
+  // Funzione per determinare il colore in base all'intensità del sintomo
+  const getIntensityColor = (intensity) => {
+    switch (intensity) {
+      case 1: return '#c8e6c9'; // Verde chiaro
+      case 2: return '#ffecb3'; // Giallo chiaro
+      case 3: return '#ffcc80'; // Arancione chiaro
+      case 4: return '#ffab91'; // Arancione scuro
+      case 5: return '#ef9a9a'; // Rosso chiaro
+      default: return '#e0e0e0';
     }
   };
 
-  // Formattazione data e ora
-  const formatDateTime = (time, date) => {
-    return `${time} - ${date}`;
+  // Formattazione della data
+  const formatDate = (dateString) => {
+    const options = { day: 'numeric', month: 'long' };
+    return new Date(dateString).toLocaleDateString('it-IT', options);
+  };
+
+  // Formattazione dell'ora
+  const formatTime = (timeString) => {
+    return timeString;
   };
 
   return (
@@ -142,188 +113,184 @@ const Home = ({ userId, userName }) => {
       {/* Statistiche */}
       <section className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon stat-symptoms">
-            <i className="fas fa-heartbeat"></i>
+          <div className="stat-icon">
+            <i className="fas fa-clipboard-list"></i>
           </div>
-          <div className="stat-label">Sintomi totali</div>
-          <div className="stat-value">{stats.totalSymptoms}</div>
+          <div className="stat-content">
+            <h3>Sintomi Totali</h3>
+            <div className="stat-value">{stats.totalSymptoms}</div>
+          </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon stat-medications">
+          <div className="stat-icon">
             <i className="fas fa-pills"></i>
           </div>
-          <div className="stat-label">Farmaci attivi</div>
-          <div className="stat-value">{stats.activeMedications}</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon stat-wellness">
-            <i className="fas fa-smile"></i>
-          </div>
-          <div className="stat-label">Livello benessere</div>
-          <div className="stat-value" style={{ color: getWellnessColor(stats.wellnessScore) }}>
-            {stats.wellnessScore}%
+          <div className="stat-content">
+            <h3>Farmaci Attivi</h3>
+            <div className="stat-value">{stats.activeMedications}</div>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon stat-ai">
+          <div className="stat-icon">
+            <i className="fas fa-heartbeat"></i>
+          </div>
+          <div className="stat-content">
+            <h3>Punteggio Benessere</h3>
+            <div className="stat-value" style={{ color: getWellnessColor(stats.wellnessScore) }}>
+              {stats.wellnessScore}%
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">
             <i className="fas fa-robot"></i>
           </div>
-          <div className="stat-label">Interazioni AI</div>
-          <div className="stat-value">{stats.aiInteractions}</div>
+          <div className="stat-content">
+            <h3>Interazioni IA</h3>
+            <div className="stat-value">{stats.aiInteractions}</div>
+          </div>
         </div>
       </section>
 
       {/* Azioni rapide */}
       <section className="quick-actions-section">
-        <h2 className="section-title">
-          <i className="fas fa-bolt"></i> Azioni rapide
-        </h2>
+        <h2 className="quick-actions-header">Azioni Rapide</h2>
         <div className="quick-actions-grid">
-          <Link to="/symptoms" className="quick-action-card">
-            <div className="quick-action-icon quick-action-symptoms">
-              <i className="fas fa-heartbeat"></i>
+          <Link to="/symptoms/add" className="quick-action-card">
+            <div className="quick-action-icon">
+              <i className="fas fa-plus-circle"></i>
             </div>
-            <h3 className="quick-action-title">Sintomi</h3>
-            <p className="quick-action-desc">Registra e monitora i tuoi sintomi</p>
+            <span>Registra Sintomo</span>
           </Link>
 
-          <Link to="/medications" className="quick-action-card">
-            <div className="quick-action-icon quick-action-medications">
-              <i className="fas fa-pills"></i>
+          <Link to="/medications/add" className="quick-action-card">
+            <div className="quick-action-icon">
+              <i className="fas fa-capsules"></i>
             </div>
-            <h3 className="quick-action-title">Farmaci</h3>
-            <p className="quick-action-desc">Gestisci le tue medicine</p>
+            <span>Aggiungi Farmaco</span>
           </Link>
 
-          <Link to="/wellness" className="quick-action-card">
-            <div className="quick-action-icon quick-action-wellness">
-              <i className="fas fa-smile"></i>
+          <Link to="/wellness/track" className="quick-action-card">
+            <div className="quick-action-icon">
+              <i className="fas fa-chart-line"></i>
             </div>
-            <h3 className="quick-action-title">Benessere</h3>
-            <p className="quick-action-desc">Traccia umore, sonno e stress</p>
+            <span>Traccia Benessere</span>
           </Link>
 
           <Link to="/assistant" className="quick-action-card">
-            <div className="quick-action-icon quick-action-ai">
-              <i className="fas fa-robot"></i>
+            <div className="quick-action-icon">
+              <i className="fas fa-comment-medical"></i>
             </div>
-            <h3 className="quick-action-title">Assistente AI</h3>
-            <p className="quick-action-desc">Consulta l'assistente virtuale</p>
+            <span>Consulta Assistente</span>
           </Link>
         </div>
       </section>
 
       {/* Dashboard principale */}
-      <div className="dashboard-row">
-        {/* Sintomi recenti */}
-        <div className="dashboard-card">
-          <div className="card-header">
-            <h2 className="card-title">
-              <i className="fas fa-history"></i> Sintomi recenti
-            </h2>
-            <span className="card-action">
-              Vedi tutti <i className="fas fa-arrow-right"></i>
-            </span>
+      <div className="home-content">
+        {/* Sintomi recenti e Promemoria */}
+        <div className="home-content-left">
+          {/* Sintomi recenti */}
+          <div className="recent-symptoms">
+            <h2>Sintomi Recenti</h2>
+            {recentSymptoms.length > 0 ? (
+              <div className="symptoms-list">
+                {recentSymptoms.map(symptom => (
+                  <div key={symptom.id} className="symptom-item">
+                    <div 
+                      className="symptom-intensity"
+                      style={{ backgroundColor: getIntensityColor(symptom.intensity) }}
+                    >
+                      {symptom.intensity}
+                    </div>
+                    <div className="symptom-details">
+                      <div className="symptom-name">{symptom.name}</div>
+                      <div className="symptom-date">{formatDate(symptom.date)}</div>
+                    </div>
+                    <Link to={`/symptoms/${symptom.id}`} className="symptom-action">
+                      <i className="fas fa-chevron-right"></i>
+                    </Link>
+                  </div>
+                ))}
+                <Link to="/symptoms" className="view-all-link">
+                  Vedi tutti i sintomi <i className="fas fa-arrow-right"></i>
+                </Link>
+              </div>
+            ) : (
+              <div className="empty-list">
+                <p>Nessun sintomo registrato recentemente</p>
+                <Link to="/symptoms/add" className="btn-primary">
+                  Registra un sintomo
+                </Link>
+              </div>
+            )}
           </div>
           
-          {loading ? (
-            <p>Caricamento sintomi recenti...</p>
-          ) : recentSymptoms.length > 0 ? (
-            <div>
-              {recentSymptoms.map(symptom => (
-                <div key={symptom.id} className="symptom-item">
-                  <div className={`symptom-severity ${getSeverityColor(symptom.severity)}`}></div>
-                  <div className="symptom-info">
-                    <div className="symptom-name">{symptom.name}</div>
-                    <div className="symptom-meta">
-                      <span className="symptom-time">{symptom.time}</span>
-                      <span className="symptom-duration">
-                        <i className="fas fa-clock"></i> {symptom.duration}
-                      </span>
+          {/* Promemoria */}
+          <div className="reminders">
+            <h2>Promemoria</h2>
+            {reminders.length > 0 ? (
+              <div className="reminders-list">
+                {reminders.map(reminder => (
+                  <div key={reminder.id} className="reminder-item">
+                    <div className={`reminder-icon ${reminder.type}`}>
+                      <i className={`fas ${reminder.type === 'medication' ? 'fa-pills' : 'fa-calendar-check'}`}></i>
+                    </div>
+                    <div className="reminder-details">
+                      <div className="reminder-title">{reminder.title}</div>
+                      <div className="reminder-time">
+                        {reminder.type === 'appointment' && reminder.date && `${formatDate(reminder.date)} - `}
+                        {formatTime(reminder.time)}
+                      </div>
+                    </div>
+                    <div className="reminder-action">
+                      <button className="btn-icon" aria-label="Contrassegna come completato">
+                        <i className="fas fa-check"></i>
+                      </button>
                     </div>
                   </div>
-                  <div className="symptom-actions">
-                    <button className="symptom-button">
-                      <i className="fas fa-info-circle"></i>
-                    </button>
-                    <button className="symptom-button">
-                      <i className="fas fa-edit"></i>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>Non hai registrato sintomi recentemente.</p>
-          )}
+                ))}
+                <Link to="/reminders" className="view-all-link">
+                  Gestisci promemoria <i className="fas fa-arrow-right"></i>
+                </Link>
+              </div>
+            ) : (
+              <div className="empty-list">
+                <p>Nessun promemoria impostato</p>
+                <Link to="/reminders/add" className="btn-primary">
+                  Aggiungi promemoria
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Promemoria */}
-        <div className="dashboard-card">
-          <div className="card-header">
-            <h2 className="card-title">
-              <i className="fas fa-calendar-check"></i> Promemoria
-            </h2>
-            <span className="card-action">
-              Nuovo <i className="fas fa-plus"></i>
-            </span>
+        
+        {/* Tendenze e consigli */}
+        <div className="home-content-right">
+          {/* Tendenze salute */}
+          <div className="health-trends-box">
+            <h3>Tendenze Salute</h3>
+            <p>I tuoi sintomi principali questa settimana sono legati a mal di testa e dolori muscolari. Ci sono stati miglioramenti nei valori della pressione sanguigna rispetto alla settimana precedente.</p>
+            <div className="trends-chart">
+              {/* Qui potrebbe essere inserito un grafico */}
+            </div>
+            <Link to="/analytics" className="view-trends-link">
+              Visualizza grafici dettagliati <i className="fas fa-chart-bar"></i>
+            </Link>
           </div>
           
-          {loading ? (
-            <p>Caricamento promemoria...</p>
-          ) : reminders.length > 0 ? (
-            <div>
-              {reminders.map(reminder => (
-                <div 
-                  key={reminder.id} 
-                  className={`reminder-item reminder-${reminder.type}`}
-                >
-                  <div className="reminder-title">{reminder.title}</div>
-                  <div className="reminder-time">
-                    <i className="fas fa-clock"></i> 
-                    {formatDateTime(reminder.time, reminder.date)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>Non hai promemoria attivi.</p>
-          )}
-        </div>
-      </div>
-
-      {/* Tendenze salute */}
-      <div className="dashboard-card mb-4">
-        <div className="card-header">
-          <h2 className="card-title">
-            <i className="fas fa-chart-line"></i> Tendenze salute
-          </h2>
-          <span className="card-action">
-            Personalizza <i className="fas fa-cog"></i>
-          </span>
-        </div>
-        <div style={{ height: "200px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <p>Grafico delle tendenze di salute - Prossimamente</p>
-        </div>
-      </div>
-
-      {/* Consigli personalizzati */}
-      <div className="dashboard-card">
-        <div className="card-header">
-          <h2 className="card-title">
-            <i className="fas fa-lightbulb"></i> Consigli personalizzati
-          </h2>
-        </div>
-        <div>
-          <p>In base ai tuoi dati recenti, ecco alcuni consigli:</p>
-          <ul style={{ marginTop: "1rem", marginLeft: "1.5rem" }}>
-            <li style={{ marginBottom: "0.5rem" }}>Aumenta il consumo di acqua per alleviare i mal di testa</li>
-            <li style={{ marginBottom: "0.5rem" }}>Continua a prendere i tuoi farmaci regolarmente</li>
-            <li style={{ marginBottom: "0.5rem" }}>Prova tecniche di rilassamento per ridurre lo stress</li>
-          </ul>
+          {/* Consigli personalizzati */}
+          <div className="personalized-advice-box">
+            <h3>Consigli Personalizzati</h3>
+            <p>Basandoci sui tuoi dati, ti consigliamo di mantenere una routine regolare di sonno e di fare attenzione all'assunzione di caffeina, che potrebbe contribuire ai mal di testa.</p>
+            <p>Considera di consultare uno specialista se i sintomi persistono oltre una settimana.</p>
+            <Link to="/assistant" className="ask-more-link">
+              Chiedi all'assistente virtuale <i className="fas fa-robot"></i>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
