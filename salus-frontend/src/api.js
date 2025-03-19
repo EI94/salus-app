@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL di base dell'API: usa l'URL di produzione se disponibile, altrimenti localhost
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 // Configura l'istanza di axios
 const API = axios.create({
@@ -9,7 +9,8 @@ const API = axios.create({
   timeout: 15000, // 15 secondi di timeout
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true // Importante per CORS con credenziali
 });
 
 // Intercettore di richieste

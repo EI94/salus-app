@@ -4,7 +4,9 @@ const cors = require('cors');
 const allowedOrigins = [
   'http://localhost:3000',
   'https://salus-frontend.vercel.app', // Cambia con il tuo dominio di produzione
-  'https://salus-app.vercel.app'       // Aggiungi altri domini se necessario
+  'https://salus-app.vercel.app',       // Aggiungi altri domini se necessario
+  'https://www.wearesalusapp.com',       // Dominio principale
+  'https://wearesalusapp.com'             // Senza www
 ];
 
 // Opzioni di configurazione CORS
@@ -17,6 +19,7 @@ const corsOptions = {
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log(`Origin bloccato: ${origin}`);
       callback(new Error('Non consentito da CORS'));
     }
   },
