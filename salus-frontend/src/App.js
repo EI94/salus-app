@@ -107,8 +107,8 @@ function App() {
         return;
       }
       
-      // Modifica l'endpoint per usare la versione corretta dell'API
-      await API.post('/user/register', { name: name, email: emailValue, password: passwordValue });
+      // Utilizzo l'endpoint corretto per la registrazione
+      await API.post('/auth/register', { name: name, email: emailValue, password: passwordValue });
       alert(t('confirmEmail'));
       setIsRegistering(false);
     } catch (error) {
@@ -127,7 +127,8 @@ function App() {
       
       console.log('Tentativo di login con:', { email: emailValue });
       
-      const response = await API.post('/user/login', { 
+      // Utilizzo l'endpoint corretto per il login
+      const response = await API.post('/auth/login', { 
         email: emailValue, 
         password: passwordValue 
       });
@@ -139,6 +140,11 @@ function App() {
       setUserId(userId);
       localStorage.setItem('userId', userId);
       localStorage.setItem('userName', name);
+      
+      // Salva il token se presente nella risposta
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
       
       // Reset dei campi
       setEmail('');
@@ -157,6 +163,8 @@ function App() {
           errorMessage = 'Non autorizzato. Verifica le tue credenziali.';
         } else if (error.response.status === 404) {
           errorMessage = 'Utente non trovato';
+        } else if (error.response.status === 405) {
+          errorMessage = 'Errore del server: metodo non consentito. Contattare l\'assistenza.';
         } else if (error.response.data && error.response.data.message) {
           errorMessage = error.response.data.message;
         }

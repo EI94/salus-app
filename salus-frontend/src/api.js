@@ -20,6 +20,9 @@ const API = axios.create({
 // Interceptor per aggiungere il token di autenticazione alle richieste
 API.interceptors.request.use(
   config => {
+    // Log dell'URL per debug
+    console.log('API Request URL:', config.baseURL + config.url);
+    
     const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
