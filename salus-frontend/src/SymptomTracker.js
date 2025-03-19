@@ -94,37 +94,11 @@ function SymptomTracker({ userId }) {
     setLoading(true);
     setError(null);
     try {
-      // In modalità demo, usa dati di esempio
-      if (userId.startsWith('temp-') || userId.startsWith('user_')) {
-        console.log('Modalità demo: uso dati di esempio per i sintomi');
-        const mockSymptoms = generateMockSymptoms();
-        setSymptoms(mockSymptoms);
-        setFilteredSymptoms(mockSymptoms);
-        return;
-      }
-      
-      // Altrimenti, fai la chiamata API
       const response = await API.get(`/symptoms/${userId}`);
-      console.log('Sintomi caricati:', response.data);
-      
-      // Verifica che response.data sia un array prima di usare filter
-      const symptomsData = Array.isArray(response.data) ? response.data : [];
-      
-      setSymptoms(symptomsData);
-      // Applica eventuali filtri esistenti
-      if (searchTerm) {
-        setFilteredSymptoms(symptomsData.filter(s => 
-          s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (s.description && s.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        ));
-      } else {
-        setFilteredSymptoms(symptomsData);
-      }
+      setSymptoms(response.data);
+      setFilteredSymptoms(response.data);
     } catch (error) {
       console.error('Errore nel caricamento dei sintomi:', error);
-      // In caso di errore, inizializza con array vuoti
-      setSymptoms([]);
-      setFilteredSymptoms([]);
       setError('Impossibile caricare i sintomi. Riprova più tardi.');
     } finally {
       setLoading(false);
@@ -434,51 +408,226 @@ function SymptomTracker({ userId }) {
     );
   };
 
-  // Genera dati di esempio per la modalità demo
-  const generateMockSymptoms = () => {
-    return [
-      {
-        id: 'mock-1',
-        name: 'Mal di testa',
-        severity: 3,
-        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        description: 'Dolore pulsante alla tempia destra'
-      },
-      {
-        id: 'mock-2',
-        name: 'Tosse',
-        severity: 2,
-        date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        description: 'Tosse secca, soprattutto di notte'
-      },
-      {
-        id: 'mock-3',
-        name: 'Mal di gola',
-        severity: 2,
-        date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        description: 'Lieve dolore quando deglutisco'
-      },
-      {
-        id: 'mock-4',
-        name: 'Stanchezza',
-        severity: 4,
-        date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-        description: 'Sensazione di spossatezza durante il giorno'
-      },
-      {
-        id: 'mock-5',
-        name: 'Mal di schiena',
-        severity: 3,
-        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        description: 'Dolore nella parte bassa della schiena'
-      }
-    ];
+  const styles = {
+    container: {
+      padding: 'var(--space-4)',
+      maxWidth: '800px',
+      margin: '0 auto'
+    },
+    heading: {
+      color: 'var(--primary-700)',
+      borderBottom: '2px solid var(--primary-500)',
+      paddingBottom: 'var(--space-3)',
+      marginBottom: 'var(--space-4)',
+      fontSize: 'var(--font-size-2xl)',
+      fontWeight: '700'
+    },
+    form: {
+      backgroundColor: 'var(--white)',
+      padding: 'var(--space-6)',
+      borderRadius: 'var(--radius-lg)',
+      marginTop: 'var(--space-4)',
+      marginBottom: 'var(--space-6)',
+      boxShadow: 'var(--shadow-md)',
+      border: '1px solid var(--gray-100)'
+    },
+    formGroup: {
+      marginBottom: 'var(--space-4)'
+    },
+    label: {
+      display: 'block',
+      marginBottom: 'var(--space-2)',
+      fontWeight: '600',
+      color: 'var(--gray-700)'
+    },
+    input: {
+      width: '100%',
+      padding: 'var(--space-3)',
+      borderRadius: 'var(--radius-md)',
+      border: '1px solid var(--gray-300)',
+      fontSize: 'var(--font-size-base)',
+      transition: 'all 0.2s',
+      backgroundColor: 'var(--white)'
+    },
+    select: {
+      width: '100%',
+      padding: 'var(--space-3)',
+      borderRadius: 'var(--radius-md)',
+      border: '1px solid var(--gray-300)',
+      fontSize: 'var(--font-size-base)',
+      transition: 'all 0.2s',
+      backgroundColor: 'var(--white)'
+    },
+    textarea: {
+      width: '100%',
+      padding: 'var(--space-3)',
+      borderRadius: 'var(--radius-md)',
+      border: '1px solid var(--gray-300)',
+      fontSize: 'var(--font-size-base)',
+      transition: 'all 0.2s',
+      minHeight: '100px',
+      resize: 'vertical',
+      backgroundColor: 'var(--white)'
+    },
+    button: {
+      backgroundColor: 'var(--primary-600)',
+      color: 'white',
+      border: 'none',
+      padding: 'var(--space-3) var(--space-6)',
+      borderRadius: 'var(--radius-md)',
+      fontSize: 'var(--font-size-base)',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.2s'
+    },
+    buttonHover: {
+      backgroundColor: 'var(--primary-700)',
+      transform: 'translateY(-2px)',
+      boxShadow: 'var(--shadow-md)'
+    },
+    intensitySlider: {
+      width: '100%',
+      marginTop: 'var(--space-2)',
+      marginBottom: 'var(--space-2)'
+    },
+    symptomItem: {
+      backgroundColor: 'var(--white)',
+      padding: 'var(--space-4)',
+      borderRadius: 'var(--radius-lg)',
+      marginBottom: 'var(--space-3)',
+      boxShadow: 'var(--shadow-sm)',
+      border: '1px solid var(--gray-100)',
+      transition: 'all 0.2s'
+    },
+    symptomItemHover: {
+      transform: 'translateY(-2px)',
+      boxShadow: 'var(--shadow-md)'
+    },
+    symptomHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 'var(--space-2)',
+      paddingBottom: 'var(--space-2)',
+      borderBottom: '1px solid var(--gray-200)'
+    },
+    symptomTitle: {
+      fontSize: 'var(--font-size-lg)',
+      fontWeight: '600',
+      color: 'var(--gray-800)',
+      margin: '0'
+    },
+    symptomDate: {
+      fontSize: 'var(--font-size-sm)',
+      color: 'var(--gray-500)'
+    },
+    symptomDetails: {
+      fontSize: 'var(--font-size-base)',
+      color: 'var(--gray-700)',
+      marginTop: 'var(--space-2)'
+    },
+    intensityBadge: {
+      display: 'inline-block',
+      padding: 'var(--space-1) var(--space-2)',
+      borderRadius: 'var(--radius-full)',
+      fontWeight: '600',
+      fontSize: 'var(--font-size-sm)',
+      textAlign: 'center',
+      marginRight: 'var(--space-2)'
+    },
+    intensityLow: {
+      backgroundColor: '#dcfce7',
+      color: '#16a34a'
+    },
+    intensityMedium: {
+      backgroundColor: '#fef9c3',
+      color: '#ca8a04'
+    },
+    intensityHigh: {
+      backgroundColor: '#fee2e2',
+      color: '#dc2626'
+    },
+    chartContainer: {
+      backgroundColor: 'var(--white)',
+      padding: 'var(--space-4)',
+      borderRadius: 'var(--radius-lg)',
+      marginTop: 'var(--space-6)',
+      marginBottom: 'var(--space-6)',
+      boxShadow: 'var(--shadow-md)',
+      border: '1px solid var(--gray-100)'
+    },
+    chartTitle: {
+      fontSize: 'var(--font-size-lg)',
+      fontWeight: '600',
+      color: 'var(--gray-800)',
+      marginBottom: 'var(--space-4)',
+      paddingBottom: 'var(--space-2)',
+      borderBottom: '1px solid var(--gray-200)'
+    },
+    tabs: {
+      display: 'flex',
+      borderBottom: '1px solid var(--gray-200)',
+      marginBottom: 'var(--space-4)'
+    },
+    tab: {
+      padding: 'var(--space-3) var(--space-4)',
+      cursor: 'pointer',
+      borderBottom: '2px solid transparent',
+      fontWeight: '500',
+      color: 'var(--gray-600)',
+      transition: 'all 0.2s'
+    },
+    activeTab: {
+      borderBottom: '2px solid var(--primary-600)',
+      color: 'var(--primary-600)',
+      fontWeight: '600'
+    },
+    calendarContainer: {
+      marginTop: 'var(--space-4)',
+      padding: 'var(--space-2)',
+      borderRadius: 'var(--radius-md)',
+      backgroundColor: 'var(--white)'
+    },
+    notification: {
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      padding: 'var(--space-3) var(--space-5)',
+      borderRadius: 'var(--radius-md)',
+      boxShadow: 'var(--shadow-lg)',
+      color: 'white',
+      fontSize: 'var(--font-size-sm)',
+      zIndex: '1000',
+      animation: 'slideInUp 0.3s ease-out forwards'
+    },
+    notificationSuccess: {
+      backgroundColor: 'var(--success)'
+    },
+    notificationError: {
+      backgroundColor: 'var(--danger)'
+    },
+    emptyState: {
+      textAlign: 'center',
+      padding: 'var(--space-8)',
+      color: 'var(--gray-500)',
+      fontStyle: 'italic'
+    },
+    searchInput: {
+      width: '100%',
+      padding: 'var(--space-3)',
+      borderRadius: 'var(--radius-md)',
+      border: '1px solid var(--gray-300)',
+      fontSize: 'var(--font-size-base)',
+      marginBottom: 'var(--space-4)',
+      backgroundColor: 'var(--white)'
+    }
   };
 
   return (
-    <div className="symptom-tracker">
+    <div style={styles.container}>
+      <h2 style={styles.heading}>Tracciamento Sintomi</h2>
+      
       <div className="section-header">
-        <h2><i className="fas fa-notes-medical"></i> Tracciamento Sintomi</h2>
         <div className="action-buttons">
           <div className="view-toggle">
             <button 

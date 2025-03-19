@@ -3,21 +3,26 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#2196f3" />
+    <meta name="theme-color" content="#0284c7" />
     <meta
       name="description"
       content="Salus - La tua app per il monitoraggio della salute"
     />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!-- Font Awesome (caricamento diretto) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Google Fonts (caricamento diretto) -->
+
+    <!-- Google Fonts - Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <title>Salus</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" 
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+      
+    <title>Salus App</title>
     <style>
       /* Stili di base - per evitare FOUC */
       body {
@@ -87,30 +92,7 @@
     </style>
   </head>
   <body>
-    <noscript>È necessario abilitare JavaScript per utilizzare questa app.</noscript>
-    
-    <!-- Preloader che viene mostrato durante il caricamento dell'app -->
-    <div class="app-loader" id="appLoader">
-      <img src="%PUBLIC_URL%/logo.svg" alt="Salus Logo" class="loader-logo" />
-      <div class="loader-text">Caricamento Salus...</div>
-    </div>
-    
+    <noscript>È necessario abilitare JavaScript per eseguire questa app.</noscript>
     <div id="root"></div>
-    
-    <script>
-      // Rimuove il preloader quando l'app è caricata
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          var loader = document.getElementById('appLoader');
-          if (loader) {
-            loader.style.opacity = '0';
-            loader.style.transition = 'opacity 0.5s';
-            setTimeout(function() {
-              loader.style.display = 'none';
-            }, 500);
-          }
-        }, 800); // Un piccolo ritardo per assicurarsi che l'app sia pronta
-      });
-    </script>
   </body>
 </html> 

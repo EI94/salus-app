@@ -1,0 +1,381 @@
+.ai-assistant-container {
+  padding: 1.5rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 70px);
+}
+
+.assistant-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0284c7;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  position: relative;
+}
+
+.messages-container {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  scroll-behavior: smooth;
+}
+
+.welcome-message {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: #f0f9ff;
+  border-radius: 12px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.assistant-avatar {
+  width: 50px;
+  height: 50px;
+  background-color: #0284c7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.welcome-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #1f2937;
+}
+
+.welcome-content p {
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  animation: messageAppear 0.3s ease-in-out;
+}
+
+@keyframes messageAppear {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-message {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #0284c7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.message-avatar.user {
+  background-color: #4b5563;
+}
+
+.message-content {
+  background-color: #f0f9ff;
+  border-radius: 12px;
+  padding: 1rem;
+  max-width: 70%;
+}
+
+.user-message .message-content {
+  background-color: #e0f2fe;
+}
+
+.message-text {
+  color: #1f2937;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background-color: #0284c7;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.6;
+  animation: typingBounce 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: scale(0.6); }
+  40% { transform: scale(1); }
+}
+
+.suggestions-container {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.suggestions-container h3 {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.suggestion-btn {
+  padding: 0.5rem 1rem;
+  background-color: #f0f9ff;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestion-btn:hover {
+  background-color: #e0f2fe;
+  transform: translateY(-2px);
+}
+
+.suggestion-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.input-container {
+  display: flex;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: white;
+}
+
+.input-container input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 50px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input-container input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+}
+
+.input-container input:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+}
+
+.send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #0284c7;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.send-btn:hover:not(:disabled) {
+  background-color: #0369a1;
+  transform: scale(1.05);
+}
+
+.send-btn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.disclaimer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #fffbeb;
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.disclaimer i {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .ai-assistant-container {
+    height: calc(100vh - 60px);
+    padding: 1rem 0.5rem;
+  }
+  
+  .message-content {
+    max-width: 85%;
+  }
+  
+  .suggestions-list {
+    flex-direction: column;
+  }
+  
+  .suggestion-btn {
+    width: 100%;
+    text-align: left;
+  }
+}
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+  .chat-container {
+    background-color: #1f2937;
+  }
+  
+  .welcome-message {
+    background-color: #082f49;
+  }
+  
+  .welcome-content h2 {
+    color: #e5e7eb;
+  }
+  
+  .welcome-content p {
+    color: #d1d5db;
+  }
+  
+  .message-content {
+    background-color: #082f49;
+  }
+  
+  .user-message .message-content {
+    background-color: #075985;
+  }
+  
+  .message-text {
+    color: #e5e7eb;
+  }
+  
+  .assistant-avatar {
+    background-color: #0ea5e9;
+  }
+  
+  .message-avatar {
+    background-color: #0ea5e9;
+  }
+  
+  .message-avatar.user {
+    background-color: #64748b;
+  }
+  
+  .suggestions-container {
+    border-color: #374151;
+    background-color: #111827;
+  }
+  
+  .suggestion-btn {
+    background-color: #082f49;
+    color: #38bdf8;
+    border-color: #075985;
+  }
+  
+  .suggestion-btn:hover {
+    background-color: #075985;
+  }
+  
+  .input-container {
+    border-color: #374151;
+    background-color: #1f2937;
+  }
+  
+  .input-container input {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #e5e7eb;
+  }
+  
+  .input-container input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  }
+  
+  .input-container input:disabled {
+    background-color: #1f2937;
+  }
+  
+  .disclaimer {
+    background-color: #422006;
+    color: #fbbf24;
+  }
+} 
