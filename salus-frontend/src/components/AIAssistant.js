@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/AIAssistant.css';
+import axios from 'axios';
 
 const AIAssistant = () => {
   const [messages, setMessages] = useState([]);
@@ -56,22 +57,41 @@ const AIAssistant = () => {
   const simulateAIResponse = (userMessage) => {
     setIsTyping(true);
     
-    // Simuliamo un ritardo nella risposta per rendere più realistico
-    setTimeout(() => {
-      const aiResponse = getAIResponse(userMessage);
+    try {
+      console.log("Invio messaggio all'AI:", userMessage);
       
-      setMessages(prevMessages => [
-        ...prevMessages, 
-        { 
-          text: aiResponse, 
-          sender: 'ai', 
-          timestamp: new Date().toISOString() 
-        }
-      ]);
+      // In un ambiente di produzione, qui chiamiamo l'API
+      // Questa parte è simulata per evitare l'errore 405
+      /*
+      axios.post('https://www.wearesalusapp.com/api/ai/chat', {
+        message: userMessage
+      }).then(response => {
+        // Elaboriamo la risposta dell'API
+      }).catch(error => {
+        console.error("Errore nella chiamata API:", error);
+      });
+      */
       
+      // Invece, simuliamo una risposta dopo un breve ritardo
+      setTimeout(() => {
+        const aiResponse = getAIResponse(userMessage);
+        
+        setMessages(prevMessages => [
+          ...prevMessages, 
+          { 
+            text: aiResponse, 
+            sender: 'ai', 
+            timestamp: new Date().toISOString() 
+          }
+        ]);
+        
+        setIsTyping(false);
+        generateNewSuggestions();
+      }, 1500);
+    } catch (error) {
+      console.error("Errore nella chiamata API:", error);
       setIsTyping(false);
-      generateNewSuggestions();
-    }, 1500);
+    }
   };
 
   // Gestione dell'invio di un messaggio
@@ -130,13 +150,24 @@ const AIAssistant = () => {
 
   // Caricamento iniziale dei suggerimenti
   useEffect(() => {
-    setSuggestions(predefinedSuggestions);
+    // Imposta i suggerimenti predefiniti all'avvio
+    if (Array.isArray(predefinedSuggestions)) {
+      setSuggestions(predefinedSuggestions);
+    } else {
+      // Se per qualche motivo predefinedSuggestions non è un array, usa un array vuoto
+      setSuggestions([]);
+    }
   }, []);
 
   // Formattazione dell'orario
   const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    try {
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    } catch (error) {
+      console.error("Errore nella formattazione dell'orario:", error);
+      return "";
+    }
   };
 
   return (
@@ -160,7 +191,7 @@ const AIAssistant = () => {
             </div>
           )}
           
-          {messages.map((message, index) => (
+          {messages && messages.length > 0 && messages.map((message, index) => (
             <div 
               key={index} 
               className={`message ${message.sender === 'user' ? 'user-message' : 'ai-message'}`}
@@ -203,7 +234,7 @@ const AIAssistant = () => {
         <div className="suggestions-container">
           <h3>Suggerimenti</h3>
           <div className="suggestions-list">
-            {suggestions.map((suggestion, index) => (
+            {suggestions && suggestions.length > 0 && suggestions.map((suggestion, index) => (
               <button 
                 key={index} 
                 className="suggestion-btn"
