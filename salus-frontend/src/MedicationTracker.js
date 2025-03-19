@@ -4,6 +4,7 @@ import API from './api';
 function MedicationTracker({ userId }) {
   const [medications, setMedications] = useState([]);
   const [activeMedications, setActiveMedications] = useState([]);
+  const [filteredMedications, setFilteredMedications] = useState([]);
   
   // Form state
   const [name, setName] = useState('');
@@ -18,6 +19,8 @@ function MedicationTracker({ userId }) {
   // View state
   const [showForm, setShowForm] = useState(false);
   const [editingMedication, setEditingMedication] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (userId) {
@@ -28,11 +31,32 @@ function MedicationTracker({ userId }) {
   }, [userId]);
 
   const fetchMedications = async () => {
+    setLoading(true);
+    setError(null);
     try {
+      // In modalità demo, usa dati di esempio
+      if (userId.startsWith('temp-') || userId.startsWith('user_')) {
+        console.log('Modalità demo: uso dati di esempio per i farmaci');
+        const mockMedications = generateMockMedications();
+        setMedications(mockMedications);
+        setFilteredMedications(mockMedications);
+        return;
+      }
+      
       const response = await API.get(`/medications/${userId}`);
-      setMedications(response.data);
+      console.log('Farmaci caricati:', response.data);
+      
+      // Verifica che response.data sia un array
+      const medsData = Array.isArray(response.data) ? response.data : [];
+      setMedications(medsData);
+      setFilteredMedications(medsData);
     } catch (error) {
-      console.error('Errore nel caricamento dei medicinali:', error);
+      console.error('Errore nel caricamento dei farmaci:', error);
+      setMedications([]);
+      setFilteredMedications([]);
+      setError('Impossibile caricare i farmaci. Riprova più tardi.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,6 +159,60 @@ function MedicationTracker({ userId }) {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString();
+  };
+
+  // Genera dati di esempio per la modalità demo
+  const generateMockMedications = () => {
+    return [
+      {
+        id: 'med-1',
+        name: 'Tachipirina',
+        dosage: '1000mg',
+        frequency: 'Ogni 8 ore',
+        startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        notes: 'Prendere dopo i pasti',
+        reminder: true,
+        reminderTime: '08:00,16:00,00:00',
+        status: 'active'
+      },
+      {
+        id: 'med-2',
+        name: 'Aspirina',
+        dosage: '500mg',
+        frequency: 'Una volta al giorno',
+        startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: null,
+        notes: 'Prendere a stomaco pieno',
+        reminder: true,
+        reminderTime: '08:00',
+        status: 'active'
+      },
+      {
+        id: 'med-3',
+        name: 'Moment',
+        dosage: '200mg',
+        frequency: 'Al bisogno',
+        startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: null,
+        notes: 'Massimo 3 al giorno',
+        reminder: false,
+        reminderTime: null,
+        status: 'active'
+      },
+      {
+        id: 'med-4',
+        name: 'Antibiotico',
+        dosage: '250mg',
+        frequency: 'Due volte al giorno',
+        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        notes: 'Ciclo di 7 giorni completato',
+        reminder: false,
+        reminderTime: null,
+        status: 'completed'
+      }
+    ];
   };
 
   return (

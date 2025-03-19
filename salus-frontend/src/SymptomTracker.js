@@ -94,11 +94,37 @@ function SymptomTracker({ userId }) {
     setLoading(true);
     setError(null);
     try {
+      // In modalità demo, usa dati di esempio
+      if (userId.startsWith('temp-') || userId.startsWith('user_')) {
+        console.log('Modalità demo: uso dati di esempio per i sintomi');
+        const mockSymptoms = generateMockSymptoms();
+        setSymptoms(mockSymptoms);
+        setFilteredSymptoms(mockSymptoms);
+        return;
+      }
+      
+      // Altrimenti, fai la chiamata API
       const response = await API.get(`/symptoms/${userId}`);
-      setSymptoms(response.data);
-      setFilteredSymptoms(response.data);
+      console.log('Sintomi caricati:', response.data);
+      
+      // Verifica che response.data sia un array prima di usare filter
+      const symptomsData = Array.isArray(response.data) ? response.data : [];
+      
+      setSymptoms(symptomsData);
+      // Applica eventuali filtri esistenti
+      if (searchTerm) {
+        setFilteredSymptoms(symptomsData.filter(s => 
+          s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (s.description && s.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        ));
+      } else {
+        setFilteredSymptoms(symptomsData);
+      }
     } catch (error) {
       console.error('Errore nel caricamento dei sintomi:', error);
+      // In caso di errore, inizializza con array vuoti
+      setSymptoms([]);
+      setFilteredSymptoms([]);
       setError('Impossibile caricare i sintomi. Riprova più tardi.');
     } finally {
       setLoading(false);
@@ -406,6 +432,47 @@ function SymptomTracker({ userId }) {
         </div>
       </div>
     );
+  };
+
+  // Genera dati di esempio per la modalità demo
+  const generateMockSymptoms = () => {
+    return [
+      {
+        id: 'mock-1',
+        name: 'Mal di testa',
+        severity: 3,
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        description: 'Dolore pulsante alla tempia destra'
+      },
+      {
+        id: 'mock-2',
+        name: 'Tosse',
+        severity: 2,
+        date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        description: 'Tosse secca, soprattutto di notte'
+      },
+      {
+        id: 'mock-3',
+        name: 'Mal di gola',
+        severity: 2,
+        date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        description: 'Lieve dolore quando deglutisco'
+      },
+      {
+        id: 'mock-4',
+        name: 'Stanchezza',
+        severity: 4,
+        date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        description: 'Sensazione di spossatezza durante il giorno'
+      },
+      {
+        id: 'mock-5',
+        name: 'Mal di schiena',
+        severity: 3,
+        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        description: 'Dolore nella parte bassa della schiena'
+      }
+    ];
   };
 
   return (
