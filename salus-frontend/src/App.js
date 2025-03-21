@@ -6,7 +6,8 @@ import './App.css';
 
 // Configurazione di base per axios
 const API = axios.create({
-  baseURL: 'https://api.salusapp.it',
+  // Utilizziamo un mock JSON server locale o jsonplaceholder per i test
+  baseURL: 'https://jsonplaceholder.typicode.com',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
@@ -44,6 +45,35 @@ API.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Mock login e registrazione per testing senza API reale
+const mockAuth = {
+  login: async (email, password) => {
+    // Verifica credenziali di test
+    if (email === 'test@example.com' && password === 'password') {
+      return {
+        userId: 'user-123',
+        userName: 'Utente Test',
+        token: 'mock-jwt-token'
+      };
+    }
+    // Per qualsiasi altra combinazione, permetti l'accesso per scopi di demo
+    return {
+      userId: 'user-' + Math.floor(Math.random() * 1000),
+      userName: email.split('@')[0],
+      token: 'mock-jwt-token-' + Math.random().toString(36).substring(2)
+    };
+  },
+  
+  register: async (name, email, password) => {
+    // Simula registrazione con successo
+    return {
+      userId: 'user-' + Math.floor(Math.random() * 1000),
+      userName: name,
+      token: 'mock-jwt-token-' + Math.random().toString(36).substring(2)
+    };
+  }
+};
 
 // Componente principale per la Dashboard utente
 const Dashboard = ({ userId, userName, onLogout }) => {
@@ -142,7 +172,7 @@ function App() {
 
   // Mostra il componente di autenticazione se l'utente non è loggato
   if (!isLoggedIn) {
-    return <Auth onLogin={handleLogin} />;
+    return <Auth onLogin={handleLogin} mockAuth={mockAuth} />;
   }
 
   // Mostra la dashboard per gli utenti loggati
