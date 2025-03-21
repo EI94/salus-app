@@ -1,25 +1,108 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import API from './api';
-import SymptomTracker from './SymptomTracker';
-import AIAssistant from './AIAssistant';
-import WellnessTracker from './WellnessTracker';
-import MedicationTracker from './MedicationTracker';
-import NotificationCenter from './NotificationCenter';
-import AIAssistantWidget from './AIAssistantWidget';
-import { useTranslation } from 'react-i18next';
-import Onboarding from './components/Onboarding';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import axios from 'axios';
 import Auth from './components/Auth';
-import Home from './components/Home';
 import './App.css';
 
-// Componenti di Onboarding
-const OnboardingSlide = ({ title, description, image, active }) => {
+// Configurazione di base per axios
+const API = axios.create({
+  baseURL: 'https://api.salusapp.it',
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
+
+// Interceptor per aggiungere il token di autenticazione alle richieste
+API.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor per gestire le risposte
+API.interceptors.response.use(
+  response => {
+    return response;
+  },
+  error => {
+    // Se il token è scaduto (status 401), logout automatico
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('token');
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Componente principale per la Dashboard utente
+const Dashboard = ({ userId, userName, onLogout }) => {
   return (
-    <div className="onboarding-slide">
-      <img src={image} alt={title} className="onboarding-illustration" />
-      <h2 className="onboarding-title">{title}</h2>
-      <p className="onboarding-desc">{description}</p>
+    <div className="dashboard-container">
+      <header className="dashboard-header">
+        <div className="logo">
+          <img src="/logo.svg" alt="Salus" />
+          <span>Salus</span>
+        </div>
+        <div className="user-controls">
+          <div className="user-avatar">
+            {userName.charAt(0).toUpperCase()}
+          </div>
+          <div className="user-info">
+            <span className="user-name">{userName}</span>
+            <button className="logout-button" onClick={onLogout}>
+              <i className="fas fa-sign-out-alt"></i> Esci
+            </button>
+          </div>
+        </div>
+      </header>
+      
+      <main className="dashboard-content">
+        <div className="welcome-message">
+          <h1>Benvenuto, {userName}!</h1>
+          <p>Il sistema è in fase di implementazione. Presto potrai usare tutte le funzionalità di Salus per monitorare la tua salute.</p>
+        </div>
+        
+        <div className="coming-soon">
+          <h2>Funzionalità in arrivo</h2>
+          <div className="features-grid">
+            <div className="feature-card">
+              <i className="fas fa-heartbeat"></i>
+              <h3>Monitoraggio Sintomi</h3>
+              <p>Tieni traccia dei tuoi sintomi e della loro evoluzione nel tempo</p>
+            </div>
+            <div className="feature-card">
+              <i className="fas fa-pills"></i>
+              <h3>Gestione Farmaci</h3>
+              <p>Gestisci i tuoi farmaci e ricevi promemoria per assumerli</p>
+            </div>
+            <div className="feature-card">
+              <i className="fas fa-brain"></i>
+              <h3>Benessere Mentale</h3>
+              <p>Monitora il tuo benessere mentale e la qualità del sonno</p>
+            </div>
+            <div className="feature-card">
+              <i className="fas fa-robot"></i>
+              <h3>Assistente Virtuale</h3>
+              <p>Ricevi consigli personalizzati e risposte alle tue domande</p>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <footer className="dashboard-footer">
+        <p>&copy; 2025 Salus App. Tutti i diritti riservati.</p>
+      </footer>
     </div>
   );
 };
@@ -28,146 +111,42 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState('');
-  
-  // Onboarding state
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [completedOnboarding, setCompletedOnboarding] = useState(false);
-  
-  // Check for existing session
+
+  // Verifica se esiste già una sessione
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
     const storedUserName = localStorage.getItem('userName');
-    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-    
-    if (storedUserId) {
+    const token = localStorage.getItem('token');
+
+    if (storedUserId && token) {
       setUserId(storedUserId);
       setUserName(storedUserName || 'Utente');
       setIsLoggedIn(true);
-      
-      if (storedUserId.startsWith('temp-') && !onboardingCompleted) {
-        setShowOnboarding(true);
-      } else {
-        setCompletedOnboarding(true);
-      }
     }
   }, []);
-  
+
   const handleLogin = (userId, userName) => {
     setUserId(userId);
     setUserName(userName);
     setIsLoggedIn(true);
-    
-    if (userId.startsWith('temp-')) {
-      setShowOnboarding(true);
-    } else {
-      const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-      if (!onboardingCompleted) {
-        setShowOnboarding(true);
-      } else {
-        setCompletedOnboarding(true);
-      }
-    }
   };
-  
+
   const handleLogout = () => {
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');
+    localStorage.removeItem('token');
     setUserId(null);
     setUserName('');
     setIsLoggedIn(false);
-    setShowOnboarding(false);
-    setCompletedOnboarding(false);
   };
-  
-  const completeOnboarding = () => {
-    localStorage.setItem('onboardingCompleted', 'true');
-    setShowOnboarding(false);
-    setCompletedOnboarding(true);
-  };
-  
-  // Render login/register form if not logged in
+
+  // Mostra il componente di autenticazione se l'utente non è loggato
   if (!isLoggedIn) {
     return <Auth onLogin={handleLogin} />;
   }
-  
-  // Show onboarding for first-time users
-  if (showOnboarding) {
-    return <Onboarding onComplete={completeOnboarding} />;
-  }
-  
-  // Main app after login and onboarding
-  return (
-    <Router>
-      <div className="app-container">
-        <header className="app-header">
-          <Link to="/" className="app-logo">
-            <img src="/logo.svg" alt="Salus" />
-            <span>Salus</span>
-          </Link>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-            <div className="notification-icon">
-              <i className="far fa-bell"></i>
-              <div className="notification-badge">3</div>
-            </div>
-            
-            <div onClick={handleLogout} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <div style={{ 
-                width: '32px', 
-                height: '32px', 
-                borderRadius: 'var(--radius-full)', 
-                backgroundColor: 'var(--primary-100)',
-                color: 'var(--primary-700)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: '600'
-              }}>
-                {userName.charAt(0).toUpperCase()}
-              </div>
-              <span style={{ display: 'none', '@media (min-width: 640px)': { display: 'block' } }}>
-                Esci
-              </span>
-            </div>
-          </div>
-        </header>
-        
-        <div className="app-content">
-          <Routes>
-            <Route path="/" element={<Home userId={userId} userName={userName} />} />
-            <Route path="/symptoms" element={<SymptomTracker userId={userId} />} />
-            <Route path="/medications" element={<MedicationTracker userId={userId} />} />
-            <Route path="/wellness" element={<WellnessTracker userId={userId} />} />
-            <Route path="/assistant" element={<AIAssistant userId={userId} />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-        
-        <nav className="bottom-nav">
-          <Link to="/" className="bottom-nav-item">
-            <i className="fas fa-home"></i>
-            <span>Home</span>
-          </Link>
-          <Link to="/symptoms" className="bottom-nav-item">
-            <i className="fas fa-thermometer-half"></i>
-            <span>Sintomi</span>
-          </Link>
-          <Link to="/medications" className="bottom-nav-item">
-            <i className="fas fa-pills"></i>
-            <span>Farmaci</span>
-          </Link>
-          <Link to="/wellness" className="bottom-nav-item">
-            <i className="fas fa-heart"></i>
-            <span>Benessere</span>
-          </Link>
-          <Link to="/assistant" className="bottom-nav-item">
-            <i className="fas fa-robot"></i>
-            <span>Assistente</span>
-          </Link>
-        </nav>
-      </div>
-    </Router>
-  );
+
+  // Mostra la dashboard per gli utenti loggati
+  return <Dashboard userId={userId} userName={userName} onLogout={handleLogout} />;
 }
 
 export default App; 

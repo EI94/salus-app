@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import API from '../api';
+import axios from 'axios';
+
+// Configurazione di base di axios
+const API = axios.create({
+  baseURL: 'https://api.salusapp.it', // URL di base dell'API
+  timeout: 15000, // 15 secondi
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
 
 const Auth = ({ onLogin }) => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -13,27 +23,51 @@ const Auth = ({ onLogin }) => {
   
   const handleRegister = async (e) => {
     e.preventDefault();
+    
+    // Validazione input
+    if (!name.trim()) {
+      setError('Inserisci il tuo nome');
+      return;
+    }
+    
+    if (!email.trim() || !email.includes('@')) {
+      setError('Inserisci un indirizzo email valido');
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError('La password deve contenere almeno 6 caratteri');
+      return;
+    }
+    
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await API.post('/auth/register', {
         name,
         email,
         password
       });
-      
-      const { userId, name: userName } = response.data;
-      
+
+      const { userId, userName, token } = response.data;
+
+      // Salva i dati utente e token
       localStorage.setItem('userId', userId);
       localStorage.setItem('userName', userName);
-      
+      localStorage.setItem('token', token);
+
       if (onLogin) {
         onLogin(userId, userName);
       }
     } catch (error) {
       console.error('Errore durante la registrazione:', error);
-      setError('Errore durante la registrazione: ' + (error.response?.data?.message || 'Controlla i tuoi dati e riprova.'));
+      
+      if (error.response && error.response.status === 409) {
+        setError('Email già registrata. Prova ad accedere.');
+      } else {
+        setError('Errore durante la registrazione. Controlla i tuoi dati e riprova.');
+      }
     } finally {
       setLoading(false);
     }
@@ -41,41 +75,47 @@ const Auth = ({ onLogin }) => {
   
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Validazione input
+    if (!email.trim() || !email.includes('@')) {
+      setError('Inserisci un indirizzo email valido');
+      return;
+    }
+    
+    if (!password.trim()) {
+      setError('Inserisci la password');
+      return;
+    }
+    
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await API.post('/auth/login', {
         email,
         password
       });
-      
-      const { userId, name: userName } = response.data;
-      
+
+      const { userId, userName, token } = response.data;
+
+      // Salva i dati utente e token
       localStorage.setItem('userId', userId);
       localStorage.setItem('userName', userName);
-      
+      localStorage.setItem('token', token);
+
       if (onLogin) {
         onLogin(userId, userName);
       }
     } catch (error) {
       console.error('Errore durante il login:', error);
-      setError('Errore durante il login: ' + (error.response?.data?.message || 'Credenziali non valide.'));
       
-      // Modalità demo
-      handleTemporaryAccess();
+      if (error.response && error.response.status === 401) {
+        setError('Credenziali non valide. Controlla email e password.');
+      } else {
+        setError('Errore di connessione. Riprova più tardi.');
+      }
     } finally {
       setLoading(false);
-    }
-  };
-  
-  const handleTemporaryAccess = () => {
-    const tempUserId = 'temp-' + Math.random().toString(36).substring(2, 15);
-    localStorage.setItem('userId', tempUserId);
-    localStorage.setItem('userName', 'Ospite');
-    
-    if (onLogin) {
-      onLogin(tempUserId, 'Ospite');
     }
   };
   
@@ -97,15 +137,8 @@ const Auth = ({ onLogin }) => {
         </p>
         
         {error && (
-          <div style={{ 
-            backgroundColor: 'rgba(239, 68, 68, 0.1)', 
-            color: '#ef4444', 
-            padding: '10px', 
-            borderRadius: '4px', 
-            marginBottom: '20px',
-            fontSize: '14px'
-          }}>
-            {error}
+          <div className="error-message">
+            <i className="fas fa-exclamation-circle"></i> {error}
           </div>
         )}
         
@@ -145,6 +178,7 @@ const Auth = ({ onLogin }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={6}
             />
           </div>
           
@@ -156,60 +190,46 @@ const Auth = ({ onLogin }) => {
             {loading ? (
               <div className="spinner"></div>
             ) : (
-              <>
-                {isRegistering ? (
-                  <>
-                    <i className="fas fa-user-plus"></i> Registrati
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-sign-in-alt"></i> Accedi
-                  </>
-                )}
-              </>
+              isRegistering ? 'Registrati' : 'Accedi'
             )}
           </button>
-          
-          {!isRegistering && (
-            <button 
-              type="button" 
-              className="auth-submit-button"
-              style={{ marginTop: '10px', backgroundColor: '#22c55e' }}
-              onClick={handleTemporaryAccess}
-            >
-              <i className="fas fa-rocket"></i> Accedi in modalità demo
-            </button>
-          )}
         </form>
         
         <div className="auth-separator">
           <span>oppure</span>
         </div>
         
-        <button className="auth-social-button">
-          <img src="/google-icon.png" alt="Google" />
-          Continua con Google
-        </button>
+        <div className="auth-providers">
+          <button className="provider-button apple">
+            <img src="/assets/icons/apple-icon.svg" alt="Apple" className="provider-icon" />
+            Continua con Apple
+          </button>
+          <button className="provider-button google">
+            <img src="/assets/icons/google-icon.svg" alt="Google" className="provider-icon" />
+            Continua con Google
+          </button>
+        </div>
         
-        <button className="auth-social-button">
-          <img src="/apple-icon.png" alt="Apple" />
-          Continua con Apple
-        </button>
-        
-        <div className="auth-footer">
+        <div className="auth-toggle">
           {isRegistering ? (
             <>
               Hai già un account?{' '}
-              <a href="#login" onClick={(e) => { e.preventDefault(); setIsRegistering(false); }}>
+              <span
+                className="auth-toggle-link"
+                onClick={() => setIsRegistering(false)}
+              >
                 Accedi
-              </a>
+              </span>
             </>
           ) : (
             <>
               Non hai un account?{' '}
-              <a href="#register" onClick={(e) => { e.preventDefault(); setIsRegistering(true); }}>
+              <span
+                className="auth-toggle-link"
+                onClick={() => setIsRegistering(true)}
+              >
                 Registrati
-              </a>
+              </span>
             </>
           )}
         </div>
