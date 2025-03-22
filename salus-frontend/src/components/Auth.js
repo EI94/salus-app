@@ -28,6 +28,38 @@ const API = axios.create({
 });
 
 const Auth = ({ onLogin, mockAuth }) => {
+  // Fallback per mockAuth se non viene passato
+  const authService = mockAuth || {
+    login: async (email, password) => {
+      console.log('Utilizzo servizio di autenticazione fallback');
+      // Simuliamo un ritardo
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      if (email && password) {
+        return {
+          userId: 'fallback-' + Math.random().toString(36).substring(2, 9),
+          userName: email.split('@')[0] || 'Utente',
+          token: 'fallback-token-' + Date.now()
+        };
+      }
+      throw new Error('Credenziali non valide');
+    },
+    register: async (name, email, password) => {
+      console.log('Utilizzo servizio di registrazione fallback');
+      // Simuliamo un ritardo
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (name && email && password) {
+        return {
+          userId: 'fallback-' + Math.random().toString(36).substring(2, 9),
+          userName: name,
+          token: 'fallback-token-' + Date.now()
+        };
+      }
+      throw new Error('Dati di registrazione incompleti');
+    }
+  };
+  
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -59,7 +91,7 @@ const Auth = ({ onLogin, mockAuth }) => {
   const handleRegister = async (e) => {
     e.preventDefault();
     
-    // Validazione input semplificata
+    // Validazione input
     if (!name.trim()) {
       setError('Inserisci il tuo nome');
       return;
@@ -83,14 +115,19 @@ const Auth = ({ onLogin, mockAuth }) => {
     setLoading(true);
     setError('');
     setSuccess('');
+    
+    // Debug info
+    console.log('Tentativo di registrazione con:', { name, email });
 
     try {
-      // Utilizziamo il mock invece dell'API reale
-      const userData = await mockAuth.register(name, email, password);
+      // Utilizziamo il servizio di autenticazione con fallback
+      console.log('Auth service disponibile:', !!authService);
+      const userData = await authService.register(name, email, password);
+      console.log('Registrazione completata:', userData);
       
       // Verifica che i dati utente siano validi
       if (!userData || !userData.userId) {
-        throw new Error('Registrazione fallita');
+        throw new Error('Registrazione fallita - Dati utente non validi');
       }
       
       setSuccess('Registrazione completata con successo!');
@@ -104,12 +141,26 @@ const Auth = ({ onLogin, mockAuth }) => {
       setTimeout(() => {
         if (onLogin) {
           onLogin(userData.userId, userData.userName || name, userData.token);
+        } else {
+          console.warn('Funzione onLogin non disponibile');
         }
       }, 1000);
     } catch (error) {
       console.error('Errore durante la registrazione:', error);
-      // Messaggio di errore più generico e utile
-      setError('Errore durante la registrazione. Riprova più tardi.');
+      // Messaggio di errore più specifico basato sull'errore
+      let errorMessage = 'Errore durante la registrazione. ';
+      
+      if (error.message && error.message.includes('network')) {
+        errorMessage += 'Controlla la tua connessione internet.';
+      } else if (error.response && error.response.status === 409) {
+        errorMessage += 'Questo indirizzo email è già registrato.';
+      } else if (error.response && error.response.status === 400) {
+        errorMessage += 'I dati inseriti non sono validi.';
+      } else {
+        errorMessage += 'Riprova più tardi.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -132,10 +183,15 @@ const Auth = ({ onLogin, mockAuth }) => {
     setLoading(true);
     setError('');
     setSuccess('');
+    
+    // Debug info
+    console.log('Tentativo di login con:', { email });
 
     try {
-      // Utilizziamo il mock invece dell'API reale
-      const userData = await mockAuth.login(email, password);
+      // Utilizziamo il servizio di autenticazione con fallback
+      console.log('Auth service disponibile:', !!authService);
+      const userData = await authService.login(email, password);
+      console.log('Login completato:', userData);
       
       // Verifica che i dati utente siano validi
       if (!userData || !userData.userId) {
@@ -153,11 +209,27 @@ const Auth = ({ onLogin, mockAuth }) => {
       setTimeout(() => {
         if (onLogin) {
           onLogin(userData.userId, userData.userName || 'Utente', userData.token);
+        } else {
+          console.warn('Funzione onLogin non disponibile');
         }
       }, 1000);
     } catch (error) {
       console.error('Errore durante il login:', error);
-      setError('Credenziali non valide. Controlla email e password.');
+      
+      // Messaggio di errore più specifico basato sull'errore
+      let errorMessage = 'Errore durante il login. ';
+      
+      if (error.message && error.message.includes('network')) {
+        errorMessage += 'Controlla la tua connessione internet.';
+      } else if (error.response && error.response.status === 401) {
+        errorMessage += 'Email o password non validi.';
+      } else if (error.response && error.response.status === 404) {
+        errorMessage += 'Utente non trovato.';
+      } else {
+        errorMessage += 'Controlla le tue credenziali e riprova.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

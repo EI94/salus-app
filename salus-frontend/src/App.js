@@ -254,9 +254,9 @@ function App() {
     );
   }
 
-  // Se l'utente non è loggato, mostra il componente di autenticazione
+  // Renderizza la pagina di login/registrazione se non autenticato
   if (!isLoggedIn) {
-    return <Auth onLogin={handleLogin} />;
+    return <Auth onLogin={handleLogin} mockAuth={mockAuth} />;
   }
 
   // Se l'utente è loggato, mostra l'app con tutte le funzionalità
