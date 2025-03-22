@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Auth from './components/Auth';
 import SymptomTracker from './components/SymptomTracker';
@@ -10,6 +10,7 @@ import NotificationCenter from './components/NotificationCenter';
 import Home from './components/Home';
 import './App.css';
 import API from './api';
+import { loadUserData } from './utils/dataManager';
 
 // Configurazione di base per axios
 const API_BASE = axios.create({
@@ -56,63 +57,73 @@ API_BASE.interceptors.response.use(
 // Mock login e registrazione per testing senza API reale
 const mockAuth = {
   login: async (email, password) => {
-    // Simuliamo un ritardo di rete
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Verifica credenziali (molto semplificata per demo)
-    if (email && password) {
-      return {
-        userId: 'user-' + Math.random().toString(36).substr(2, 9),
-        userName: email.split('@')[0],
-        token: 'mock-token-' + Math.random().toString(36).substr(2, 16)
+    try {
+      // Qui in futuro: chiamata API reale
+      console.log('Login con:', email, password);
+      
+      // Simula risposta del server
+      const userData = { 
+        id: 'user123', 
+        name: 'Mario Rossi',
+        email: email
       };
-    } else {
-      throw new Error('Credenziali non valide');
+      const token = 'fake-jwt-token-123456789';
+      
+      return { success: true, userData, token };
+    } catch (error) {
+      console.error('Errore login:', error);
+      return { success: false, error: error.message };
     }
   },
   
   register: async (name, email, password) => {
-    // Simuliamo un ritardo di rete
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Simuliamo registrazione (molto semplificata per demo)
-    if (name && email && password) {
-      return {
-        userId: 'user-' + Math.random().toString(36).substr(2, 9),
-        userName: name,
-        token: 'mock-token-' + Math.random().toString(36).substr(2, 16)
+    try {
+      // Qui in futuro: chiamata API reale
+      console.log('Registrazione:', name, email, password);
+      
+      // Simula risposta del server
+      const userData = { 
+        id: 'user123', 
+        name: name,
+        email: email
       };
-    } else {
-      throw new Error('Dati di registrazione non validi');
+      const token = 'fake-jwt-token-123456789';
+      
+      return { success: true, userData, token };
+    } catch (error) {
+      console.error('Errore registrazione:', error);
+      return { success: false, error: error.message };
     }
   }
 };
 
 // Layout che include la barra di navigazione e il layout comune
 function Layout({ userId, userName, onLogout, hasNotifications, children }) {
+  const navigate = useNavigate();
   const location = useLocation();
   const [showAIWidget, setShowAIWidget] = useState(false);
 
-  // Determina la pagina attiva basandosi sull'URL
-  const getActivePage = (pathname) => {
-    const path = pathname.split('/')[1] || 'dashboard';
-    return path;
+  // Determina quale pagina è attiva in base all'URL
+  const getActivePageClass = (path) => {
+    return location.pathname === path ? 'active' : '';
   };
-
-  const activePage = getActivePage(location.pathname);
 
   return (
     <div className="app-container">
       <header className="app-header">
-        <div className="header-logo">
-          <img src="/logo.png" alt="Salus" className="logo" />
+        <div className="header-left">
+          <img src="/assets/icons/logo.svg" alt="Salus" className="logo" />
           <h1>Salus</h1>
         </div>
-        <div className="header-user">
-          <span className="user-name">{userName}</span>
-          <button className="logout-button" onClick={onLogout}>
-            <i className="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
+        <div className="header-right">
+          <button className="header-button">
+            <i className="fas fa-bell"></i>
+          </button>
+          <button className="header-button" onClick={() => setShowAIWidget(!showAIWidget)}>
+            <i className="fas fa-robot"></i>
+          </button>
+          <button className="header-button">
+            <i className="fas fa-user"></i>
           </button>
         </div>
       </header>
@@ -121,35 +132,35 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
         <nav className="sidebar">
           <a 
             href="/dashboard" 
-            className={activePage === 'dashboard' ? 'active' : ''}
+            className={getActivePageClass('/dashboard')}
           >
             <i className="fas fa-home"></i>
             <span>Dashboard</span>
           </a>
           <a 
             href="/sintomi" 
-            className={activePage === 'sintomi' ? 'active' : ''}
+            className={getActivePageClass('/sintomi')}
           >
             <i className="fas fa-heartbeat"></i>
             <span>Sintomi</span>
           </a>
           <a 
             href="/farmaci" 
-            className={activePage === 'farmaci' ? 'active' : ''}
+            className={getActivePageClass('/farmaci')}
           >
             <i className="fas fa-pills"></i>
             <span>Farmaci</span>
           </a>
           <a 
             href="/benessere" 
-            className={activePage === 'benessere' ? 'active' : ''}
+            className={getActivePageClass('/benessere')}
           >
             <i className="fas fa-spa"></i>
             <span>Benessere</span>
           </a>
           <a 
             href="/assistente" 
-            className={activePage === 'assistente' ? 'active' : ''}
+            className={getActivePageClass('/assistente')}
           >
             <i className="fas fa-robot"></i>
             <span>Assistente</span>
@@ -186,76 +197,66 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
 
 // Funzione principale dell'app
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState('');
-  const [hasNotifications, setHasNotifications] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [hasNotifications, setHasNotifications] = useState(false);
 
-  // Verifica se esiste già una sessione
+  // Carica lo stato di autenticazione e dati utente al mount
   useEffect(() => {
+    const storedToken = localStorage.getItem('token');
     const storedUserId = localStorage.getItem('userId');
     const storedUserName = localStorage.getItem('userName');
-    const token = localStorage.getItem('token');
-
-    if (storedUserId && token) {
+    
+    if (storedToken && storedUserId) {
+      setIsAuthenticated(true);
+      setToken(storedToken);
       setUserId(storedUserId);
       setUserName(storedUserName || 'Utente');
-      setIsLoggedIn(true);
+      
+      // Carica i dati dell'utente
+      const data = loadUserData(storedUserId);
+      setUserData(data);
     }
-    
-    setIsLoading(false);
   }, []);
 
-  const handleLogin = (userId, userName, token) => {
-    setIsLoggedIn(true);
-    setUserId(userId);
-    setUserName(userName);
+  // Gestore del login
+  const handleLogin = (userData, token) => {
+    // Salva dati utente e token in localStorage
+    localStorage.setItem('token', token);
+    localStorage.setItem('userId', userData.id);
+    localStorage.setItem('userName', userData.name || 'Utente');
     
-    // Impostiamo anche i dati in localStorage come backup
-    if (userId) localStorage.setItem('userId', userId);
-    if (userName) localStorage.setItem('userName', userName);
-    if (token) localStorage.setItem('token', token);
+    // Aggiorna stato
+    setIsAuthenticated(true);
+    setUserId(userData.id);
+    setUserName(userData.name || 'Utente');
+    setToken(token);
     
-    // Notifica di login riuscito
-    window.dispatchEvent(new CustomEvent('salus:notification', {
-      detail: {
-        type: 'success',
-        title: 'Benvenuto!',
-        message: 'Login effettuato con successo!'
-      }
-    }));
+    // Carica i dati dell'utente
+    const data = loadUserData(userData.id);
+    setUserData(data);
   };
 
+  // Gestore del logout
   const handleLogout = () => {
+    // Rimuovi token e dati utente da localStorage
+    localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');
-    localStorage.removeItem('token');
+    
+    // Aggiorna stato
+    setIsAuthenticated(false);
     setUserId(null);
     setUserName('');
-    setIsLoggedIn(false);
-    
-    // Notifica di logout
-    window.dispatchEvent(new CustomEvent('salus:notification', {
-      detail: { 
-        type: 'info',
-        message: 'Logout effettuato con successo.'
-      }
-    }));
+    setToken(null);
+    setUserData(null);
   };
 
   // Mostra il loader durante il caricamento iniziale
-  if (isLoading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Caricamento...</p>
-      </div>
-    );
-  }
-
-  // Renderizza la pagina di login/registrazione se non autenticato
-  if (!isLoggedIn) {
+  if (!isAuthenticated) {
     return <Auth onLogin={handleLogin} mockAuth={mockAuth} />;
   }
 
@@ -268,7 +269,7 @@ function App() {
           path="/dashboard"
           element={
             <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Home userId={userId} userName={userName} />
+              <Home userId={userId} userName={userName} userData={userData} />
             </Layout>
           }
         />

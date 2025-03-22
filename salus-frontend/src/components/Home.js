@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Home.css';
 
-const Home = ({ userId, userName }) => {
+const Home = ({ userId, userName, userData }) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     symptomCount: 0,
@@ -12,6 +12,8 @@ const Home = ({ userId, userName }) => {
     recentSymptoms: [],
     reminders: []
   });
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
 
   // Funzione per ottenere il colore in base al punteggio di benessere
   const getWellnessColor = (score) => {
@@ -29,42 +31,100 @@ const Home = ({ userId, userName }) => {
     return '#ef4444'; // rosso
   };
 
-  // Carica i dati all'avvio
+  // Inizializzazione dati dalla props
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      
-      try {
-        // Simuliamo le chiamate API per lo sviluppo
-        // In un ambiente reale, useremmo API.get('/user-stats') ecc.
-        
-        // Simulazione risposta API - statistiche utente
-        const userStatsData = {
-          symptomCount: 12,
-          medicationCount: 4,
-          wellnessScore: 73,
-          recentSymptoms: [
-            { id: 1, name: 'Mal di testa', intensity: 5, date: '2025-03-20' },
-            { id: 2, name: 'Nausea', intensity: 3, date: '2025-03-19' },
-            { id: 3, name: 'Stanchezza', intensity: 7, date: '2025-03-18' }
-          ],
-          reminders: [
-            { id: 1, medicationName: 'Ibuprofene', time: '12:00', dosage: '200mg' },
-            { id: 2, medicationName: 'Vitamine', time: '08:30', dosage: '1 compressa' }
-          ]
-        };
-        
-        setStats(userStatsData);
-      } catch (error) {
-        console.error('Errore nel caricamento dei dati:', error);
-        // Gestione errori
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (userData) {
+      // Se abbiamo dati dell'utente, li utilizziamo
+      setStats({
+        wellnessScore: calculateWellnessScore(userData.wellnessData),
+        symptomCount: userData.symptoms ? userData.symptoms.length : 0,
+        medicationCount: userData.medications ? userData.medications.length : 0,
+        recentSymptoms: userData.symptoms ? getRecentSymptoms(userData.symptoms) : [],
+        reminders: userData.medications ? getMedicationReminders(userData.medications) : []
+      });
+      setLoading(false);
+    }
+  }, [userData]);
+  
+  // Calcola punteggio benessere dalle registrazioni
+  const calculateWellnessScore = (wellnessData) => {
+    if (!wellnessData || wellnessData.length === 0) {
+      return 65; // Valore predefinito neutro
+    }
     
-    fetchData();
-  }, [userId]);
+    // Ottieni le registrazioni dell'ultima settimana
+    const lastWeekData = wellnessData.filter(item => {
+      const itemDate = new Date(item.date);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return itemDate >= weekAgo;
+    });
+    
+    if (lastWeekData.length === 0) return 65;
+    
+    // Calcola media dei valori di benessere
+    const sum = lastWeekData.reduce((total, item) => {
+      let score = 0;
+      
+      // Umore (1-5) → 0-20 punti
+      if (item.mood) score += item.mood * 4;
+      
+      // Qualità del sonno (1-5) → 0-20 punti
+      if (item.sleepQuality) score += item.sleepQuality * 4;
+      
+      // Energia (1-5) → 0-20 punti
+      if (item.energyLevel) score += item.energyLevel * 4;
+      
+      // Stress (1-5, inverso) → 0-20 punti
+      if (item.stressLevel) score += (6 - item.stressLevel) * 4;
+      
+      // Attività fisica (1-5) → 0-20 punti
+      if (item.physicalActivity) score += item.physicalActivity * 4;
+      
+      return total + score;
+    }, 0);
+    
+    return Math.round(sum / lastWeekData.length);
+  };
+  
+  // Ottiene i sintomi più recenti
+  const getRecentSymptoms = (symptoms) => {
+    if (!symptoms || symptoms.length === 0) return [];
+    
+    return symptoms
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 3)
+      .map(symptom => ({
+        id: symptom.id,
+        name: symptom.name,
+        intensity: symptom.intensity,
+        date: symptom.date
+      }));
+  };
+  
+  // Ottiene i promemoria per i farmaci
+  const getMedicationReminders = (medications) => {
+    if (!medications || medications.length === 0) return [];
+    
+    const now = new Date();
+    const reminders = [];
+    
+    medications.forEach(med => {
+      if (med.schedule && med.schedule.length > 0) {
+        med.schedule.forEach(time => {
+          reminders.push({
+            id: `${med.id}-${time}`,
+            medicationName: med.name,
+            dosage: med.dosage,
+            time: time,
+            taken: false
+          });
+        });
+      }
+    });
+    
+    return reminders.slice(0, 3);
+  };
   
   // Formattazione data
   const formatDate = (dateString) => {
@@ -72,6 +132,175 @@ const Home = ({ userId, userName }) => {
     return new Date(dateString).toLocaleDateString('it-IT', options);
   };
   
+  // Controlla se l'utente è nuovo al primo rendering
+  useEffect(() => {
+    const hasCompletedOnboarding = localStorage.getItem('onboarding_completed');
+    if (!hasCompletedOnboarding) {
+      setIsNewUser(true);
+      // Reset eventuali dati di demo
+      localStorage.setItem('resetData', 'true');
+    }
+  }, []);
+
+  // Completa l'onboarding
+  const completeOnboarding = () => {
+    localStorage.setItem('onboarding_completed', 'true');
+    setIsNewUser(false);
+  };
+
+  // Gestisce il passaggio avanti nella guida
+  const handleNextStep = () => {
+    if (currentStep === 3) {
+      completeOnboarding();
+    } else {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  // Guida introduttiva per nuovi utenti
+  const renderOnboarding = () => {
+    const steps = [
+      {
+        title: "Benvenuto in Salus!",
+        content: "La tua app personale per monitorare salute e benessere. Questo breve tour ti mostrerà tutto ciò che puoi fare.",
+        icon: "fas fa-heart"
+      },
+      {
+        title: "Monitora i tuoi sintomi",
+        content: "Tieni traccia dei sintomi che provi e la loro intensità. Visualizza grafici e tendenze per comprendere meglio la tua salute.",
+        icon: "fas fa-heartbeat"
+      },
+      {
+        title: "Gestisci i tuoi farmaci",
+        content: "Salva i tuoi farmaci, imposta promemoria e tieni traccia dell'assunzione per non dimenticare mai una dose.",
+        icon: "fas fa-pills"
+      },
+      {
+        title: "Traccia il tuo benessere",
+        content: "Registra umore, qualità del sonno, attività fisiche e altro ancora. Costruisci abitudini salutari giorno dopo giorno.",
+        icon: "fas fa-spa"
+      }
+    ];
+    
+    const currentStepData = steps[currentStep];
+    
+    return (
+      <div className="onboarding-container">
+        <div className="onboarding-card">
+          <div className="step-indicator">
+            {steps.map((_, index) => (
+              <div 
+                key={index} 
+                className={`step-dot ${index === currentStep ? 'active' : ''} ${index < currentStep ? 'completed' : ''}`}
+              />
+            ))}
+          </div>
+          
+          <div className="onboarding-icon">
+            <i className={currentStepData.icon}></i>
+          </div>
+          
+          <h2 className="onboarding-title">{currentStepData.title}</h2>
+          <p className="onboarding-content">{currentStepData.content}</p>
+          
+          <div className="onboarding-actions">
+            {currentStep > 0 && (
+              <button 
+                className="secondary-button" 
+                onClick={() => setCurrentStep(currentStep - 1)}
+              >
+                Indietro
+              </button>
+            )}
+            
+            <button 
+              className="primary-button" 
+              onClick={handleNextStep}
+            >
+              {currentStep === 3 ? 'Inizia a usare Salus' : 'Continua'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Dashboard standard per utenti esistenti
+  const renderDashboard = () => {
+    return (
+      <div className="dashboard-container">
+        <div className="dashboard-welcome">
+          <h2>Benvenuto, {userName}!</h2>
+          <p>Ecco il riepilogo della tua salute e benessere</p>
+        </div>
+        
+        <div className="dashboard-stats">
+          <div className="stat-card">
+            <div className="stat-icon">
+              <i className="fas fa-heartbeat"></i>
+            </div>
+            <div className="stat-content">
+              <h3>Sintomi</h3>
+              <p className="stat-main">Nessun sintomo recente</p>
+              <p className="stat-sub">Registra i tuoi sintomi per ottenere analisi</p>
+            </div>
+          </div>
+          
+          <div className="stat-card">
+            <div className="stat-icon">
+              <i className="fas fa-pills"></i>
+            </div>
+            <div className="stat-content">
+              <h3>Farmaci</h3>
+              <p className="stat-main">Nessun farmaco registrato</p>
+              <p className="stat-sub">Aggiungi i tuoi farmaci per ricevere promemoria</p>
+            </div>
+          </div>
+          
+          <div className="stat-card">
+            <div className="stat-icon">
+              <i className="fas fa-smile"></i>
+            </div>
+            <div className="stat-content">
+              <h3>Benessere</h3>
+              <p className="stat-main">Inizia a tracciare il tuo benessere</p>
+              <p className="stat-sub">Registra umore, sonno e attività fisica</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="quick-actions">
+          <h3>Azioni rapide</h3>
+          <div className="action-buttons">
+            <a href="/sintomi" className="action-button">
+              <i className="fas fa-plus-circle"></i>
+              <span>Registra sintomo</span>
+            </a>
+            <a href="/farmaci" className="action-button">
+              <i className="fas fa-plus-circle"></i>
+              <span>Aggiungi farmaco</span>
+            </a>
+            <a href="/benessere" className="action-button">
+              <i className="fas fa-plus-circle"></i>
+              <span>Aggiorna benessere</span>
+            </a>
+          </div>
+        </div>
+        
+        <div className="tips-section">
+          <h3>Suggerimenti per la salute</h3>
+          <div className="tip-card">
+            <i className="fas fa-lightbulb"></i>
+            <div>
+              <h4>Sapevi che...</h4>
+              <p>Bere 8 bicchieri d'acqua al giorno può migliorare il tuo benessere generale e la tua energia.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="home-loading">
@@ -82,220 +311,9 @@ const Home = ({ userId, userName }) => {
   }
 
   return (
-    <div className="home-container">
-      <div className="welcome-section">
-        <h1 className="welcome-title">Benvenuto, {userName}!</h1>
-        <p className="welcome-subtitle">Monitora la tua salute e benessere con Salus</p>
-      </div>
-      
-      {/* Statistiche utente */}
-      <div className="stats-section">
-        <h2 className="section-title">Il tuo stato attuale</h2>
-        <div className="stats-grid">
-          <div className="stat-card wellness-score">
-            <div className="stat-icon">
-              <i className="fas fa-heart"></i>
-            </div>
-            <div className="stat-content">
-              <h3>Benessere</h3>
-              <div className="stat-value" style={{ color: getWellnessColor(stats.wellnessScore) }}>
-                {stats.wellnessScore}%
-              </div>
-              <div className="stat-bar-container">
-                <div 
-                  className="stat-bar" 
-                  style={{ 
-                    width: `${stats.wellnessScore}%`,
-                    backgroundColor: getWellnessColor(stats.wellnessScore) 
-                  }}
-                ></div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="stat-card symptom-count">
-            <div className="stat-icon">
-              <i className="fas fa-clipboard-list"></i>
-            </div>
-            <div className="stat-content">
-              <h3>Sintomi registrati</h3>
-              <div className="stat-value">{stats.symptomCount}</div>
-              <div className="stat-caption">Nell'ultimo mese</div>
-            </div>
-          </div>
-          
-          <div className="stat-card medication-count">
-            <div className="stat-icon">
-              <i className="fas fa-pills"></i>
-            </div>
-            <div className="stat-content">
-              <h3>Farmaci attivi</h3>
-              <div className="stat-value">{stats.medicationCount}</div>
-              <div className="stat-caption">In gestione</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Azioni rapide */}
-      <div className="quick-actions">
-        <h2 className="section-title">Azioni rapide</h2>
-        <div className="actions-grid">
-          <Link to="/sintomi/nuovo" className="action-card">
-            <div className="action-icon">
-              <i className="fas fa-plus-circle"></i>
-            </div>
-            <div className="action-content">
-              <h3>Nuovo sintomo</h3>
-              <p>Registra un nuovo sintomo</p>
-            </div>
-          </Link>
-          
-          <Link to="/farmaci/nuovo" className="action-card">
-            <div className="action-icon">
-              <i className="fas fa-prescription-bottle-alt"></i>
-            </div>
-            <div className="action-content">
-              <h3>Nuovo farmaco</h3>
-              <p>Aggiungi un farmaco al monitoraggio</p>
-            </div>
-          </Link>
-          
-          <Link to="/benessere/nuovo" className="action-card">
-            <div className="action-icon">
-              <i className="fas fa-smile"></i>
-            </div>
-            <div className="action-content">
-              <h3>Inserisci umore</h3>
-              <p>Traccia il tuo benessere mentale</p>
-            </div>
-          </Link>
-          
-          <Link to="/assistente" className="action-card">
-            <div className="action-icon">
-              <i className="fas fa-robot"></i>
-            </div>
-            <div className="action-content">
-              <h3>Chiedi all'assistente</h3>
-              <p>Ricevi consigli personalizzati</p>
-            </div>
-          </Link>
-        </div>
-      </div>
-      
-      {/* Contenuto principale */}
-      <div className="main-content-grid">
-        {/* Sintomi recenti */}
-        <div className="recent-symptoms">
-          <div className="panel-header">
-            <h2>Sintomi recenti</h2>
-            <Link to="/sintomi" className="view-all">
-              Vedi tutti <i className="fas fa-chevron-right"></i>
-            </Link>
-          </div>
-          
-          {stats.recentSymptoms.length > 0 ? (
-            <div className="symptoms-list">
-              {stats.recentSymptoms.map(symptom => (
-                <div className="symptom-card" key={symptom.id}>
-                  <div 
-                    className="symptom-intensity"
-                    style={{ backgroundColor: getIntensityColor(symptom.intensity) }}
-                  >
-                    {symptom.intensity}
-                  </div>
-                  <div className="symptom-info">
-                    <h3>{symptom.name}</h3>
-                    <p>{formatDate(symptom.date)}</p>
-                  </div>
-                  <div className="symptom-actions">
-                    <button className="symptom-action-btn">
-                      <i className="fas fa-chevron-right"></i>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <i className="fas fa-clipboard-list"></i>
-              <p>Nessun sintomo registrato di recente</p>
-              <Link to="/sintomi/nuovo" className="btn-add">
-                <i className="fas fa-plus"></i> Aggiungi sintomo
-              </Link>
-            </div>
-          )}
-        </div>
-        
-        {/* Promemoria farmaci */}
-        <div className="medication-reminders">
-          <div className="panel-header">
-            <h2>Promemoria farmaci</h2>
-            <Link to="/farmaci" className="view-all">
-              Vedi tutti <i className="fas fa-chevron-right"></i>
-            </Link>
-          </div>
-          
-          {stats.reminders.length > 0 ? (
-            <div className="reminders-list">
-              {stats.reminders.map(reminder => (
-                <div className="reminder-card" key={reminder.id}>
-                  <div className="reminder-icon">
-                    <i className="fas fa-pills"></i>
-                  </div>
-                  <div className="reminder-info">
-                    <h3>{reminder.medicationName}</h3>
-                    <p>{reminder.dosage} - {reminder.time}</p>
-                  </div>
-                  <div className="reminder-actions">
-                    <button className="reminder-action-btn take">
-                      <i className="fas fa-check"></i>
-                    </button>
-                    <button className="reminder-action-btn skip">
-                      <i className="fas fa-times"></i>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <i className="fas fa-prescription-bottle-alt"></i>
-              <p>Nessun promemoria farmaci impostato</p>
-              <Link to="/farmaci/nuovo" className="btn-add">
-                <i className="fas fa-plus"></i> Aggiungi farmaco
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Consigli personalizzati */}
-      <div className="advice-section">
-        <h2 className="section-title">Consigli personalizzati</h2>
-        <div className="advice-card">
-          <div className="advice-icon">
-            <i className="fas fa-lightbulb"></i>
-          </div>
-          <div className="advice-content">
-            <h3>Probabile allergia stagionale</h3>
-            <p>
-              I tuoi sintomi recenti (naso che cola, starnuti frequenti) potrebbero 
-              indicare un'allergia stagionale. Considera di consultare uno specialista 
-              per un controllo.
-            </p>
-            <div className="advice-actions">
-              <button className="advice-btn">
-                <i className="fas fa-calendar-alt"></i> Prenota visita
-              </button>
-              <button className="advice-btn secondary">
-                <i className="fas fa-info-circle"></i> Maggiori info
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <>
+      {isNewUser ? renderOnboarding() : renderDashboard()}
+    </>
   );
 };
 
