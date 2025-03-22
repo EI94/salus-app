@@ -1,1 +1,838 @@
- 
+/* Stili per MedicationTracker */
+.medication-tracker {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Header e titolo */
+.medication-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.medication-title h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #1e293b;
+}
+
+.medication-title p {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0;
+}
+
+.add-medication-button {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+}
+
+.add-medication-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(99, 102, 241, 0.3);
+}
+
+.add-medication-button i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+/* Statistiche */
+.medication-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #f9f9ff 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Filtri */
+.medication-filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+}
+
+.search-box i {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.status-filter select {
+  padding: 12px 36px 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  background-color: #f8fafc;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.status-filter select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Lista dei farmaci */
+.medication-list {
+  margin-bottom: 32px;
+}
+
+.medication-card {
+  display: flex;
+  justify-content: space-between;
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.medication-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.medication-info {
+  flex: 1;
+}
+
+.medication-name {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.medication-name h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-right: 12px;
+}
+
+.medication-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-active {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-completed {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.status-paused {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.medication-dosage {
+  font-size: 15px;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.medication-dates {
+  color: #94a3b8;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+}
+
+.medication-dates i {
+  margin-right: 6px;
+}
+
+.medication-adherence {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-left: 16px;
+}
+
+.adherence-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.adherence-inner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.adherence-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Nessun farmaco */
+.no-medications {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.no-medications i {
+  font-size: 48px;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+
+.no-medications p {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.add-first-medication {
+  padding: 12px 24px;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.add-first-medication:hover {
+  background-color: #4f46e5;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(99, 102, 241, 0.1);
+  border-left-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loading-text {
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.close-button:hover {
+  color: #475569;
+  background-color: #f8fafc;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Form */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+/* Time options */
+.time-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.time-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #6366f1;
+}
+
+.time-option label {
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.time-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f1f5f9;
+  color: #64748b;
+  padding: 6px 10px;
+  border-radius: 20px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.time-pill i {
+  margin-right: 6px;
+}
+
+/* Pulsanti */
+.save-button,
+.cancel-button,
+.delete-button,
+.status-button,
+.close-detail-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.save-button {
+  background-color: #6366f1;
+  color: white;
+  border: none;
+}
+
+.save-button:hover {
+  background-color: #4f46e5;
+}
+
+.cancel-button {
+  background-color: transparent;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.cancel-button:hover {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.delete-button {
+  background-color: #fee2e2;
+  color: #ef4444;
+  border: none;
+  margin-right: auto;
+}
+
+.delete-button:hover {
+  background-color: #fecaca;
+}
+
+.status-button {
+  border: none;
+}
+
+.status-button.pause {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.status-button.pause:hover {
+  background-color: #fde68a;
+}
+
+.status-button.resume {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-button.resume:hover {
+  background-color: #bbf7d0;
+}
+
+.status-button.complete {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.status-button.complete:hover {
+  background-color: #bae6fd;
+}
+
+.close-detail-button {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: none;
+}
+
+.close-detail-button:hover {
+  background-color: #e2e8f0;
+}
+
+/* Dettaglio */
+.detail-group {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.detail-label {
+  min-width: 120px;
+  font-weight: 500;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.detail-value {
+  flex: 1;
+  font-size: 15px;
+  color: #1e293b;
+}
+
+/* Adherence bar */
+.adherence-detail {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #f1f5f9;
+  border-radius: 8px;
+  padding: 4px;
+  position: relative;
+  height: 32px;
+}
+
+.adherence-bar {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: 24px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+}
+
+.adherence-detail span {
+  position: relative;
+  z-index: 1;
+  margin-left: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .medication-tracker {
+    background-color: #1a1a2e;
+    color: #e2e8f0;
+  }
+  
+  .medication-title h1 {
+    color: #f1f5f9;
+  }
+  
+  .medication-title p {
+    color: #94a3b8;
+  }
+  
+  .stat-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  }
+  
+  .stat-value {
+    color: #f1f5f9;
+  }
+  
+  .search-box input, 
+  .status-filter select,
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  .search-box i {
+    color: #64748b;
+  }
+  
+  .status-filter select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  }
+  
+  .medication-card {
+    background-color: #1e293b;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .medication-name h3 {
+    color: #f1f5f9;
+  }
+  
+  .medication-dosage {
+    color: #cbd5e1;
+  }
+  
+  .adherence-inner {
+    background-color: #1e293b;
+  }
+  
+  .no-medications {
+    background-color: #1e293b;
+  }
+  
+  .modal-content {
+    background-color: #0f172a;
+  }
+  
+  .modal-header {
+    border-bottom-color: #334155;
+  }
+  
+  .modal-header h2 {
+    color: #f1f5f9;
+  }
+  
+  .modal-footer {
+    border-top-color: #334155;
+  }
+  
+  .form-group label {
+    color: #cbd5e1;
+  }
+  
+  .detail-label {
+    color: #94a3b8;
+  }
+  
+  .detail-value {
+    color: #f1f5f9;
+  }
+  
+  .time-pill {
+    background-color: #334155;
+    color: #cbd5e1;
+  }
+  
+  .time-option label {
+    color: #cbd5e1;
+  }
+  
+  .cancel-button {
+    border-color: #334155;
+    color: #94a3b8;
+  }
+  
+  .cancel-button:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  .close-detail-button {
+    background-color: #334155;
+    color: #cbd5e1;
+  }
+  
+  .close-detail-button:hover {
+    background-color: #475569;
+  }
+  
+  .adherence-detail {
+    background-color: #334155;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .medication-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .add-medication-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .medication-filters {
+    flex-direction: column;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .time-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .medication-card {
+    flex-direction: column;
+  }
+  
+  .medication-adherence {
+    flex-direction: row;
+    margin-left: 0;
+    margin-top: 16px;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  
+  .adherence-circle {
+    margin-bottom: 0;
+  }
+  
+  .modal-content {
+    width: 95%;
+  }
+  
+  .detail-group {
+    flex-direction: column;
+  }
+  
+  .detail-label {
+    min-width: auto;
+    margin-bottom: 4px;
+  }
+  
+  .modal-footer {
+    justify-content: center;
+  }
+  
+  .modal-footer .delete-button {
+    margin-right: 0;
+    margin-bottom: 8px;
+    width: 100%;
+  }
+  
+  .modal-footer .status-button,
+  .modal-footer .close-detail-button {
+    width: 100%;
+  }
+} 

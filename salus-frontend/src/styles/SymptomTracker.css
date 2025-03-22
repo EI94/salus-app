@@ -1,270 +1,327 @@
-.symptom-tracker-container {
-  padding: 1.5rem 1rem;
+/* Stili per SymptomTracker */
+.symptom-tracker {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Header e titolo */
 .symptom-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
 }
 
-.page-title {
-  font-size: 1.75rem;
+.symptom-title h1 {
+  font-size: 28px;
   font-weight: 700;
-  color: #0284c7;
+  margin: 0 0 8px 0;
+  color: #1e293b;
 }
 
-.btn-add-symptom {
-  background-color: #0284c7;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.25rem;
-  border-radius: 50px;
-  font-weight: 600;
+.symptom-title p {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0;
+}
+
+.add-symptom-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
 }
 
-.btn-add-symptom:hover {
-  background-color: #0369a1;
+.add-symptom-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 12px rgba(99, 102, 241, 0.3);
+}
+
+.add-symptom-button i {
+  margin-right: 8px;
+  font-size: 16px;
 }
 
 /* Filtri */
-.filter-container {
-  margin-bottom: 1.5rem;
-}
-
-.filter-buttons {
+.symptom-filters {
   display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.filter-btn {
-  padding: 0.5rem 1.25rem;
+.search-box {
+  position: relative;
+  flex: 1;
+}
+
+.search-box i {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
   border: 1px solid #e2e8f0;
-  border-radius: 50px;
-  background-color: white;
+  border-radius: 10px;
+  font-size: 15px;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.category-filter select {
+  padding: 12px 36px 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  background-color: #f8fafc;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.category-filter select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Statistiche */
+.symptom-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #f9f9ff 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 14px;
   color: #64748b;
   font-weight: 500;
+}
+
+/* Lista dei sintomi */
+.symptom-list {
+  margin-bottom: 32px;
+}
+
+.symptom-card {
+  display: flex;
+  justify-content: space-between;
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.filter-btn:hover {
+.symptom-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.symptom-info {
+  flex: 1;
+}
+
+.symptom-name {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.symptom-name h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-right: 12px;
+}
+
+.symptom-category {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
   background-color: #f1f5f9;
-  color: #0284c7;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.filter-btn.active {
-  background-color: #0284c7;
-  color: white;
-  border-color: #0284c7;
+.symptom-description {
+  margin-bottom: 8px;
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
-/* Loading state */
-.loading-state {
+.symptom-date {
+  color: #94a3b8;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+}
+
+.symptom-date i {
+  margin-right: 6px;
+}
+
+.symptom-intensity {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  margin-left: 16px;
+}
+
+.intensity-indicator {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 6px;
+}
+
+.low-intensity {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.medium-intensity {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.high-intensity {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.intensity-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Nessun sintomo */
+.no-symptoms {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background-color: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 60px 20px;
   text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.no-symptoms i {
+  font-size: 48px;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+
+.no-symptoms p {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.add-first-symptom {
+  padding: 12px 24px;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.add-first-symptom:hover {
+  background-color: #4f46e5;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(2, 132, 199, 0.3);
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(99, 102, 241, 0.1);
+  border-left-color: #6366f1;
   border-radius: 50%;
-  border-top-color: #0284c7;
   animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
+}
+
+.loading-text {
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Error state */
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  color: #dc2626;
-}
-
-.error-state i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-/* Lista sintomi */
-.symptoms-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.25rem;
-}
-
-.symptom-card {
-  display: flex;
-  background-color: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-}
-
-.symptom-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.symptom-intensity {
-  width: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #1f2937;
-  padding: 1rem 0;
-}
-
-.intensity-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.intensity-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  opacity: 0.7;
-}
-
-.symptom-info {
-  flex: 1;
-  padding: 1rem;
-}
-
-.symptom-name {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
-}
-
-.symptom-time {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.time-separator {
-  margin: 0 0.5rem;
-}
-
-.symptom-notes {
-  font-size: 0.9375rem;
-  color: #4b5563;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-
-.symptom-triggers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.trigger-tag {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  background-color: #e0f2fe;
-  color: #0369a1;
-  border-radius: 50px;
-}
-
-.symptom-medication {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #64748b;
-}
-
-.symptom-medication i {
-  color: #0284c7;
-}
-
-/* Empty state */
-.empty-symptoms {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.empty-symptoms i {
-  font-size: 3rem;
-  color: #cbd5e1;
-  margin-bottom: 1rem;
-}
-
-.empty-symptoms p {
-  color: #64748b;
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-}
-
-.btn-add-first {
-  background-color: #0284c7;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.25rem;
-  border-radius: 50px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-add-first:hover {
-  background-color: #0369a1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* Modal */
-.symptom-modal-overlay {
+/* Modal overlay */
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -275,312 +332,421 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s;
 }
 
-.symptom-modal {
-  width: 100%;
-  max-width: 600px;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
   background-color: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 560px;
   max-height: 90vh;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 1.25rem;
-  border-bottom: 1px solid #e5e7eb;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .modal-header h2 {
-  font-size: 1.25rem;
+  margin: 0;
+  font-size: 20px;
   font-weight: 600;
-  color: #1f2937;
+  color: #1e293b;
 }
 
-.btn-close {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  background-color: #f1f5f9;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
 }
 
-.btn-close:hover {
-  background-color: #e2e8f0;
-  color: #1f2937;
+.close-button:hover {
+  color: #475569;
+  background-color: #f8fafc;
 }
 
-.modal-content {
-  padding: 1.5rem;
-  overflow-y: auto;
+.modal-body {
+  padding: 24px;
 }
 
-/* Form */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  gap: 12px;
+}
+
+/* Form nel modal */
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 20px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
+  font-size: 14px;
   font-weight: 500;
-  color: #4b5563;
+  color: #475569;
 }
 
-.form-group input, .form-group textarea {
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="time"],
+.form-group select,
+.form-group textarea {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 12px 16px;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
+  border-radius: 10px;
+  font-size: 15px;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
 }
 
-.form-group input:focus, .form-group textarea:focus {
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
-  border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  display: flex;
+  gap: 16px;
 }
 
-/* Intensity selector */
-.intensity-selector {
+.form-row .form-group {
+  flex: 1;
+}
+
+.range-labels {
   display: flex;
   justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.intensity-option {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.75rem 0.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.intensity-option:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.intensity-option.selected {
-  border: 2px solid rgba(0, 0, 0, 0.3);
-}
-
-.intensity-number {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.intensity-desc {
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-/* Triggers selector */
-.triggers-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.trigger-option {
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  font-size: 0.875rem;
-  background-color: #f8fafc;
+  margin-top: 6px;
+  font-size: 12px;
   color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.trigger-option:hover {
-  background-color: #f1f5f9;
-}
-
-.trigger-option.selected {
-  background-color: #e0f2fe;
-  color: #0284c7;
-  font-weight: 500;
-}
-
-/* Form actions */
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.btn-cancel {
-  padding: 0.75rem 1.5rem;
-  border: 1px solid #e2e8f0;
+/* Pulsanti */
+.save-button, 
+.cancel-button, 
+.delete-button, 
+.edit-button, 
+.close-detail-button {
+  padding: 10px 20px;
   border-radius: 8px;
-  background-color: white;
-  color: #64748b;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-cancel:hover {
-  background-color: #f1f5f9;
-  color: #4b5563;
-}
-
-.btn-save {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  background-color: #0284c7;
-  color: white;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
-.btn-save:hover {
-  background-color: #0369a1;
+.save-button {
+  background-color: #6366f1;
+  color: white;
+  border: none;
 }
 
-.btn-save:disabled {
-  background-color: #94a3b8;
-  cursor: not-allowed;
+.save-button:hover {
+  background-color: #4f46e5;
+}
+
+.cancel-button {
+  background-color: transparent;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.cancel-button:hover {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.delete-button {
+  background-color: #fee2e2;
+  color: #ef4444;
+  border: none;
+  margin-right: auto;
+}
+
+.delete-button:hover {
+  background-color: #fecaca;
+}
+
+.edit-button {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  border: none;
+}
+
+.edit-button:hover {
+  background-color: #bae6fd;
+}
+
+.close-detail-button {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: none;
+}
+
+.close-detail-button:hover {
+  background-color: #e2e8f0;
+}
+
+/* Dettaglio sintomo */
+.detail-item {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.detail-label {
+  min-width: 120px;
+  font-weight: 500;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.detail-value {
+  flex: 1;
+  font-size: 15px;
+  color: #1e293b;
+}
+
+.detail-value.description {
+  line-height: 1.6;
+}
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #10b981, #f59e0b, #ef4444);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #6366f1;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #6366f1;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .symptom-tracker {
+    background-color: #1a1a2e;
+    color: #e2e8f0;
+  }
+  
+  .symptom-title h1 {
+    color: #f1f5f9;
+  }
+  
+  .symptom-title p {
+    color: #94a3b8;
+  }
+  
+  .search-box input, 
+  .category-filter select,
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  .search-box i {
+    color: #64748b;
+  }
+  
+  .category-filter select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  }
+  
+  .stat-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  }
+  
+  .stat-value {
+    color: #f1f5f9;
+  }
+  
+  .stat-label {
+    color: #94a3b8;
+  }
+  
+  .symptom-card {
+    background-color: #1e293b;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .symptom-name h3 {
+    color: #f1f5f9;
+  }
+  
+  .symptom-category {
+    background-color: #334155;
+    color: #94a3b8;
+  }
+  
+  .symptom-description {
+    color: #cbd5e1;
+  }
+  
+  .symptom-date {
+    color: #64748b;
+  }
+  
+  .no-symptoms {
+    background-color: #1e293b;
+  }
+  
+  .modal-content {
+    background-color: #0f172a;
+  }
+  
+  .modal-header {
+    border-bottom-color: #334155;
+  }
+  
+  .modal-header h2 {
+    color: #f1f5f9;
+  }
+  
+  .modal-footer {
+    border-top-color: #334155;
+  }
+  
+  .form-group label {
+    color: #cbd5e1;
+  }
+  
+  .detail-label {
+    color: #94a3b8;
+  }
+  
+  .detail-value {
+    color: #f1f5f9;
+  }
+  
+  .cancel-button {
+    border-color: #334155;
+    color: #94a3b8;
+  }
+  
+  .cancel-button:hover {
+    background-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  .close-detail-button {
+    background-color: #334155;
+    color: #cbd5e1;
+  }
+  
+  .close-detail-button:hover {
+    background-color: #475569;
+  }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .symptoms-list {
-    grid-template-columns: 1fr;
-  }
-  
   .symptom-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 16px;
   }
   
-  .form-row {
-    grid-template-columns: 1fr;
+  .add-symptom-button {
+    width: 100%;
+    justify-content: center;
   }
   
-  .intensity-selector {
+  .symptom-filters {
     flex-direction: column;
   }
   
-  .intensity-option {
-    flex-direction: row;
-    justify-content: space-between;
+  .form-row {
+    flex-direction: column;
+    gap: 0;
   }
   
-  .intensity-option .intensity-number {
+  .symptom-card {
+    flex-direction: column;
+  }
+  
+  .symptom-intensity {
+    flex-direction: row;
+    margin-left: 0;
+    margin-top: 16px;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  
+  .intensity-indicator {
     margin-bottom: 0;
   }
-}
-
-/* Dark theme */
-@media (prefers-color-scheme: dark) {
-  .symptom-card, .symptom-modal, .loading-state, .error-state, .empty-symptoms {
-    background-color: #1f2937;
+  
+  .modal-content {
+    width: 95%;
   }
   
-  .symptom-name, .modal-header h2 {
-    color: #e5e7eb;
+  .modal-footer {
+    flex-wrap: wrap;
   }
   
-  .symptom-notes {
-    color: #d1d5db;
-  }
-  
-  .filter-btn {
-    background-color: #1f2937;
-    border-color: #374151;
-    color: #9ca3af;
-  }
-  
-  .filter-btn:hover {
-    background-color: #374151;
-    color: #38bdf8;
-  }
-  
-  .filter-btn.active {
-    background-color: #0284c7;
-    color: white;
-    border-color: #0284c7;
-  }
-  
-  .btn-close {
-    background-color: #374151;
-    color: #d1d5db;
-  }
-  
-  .btn-close:hover {
-    background-color: #4b5563;
-    color: #e5e7eb;
-  }
-  
-  .form-group label {
-    color: #d1d5db;
-  }
-  
-  .form-group input, .form-group textarea, .btn-cancel {
-    background-color: #374151;
-    border-color: #4b5563;
-    color: #e5e7eb;
-  }
-  
-  .form-group input:focus, .form-group textarea:focus {
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-  }
-  
-  .trigger-option {
-    background-color: #374151;
-    color: #d1d5db;
-  }
-  
-  .trigger-option:hover {
-    background-color: #4b5563;
-  }
-  
-  .trigger-option.selected {
-    background-color: #075985;
-    color: #e0f2fe;
-  }
-  
-  .trigger-tag {
-    background-color: #075985;
-    color: #e0f2fe;
-  }
-  
-  .symptom-time, .symptom-medication {
-    color: #9ca3af;
-  }
-  
-  .error-state {
-    color: #ef4444;
+  .delete-button, .edit-button, .close-detail-button {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
   }
 } 

@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Auth from './components/Auth';
+import SymptomTracker from './components/SymptomTracker';
+import MedicationTracker from './components/MedicationTracker';
+import WellnessTracker from './components/WellnessTracker';
+import AIAssistant from './components/AIAssistant';
+import NotificationCenter from './components/NotificationCenter';
+import Home from './components/Home';
 import './App.css';
+import API from './api';
 
 // Configurazione di base per axios
-const API = axios.create({
+const API_BASE = axios.create({
   // Utilizziamo un mock JSON server locale o jsonplaceholder per i test
   baseURL: 'https://jsonplaceholder.typicode.com',
   timeout: 15000,
@@ -16,7 +23,7 @@ const API = axios.create({
 });
 
 // Interceptor per aggiungere il token di autenticazione alle richieste
-API.interceptors.request.use(
+API_BASE.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -30,7 +37,7 @@ API.interceptors.request.use(
 );
 
 // Interceptor per gestire le risposte
-API.interceptors.response.use(
+API_BASE.interceptors.response.use(
   response => {
     return response;
   },
@@ -75,72 +82,109 @@ const mockAuth = {
   }
 };
 
-// Componente principale per la Dashboard utente
-const Dashboard = ({ userId, userName, onLogout }) => {
+// Layout che include la barra di navigazione e il layout comune
+function Layout({ userId, userName, onLogout, hasNotifications, children }) {
+  const location = useLocation();
+  const [showAIWidget, setShowAIWidget] = useState(false);
+
+  // Determina la pagina attiva basandosi sull'URL
+  const getActivePage = (pathname) => {
+    const path = pathname.split('/')[1] || 'dashboard';
+    return path;
+  };
+
+  const activePage = getActivePage(location.pathname);
+
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div className="logo">
-          <img src="/logo.svg" alt="Salus" />
-          <span>Salus</span>
+    <div className="app-container">
+      <header className="app-header">
+        <div className="header-logo">
+          <img src="/logo.png" alt="Salus" className="logo" />
+          <h1>Salus</h1>
         </div>
-        <div className="user-controls">
-          <div className="user-avatar">
-            {userName.charAt(0).toUpperCase()}
-          </div>
-          <div className="user-info">
-            <span className="user-name">{userName}</span>
-            <button className="logout-button" onClick={onLogout}>
-              <i className="fas fa-sign-out-alt"></i> Esci
-            </button>
-          </div>
+        <div className="header-user">
+          <span className="user-name">{userName}</span>
+          <button className="logout-button" onClick={onLogout}>
+            <i className="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </button>
         </div>
       </header>
       
-      <main className="dashboard-content">
-        <div className="welcome-message">
-          <h1>Benvenuto, {userName}!</h1>
-          <p>Il sistema è in fase di implementazione. Presto potrai usare tutte le funzionalità di Salus per monitorare la tua salute.</p>
-        </div>
-        
-        <div className="coming-soon">
-          <h2>Funzionalità in arrivo</h2>
-          <div className="features-grid">
-            <div className="feature-card">
-              <i className="fas fa-heartbeat"></i>
-              <h3>Monitoraggio Sintomi</h3>
-              <p>Tieni traccia dei tuoi sintomi e della loro evoluzione nel tempo</p>
-            </div>
-            <div className="feature-card">
-              <i className="fas fa-pills"></i>
-              <h3>Gestione Farmaci</h3>
-              <p>Gestisci i tuoi farmaci e ricevi promemoria per assumerli</p>
-            </div>
-            <div className="feature-card">
-              <i className="fas fa-brain"></i>
-              <h3>Benessere Mentale</h3>
-              <p>Monitora il tuo benessere mentale e la qualità del sonno</p>
-            </div>
-            <div className="feature-card">
+      <div className="main-container">
+        <nav className="sidebar">
+          <a 
+            href="/dashboard" 
+            className={activePage === 'dashboard' ? 'active' : ''}
+          >
+            <i className="fas fa-home"></i>
+            <span>Dashboard</span>
+          </a>
+          <a 
+            href="/sintomi" 
+            className={activePage === 'sintomi' ? 'active' : ''}
+          >
+            <i className="fas fa-heartbeat"></i>
+            <span>Sintomi</span>
+          </a>
+          <a 
+            href="/farmaci" 
+            className={activePage === 'farmaci' ? 'active' : ''}
+          >
+            <i className="fas fa-pills"></i>
+            <span>Farmaci</span>
+          </a>
+          <a 
+            href="/benessere" 
+            className={activePage === 'benessere' ? 'active' : ''}
+          >
+            <i className="fas fa-spa"></i>
+            <span>Benessere</span>
+          </a>
+          <a 
+            href="/assistente" 
+            className={activePage === 'assistente' ? 'active' : ''}
+          >
+            <i className="fas fa-robot"></i>
+            <span>Assistente</span>
+          </a>
+          
+          <div className="sidebar-bottom">
+            <button 
+              className="ai-toggle-button"
+              onClick={() => setShowAIWidget(!showAIWidget)}
+            >
               <i className="fas fa-robot"></i>
-              <h3>Assistente Virtuale</h3>
-              <p>Ricevi consigli personalizzati e risposte alle tue domande</p>
-            </div>
+              <span>Assistente Rapido</span>
+            </button>
           </div>
-        </div>
-      </main>
+        </nav>
+        
+        <main className="content">
+          {children}
+        </main>
+      </div>
       
-      <footer className="dashboard-footer">
-        <p>&copy; 2025 Salus App. Tutti i diritti riservati.</p>
-      </footer>
+      {/* Assistente AI compatto sempre visibile */}
+      {showAIWidget && (
+        <div className="ai-widget-container">
+          <AIAssistant userId={userId} />
+        </div>
+      )}
+      
+      {/* Centro notifiche */}
+      <NotificationCenter />
     </div>
   );
-};
+}
 
+// Funzione principale dell'app
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState('');
+  const [hasNotifications, setHasNotifications] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Verifica se esiste già una sessione
   useEffect(() => {
@@ -153,12 +197,28 @@ function App() {
       setUserName(storedUserName || 'Utente');
       setIsLoggedIn(true);
     }
+    
+    setIsLoading(false);
   }, []);
 
-  const handleLogin = (userId, userName) => {
+  const handleLogin = (userId, userName, token) => {
+    // Salva dati di autenticazione
+    localStorage.setItem('userId', userId);
+    localStorage.setItem('userName', userName);
+    localStorage.setItem('token', token);
+    
+    // Aggiorna lo stato
     setUserId(userId);
     setUserName(userName);
     setIsLoggedIn(true);
+    
+    // Notifica di login riuscito
+    window.dispatchEvent(new CustomEvent('salus:notification', {
+      detail: { 
+        type: 'success',
+        message: 'Login effettuato con successo!'
+      }
+    }));
   };
 
   const handleLogout = () => {
@@ -168,15 +228,83 @@ function App() {
     setUserId(null);
     setUserName('');
     setIsLoggedIn(false);
+    
+    // Notifica di logout
+    window.dispatchEvent(new CustomEvent('salus:notification', {
+      detail: { 
+        type: 'info',
+        message: 'Logout effettuato con successo.'
+      }
+    }));
   };
 
-  // Mostra il componente di autenticazione se l'utente non è loggato
-  if (!isLoggedIn) {
-    return <Auth onLogin={handleLogin} mockAuth={mockAuth} />;
+  // Mostra il loader durante il caricamento iniziale
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Caricamento...</p>
+      </div>
+    );
   }
 
-  // Mostra la dashboard per gli utenti loggati
-  return <Dashboard userId={userId} userName={userName} onLogout={handleLogout} />;
+  // Se l'utente non è loggato, mostra il componente di autenticazione
+  if (!isLoggedIn) {
+    return <Auth onLogin={handleLogin} />;
+  }
+
+  // Se l'utente è loggato, mostra l'app con tutte le funzionalità
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route
+          path="/dashboard"
+          element={
+            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <Home userId={userId} userName={userName} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/sintomi"
+          element={
+            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <SymptomTracker userId={userId} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/farmaci"
+          element={
+            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <MedicationTracker userId={userId} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/benessere"
+          element={
+            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <WellnessTracker userId={userId} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/assistente"
+          element={
+            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <div className="assistant-container">
+                <AIAssistant userId={userId} />
+              </div>
+            </Layout>
+          }
+        />
+        {/* Fallback per percorsi non gestiti */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App; 
