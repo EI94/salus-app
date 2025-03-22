@@ -185,7 +185,7 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
       {/* Assistente AI compatto sempre visibile */}
       {showAIWidget && (
         <div className="ai-widget-container">
-          <AIAssistant userId={userId} />
+          <AIAssistant />
         </div>
       )}
       
@@ -302,7 +302,7 @@ function App() {
           element={
             <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
               <div className="assistant-container">
-                <AIAssistant userId={userId} />
+                <AIAssistant />
               </div>
             </Layout>
           }

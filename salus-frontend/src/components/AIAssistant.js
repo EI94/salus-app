@@ -1,322 +1,337 @@
 import React, { useState, useEffect, useRef } from 'react';
-import API from '../api';
-import { toggleOfflineMode, isInOfflineMode } from '../api';
 import '../styles/AIAssistant.css';
+import openaiConfig from '../utils/openaiConfig';
 
-const AIAssistant = ({ userId }) => {
-  const [userMessage, setUserMessage] = useState('');
-  const [conversation, setConversation] = useState([]);
+const AIAssistant = () => {
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
-  const [suggestedQuestions, setSuggestedQuestions] = useState([
-    "Come posso alleviare il mal di testa?",
-    "Quali sono i sintomi più comuni dell'influenza?",
-    "Dovresti consultare un medico per mal di stomaco persistente?",
-    "Come posso migliorare la qualità del sonno?",
-    "Quali sono i benefici dell'esercizio fisico regolare?"
-  ]);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
-  const [offlineMode, setOfflineMode] = useState(isInOfflineMode());
-  const [darkMode, setDarkMode] = useState(false);
-  
-  const messagesEndRef = useRef(null);
-  const chatContainerRef = useRef(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [useSpeech, setUseSpeech] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [apiKeyError, setApiKeyError] = useState('');
+  const chatAreaRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Suggerimenti iniziali
+  const suggestions = [
+    'Come posso migliorare il mio benessere?',
+    'Consigli per dormire meglio',
+    'Esercizi per ridurre lo stress',
+    'Idee per pasti salutari'
+  ];
+
+  // Carica la cronologia e le impostazioni al primo caricamento
   useEffect(() => {
-    if (userId) {
-      // Carica la conversazione precedente dal localStorage
-      const savedConversation = localStorage.getItem(`aiConversation_${userId}`);
-      if (savedConversation) {
-        try {
-          const parsedConversation = JSON.parse(savedConversation);
-          setConversation(parsedConversation);
-          setShowIntro(parsedConversation.length > 0 ? false : true);
-        } catch (e) {
-          console.error('Errore nel parsing della conversazione salvata:', e);
-        }
-      }
-      
-      // Carica le preferenze dell'utente
-      const savedDarkMode = localStorage.getItem(`aiDarkMode_${userId}`);
-      if (savedDarkMode) {
-        setDarkMode(savedDarkMode === 'true');
-      }
-      
-      const savedVoiceEnabled = localStorage.getItem(`aiVoiceEnabled_${userId}`);
-      if (savedVoiceEnabled) {
-        setVoiceEnabled(savedVoiceEnabled === 'true');
+    const savedMessages = localStorage.getItem('ai_assistant_messages');
+    if (savedMessages) {
+      try {
+        setMessages(JSON.parse(savedMessages));
+      } catch (e) {
+        console.error('Errore nel caricamento dei messaggi salvati:', e);
       }
     }
-  }, [userId]);
 
-  // Salva la conversazione nel localStorage quando cambia
-  useEffect(() => {
-    if (userId && conversation.length > 0) {
-      localStorage.setItem(`aiConversation_${userId}`, JSON.stringify(conversation));
+    // Carica impostazioni
+    const darkMode = localStorage.getItem('ai_assistant_dark_mode') === 'true';
+    setIsDarkMode(darkMode);
+    
+    const speech = localStorage.getItem('ai_assistant_speech') === 'true';
+    setUseSpeech(speech);
+    
+    // Verifica se c'è già una chiave API salvata
+    if (openaiConfig.hasApiKey()) {
+      setApiKey(openaiConfig.getApiKey() || '');
     }
-  }, [conversation, userId]);
+  }, []);
 
-  // Salva le preferenze dell'utente
+  // Salva i messaggi quando cambiano
   useEffect(() => {
-    if (userId) {
-      localStorage.setItem(`aiDarkMode_${userId}`, darkMode);
-      localStorage.setItem(`aiVoiceEnabled_${userId}`, voiceEnabled);
+    if (messages.length > 0) {
+      localStorage.setItem('ai_assistant_messages', JSON.stringify(messages));
     }
-  }, [darkMode, voiceEnabled, userId]);
+  }, [messages]);
 
-  // Scroll automatico alla fine della conversazione
+  // Salva le impostazioni quando cambiano
   useEffect(() => {
-    scrollToBottom();
-  }, [conversation]);
+    localStorage.setItem('ai_assistant_dark_mode', isDarkMode);
+    localStorage.setItem('ai_assistant_speech', useSpeech);
+  }, [isDarkMode, useSpeech]);
 
-  // Aggiorna lo stato della modalità offline
+  // Scorrimento automatico alla fine della chat
   useEffect(() => {
-    setOfflineMode(isInOfflineMode());
-  }, [isInOfflineMode()]);
+    if (chatAreaRef.current) {
+      chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Gestisce l'invio della chiave API
+  const handleApiKeySubmit = (e) => {
+    e.preventDefault();
+    
+    if (!apiKey.trim()) {
+      setApiKeyError('Per favore, inserisci una chiave API valida');
+      return;
+    }
+    
+    if (!apiKey.startsWith('sk-') || apiKey.length < 20) {
+      setApiKeyError('La chiave API non sembra valida. Deve iniziare con "sk-" e avere la lunghezza corretta');
+      return;
+    }
+    
+    openaiConfig.saveApiKey(apiKey);
+    setApiKeyError('');
+    
+    // Aggiunge un messaggio di conferma
+    setMessages(prev => [
+      ...prev,
+      { role: 'assistant', content: 'La chiave API è stata salvata. Ora puoi iniziare a chattare con me!', timestamp: new Date().toISOString() }
+    ]);
   };
 
+  // Gestisce l'invio del messaggio
   const handleSubmit = async (e) => {
-    e && e.preventDefault();
+    e?.preventDefault();
     
-    if (!userMessage.trim() && !e.currentTarget.dataset.question) return;
+    if (!message.trim() && !e?.currentTarget?.dataset?.suggestion) return;
     
-    // Determina il messaggio da inviare (dall'input o da suggerimento)
-    const messageToSend = e.currentTarget.dataset.question || userMessage;
+    // Preparazione del messaggio
+    const userMessage = e?.currentTarget?.dataset?.suggestion || message;
     
-    // Aggiungi il messaggio dell'utente alla conversazione
-    const newUserMessage = {
-      content: messageToSend,
-      isAI: false,
-      timestamp: new Date().toISOString()
-    };
+    // Aggiunge il messaggio dell'utente
+    setMessages(prev => [
+      ...prev, 
+      { role: 'user', content: userMessage, timestamp: new Date().toISOString() }
+    ]);
     
-    setConversation(prev => [...prev, newUserMessage]);
-    setShowIntro(false);
-    setUserMessage('');
+    // Resetta il campo di input
+    setMessage('');
+    
+    // Verifica se c'è una chiave API
+    if (!openaiConfig.hasApiKey()) {
+      setMessages(prev => [
+        ...prev,
+        { 
+          role: 'error', 
+          content: 'Per utilizzare l\'assistente, devi prima inserire una chiave API OpenAI valida.',
+          timestamp: new Date().toISOString()
+        }
+      ]);
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
-      // Effettua la chiamata API
-      const response = await API.post('/ai/chat', { message: messageToSend });
-      const aiResponse = {
-        content: response.data.reply,
-        isAI: true,
-        timestamp: new Date().toISOString()
-      };
+      // Prepara i messaggi per l'API (massimo ultimi 10 messaggi)
+      const recentMessages = [...messages.slice(-10), { role: 'user', content: userMessage }]
+        .map(msg => ({ role: msg.role === 'error' ? 'user' : msg.role, content: msg.content }));
       
-      setConversation(prev => [...prev, aiResponse]);
+      // Chiamata API OpenAI
+      const response = await fetch(openaiConfig.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiConfig.getApiKey()}`
+        },
+        body: JSON.stringify({
+          model: openaiConfig.model,
+          messages: recentMessages,
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+      });
       
-      // Se è abilitata la sintesi vocale, leggi la risposta
-      if (voiceEnabled && 'speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(response.data.reply);
-        utterance.lang = 'it-IT';
-        speechSynthesis.speak(utterance);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `Errore API: ${response.status}`);
       }
+      
+      const data = await response.json();
+      const assistantMessage = data.choices[0].message.content;
+      
+      // Aggiunge la risposta dell'assistente
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: assistantMessage, timestamp: new Date().toISOString() }
+      ]);
+      
+      // Sintesi vocale se abilitata
+      if (useSpeech && 'speechSynthesis' in window) {
+        const speech = new SpeechSynthesisUtterance(assistantMessage);
+        speech.lang = 'it-IT';
+        window.speechSynthesis.speak(speech);
+      }
+      
     } catch (error) {
-      console.error('Errore nella comunicazione con l\'AI:', error);
-      
-      // Aggiungi un messaggio di errore alla conversazione
-      const errorMessage = {
-        content: "Mi dispiace, sto riscontrando problemi di comunicazione. Riprova più tardi o verifica la tua connessione.",
-        isAI: true,
-        isError: true,
-        timestamp: new Date().toISOString()
-      };
-      
-      setConversation(prev => [...prev, errorMessage]);
+      console.error('Errore nella chiamata API:', error);
+      setMessages(prev => [
+        ...prev,
+        { 
+          role: 'error', 
+          content: `Si è verificato un errore: ${error.message || 'Controlla la console per maggiori dettagli'}`,
+          timestamp: new Date().toISOString()
+        }
+      ]);
     } finally {
       setIsLoading(false);
-      // Focus sull'input dopo aver ricevuto la risposta
-      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
-  const handleClearConversation = () => {
-    if (window.confirm('Sei sicuro di voler cancellare tutta la conversazione?')) {
-      setConversation([]);
-      setShowIntro(true);
-      localStorage.removeItem(`aiConversation_${userId}`);
-    }
+  // Gestisce il click su un suggerimento
+  const handleSuggestionClick = (suggestion) => {
+    setMessage(suggestion);
+    handleSubmit({ preventDefault: () => {}, currentTarget: { dataset: { suggestion } } });
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-  
-  const toggleVoiceEnabled = () => {
-    setVoiceEnabled(!voiceEnabled);
-  };
-  
-  const toggleOfflineModeHandler = () => {
-    const newMode = !offlineMode;
-    toggleOfflineMode(newMode);
-    setOfflineMode(newMode);
-  };
-  
-  const toggleChatExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
-
-  const formatTimestamp = (timestamp) => {
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    } catch (e) {
-      return '';
-    }
+  // Pulisce la conversazione
+  const clearConversation = () => {
+    setMessages([]);
+    localStorage.removeItem('ai_assistant_messages');
   };
 
   return (
-    <div className={`ai-assistant-container ${darkMode ? 'dark-mode' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      <div className="ai-assistant-header">
-        <div className="ai-assistant-title">
+    <div className={`ai-assistant ${isDarkMode ? 'dark-mode' : ''} ${isExpanded ? 'expanded' : ''}`}>
+      {/* Header */}
+      <div className="ai-header" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="ai-title">
           <i className="fas fa-robot"></i>
-          <h2>Assistente Salus</h2>
-          {offlineMode && <span className="offline-badge">OFFLINE</span>}
+          <h3>Assistente Salus</h3>
         </div>
-        <div className="ai-assistant-controls">
+        <div className="ai-controls">
           <button 
-            className="control-button settings-button" 
-            onClick={() => setShowSettings(!showSettings)}
-            aria-label="Impostazioni"
+            className="ai-control-btn" 
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsDarkMode(!isDarkMode);
+            }}
+            title={isDarkMode ? "Modalità chiara" : "Modalità scura"}
           >
-            <i className="fas fa-cog"></i>
+            <i className={`fas fa-${isDarkMode ? 'sun' : 'moon'}`}></i>
           </button>
           <button 
-            className="control-button expand-button" 
-            onClick={toggleChatExpanded}
-            aria-label={isExpanded ? "Minimizza" : "Espandi"}
+            className="ai-control-btn" 
+            onClick={(e) => {
+              e.stopPropagation();
+              setUseSpeech(!useSpeech);
+            }}
+            title={useSpeech ? "Disabilita audio" : "Abilita audio"}
           >
-            <i className={`fas ${isExpanded ? 'fa-compress-alt' : 'fa-expand-alt'}`}></i>
+            <i className={`fas fa-${useSpeech ? 'volume-up' : 'volume-mute'}`}></i>
+          </button>
+          <button 
+            className="ai-toggle-btn" 
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+          >
+            <i className={`fas fa-chevron-${isExpanded ? 'down' : 'up'}`}></i>
           </button>
         </div>
       </div>
       
-      {showSettings && (
-        <div className="ai-assistant-settings">
-          <div className="setting-option">
-            <label>Modalità scura</label>
-            <label className="switch">
-              <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
-              <span className="slider round"></span>
-            </label>
-          </div>
-          <div className="setting-option">
-            <label>Sintesi vocale</label>
-            <label className="switch">
-              <input type="checkbox" checked={voiceEnabled} onChange={toggleVoiceEnabled} />
-              <span className="slider round"></span>
-            </label>
-          </div>
-          <div className="setting-option">
-            <label>Modalità offline</label>
-            <label className="switch">
-              <input type="checkbox" checked={offlineMode} onChange={toggleOfflineModeHandler} />
-              <span className="slider round"></span>
-            </label>
-          </div>
-          <div className="setting-option">
-            <button className="clear-conversation-button" onClick={handleClearConversation}>
-              Cancella conversazione
-            </button>
-          </div>
-        </div>
-      )}
-      
       {isExpanded && (
-        <>
-          <div className="ai-assistant-chat" ref={chatContainerRef}>
-            {showIntro ? (
-              <div className="ai-assistant-intro">
-                <div className="ai-assistant-avatar">
-                  <i className="fas fa-robot"></i>
-                </div>
-                <div className="ai-intro-message">
-                  <h3>Ciao, sono Salus!</h3>
-                  <p>
-                    Il tuo assistente personale per la salute. Posso aiutarti a monitorare i tuoi sintomi, 
-                    rispondere a domande sulla salute e fornirti consigli sul benessere.
-                  </p>
-                  <p className="ai-disclaimer">
-                    Ricorda: non sono un medico e le mie risposte sono solo informative, mai diagnostiche.
-                  </p>
+        <div className="ai-content">
+          {/* Form per la chiave API se non è già impostata */}
+          {!openaiConfig.hasApiKey() && (
+            <form className="api-key-form" onSubmit={handleApiKeySubmit}>
+              <h4>Inserisci la tua chiave API OpenAI</h4>
+              <p>Per utilizzare l'assistente IA, è necessaria una chiave API di OpenAI.</p>
+              <input
+                type="text"
+                className="api-key-input"
+                placeholder="sk-..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+              />
+              {apiKeyError && <div className="api-key-error">{apiKeyError}</div>}
+              <button type="submit" className="api-key-submit">Salva Chiave API</button>
+              <p className="api-key-info">
+                La chiave verrà salvata solo in questo browser. <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">Ottieni una chiave API</a>
+              </p>
+            </form>
+          )}
+          
+          {/* Area chat */}
+          <div className="ai-chat-area" ref={chatAreaRef}>
+            {messages.length === 0 ? (
+              <div className="ai-welcome">
+                <h3>Benvenuto nell'Assistente Salus!</h3>
+                <p>Chiedimi informazioni sul benessere o suggerimenti per migliorare il tuo stile di vita.</p>
+                <div className="ai-suggestions">
+                  {suggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      className="ai-suggestion"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
                 </div>
               </div>
             ) : (
-              <div className="ai-assistant-messages">
-                {conversation.map((message, index) => (
+              <div className="ai-messages">
+                {messages.map((msg, idx) => (
                   <div 
-                    key={index} 
-                    className={`message ${message.isAI ? 'ai-message' : 'user-message'} ${message.isError ? 'error-message' : ''}`}
+                    key={idx} 
+                    className={`ai-message ${msg.role}`}
                   >
-                    {message.isAI && (
-                      <div className="message-avatar">
-                        <i className="fas fa-robot"></i>
-                      </div>
-                    )}
-                    <div className="message-content">
-                      <div className="message-text">{message.content}</div>
-                      <div className="message-timestamp">{formatTimestamp(message.timestamp)}</div>
-                    </div>
+                    {msg.content}
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="message ai-message loading-message">
-                    <div className="message-avatar">
-                      <i className="fas fa-robot"></i>
-                    </div>
-                    <div className="message-content">
-                      <div className="typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                    </div>
+                  <div className="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                   </div>
                 )}
-                <div ref={messagesEndRef} />
               </div>
             )}
           </div>
           
-          <div className="ai-suggested-questions">
-            {suggestedQuestions.map((question, index) => (
-              <button 
-                key={index} 
-                className="suggested-question" 
-                onClick={handleSubmit} 
-                data-question={question}
-                disabled={isLoading}
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-          
-          <form className="ai-assistant-input" onSubmit={handleSubmit}>
+          {/* Area input */}
+          <form className="ai-input-area" onSubmit={handleSubmit}>
             <input
               type="text"
-              placeholder="Scrivi un messaggio..."
-              value={userMessage}
-              onChange={(e) => setUserMessage(e.target.value)}
-              disabled={isLoading}
+              className="ai-input"
+              placeholder={openaiConfig.hasApiKey() ? "Scrivi un messaggio..." : "Prima inserisci la chiave API..."}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              disabled={isLoading || !openaiConfig.hasApiKey()}
               ref={inputRef}
             />
             <button 
               type="submit" 
-              disabled={!userMessage.trim() || isLoading}
-              className="send-button"
+              className="ai-send-btn" 
+              disabled={isLoading || !message.trim() || !openaiConfig.hasApiKey()}
             >
               <i className="fas fa-paper-plane"></i>
             </button>
           </form>
-        </>
+          
+          {/* Pulsante per pulire la conversazione */}
+          {messages.length > 0 && openaiConfig.hasApiKey() && (
+            <div style={{ padding: '10px 15px', textAlign: 'center' }}>
+              <button 
+                onClick={clearConversation}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#ff5252',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                <i className="fas fa-trash-alt" style={{ marginRight: '5px' }}></i>
+                Cancella conversazione
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
