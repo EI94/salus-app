@@ -59,14 +59,19 @@ const Auth = ({ onLogin, mockAuth }) => {
   const handleRegister = async (e) => {
     e.preventDefault();
     
-    // Validazione input
+    // Validazione input semplificata
     if (!name.trim()) {
       setError('Inserisci il tuo nome');
       return;
     }
     
-    if (!email.trim() || !email.includes('@')) {
-      setError('Inserisci un indirizzo email valido');
+    if (!email.trim()) {
+      setError('Inserisci un indirizzo email');
+      return;
+    }
+    
+    if (!password) {
+      setError('Inserisci una password');
       return;
     }
     
@@ -82,22 +87,29 @@ const Auth = ({ onLogin, mockAuth }) => {
     try {
       // Utilizziamo il mock invece dell'API reale
       const userData = await mockAuth.register(name, email, password);
+      
+      // Verifica che i dati utente siano validi
+      if (!userData || !userData.userId) {
+        throw new Error('Registrazione fallita');
+      }
+      
       setSuccess('Registrazione completata con successo!');
 
       // Salva i dati utente e token
       localStorage.setItem('userId', userData.userId);
-      localStorage.setItem('userName', userData.userName);
-      localStorage.setItem('token', userData.token);
+      localStorage.setItem('userName', userData.userName || name);
+      localStorage.setItem('token', userData.token || 'default-token');
 
       // Breve pausa per mostrare il messaggio di successo
       setTimeout(() => {
         if (onLogin) {
-          onLogin(userData.userId, userData.userName);
+          onLogin(userData.userId, userData.userName || name, userData.token);
         }
       }, 1000);
     } catch (error) {
       console.error('Errore durante la registrazione:', error);
-      setError('Errore durante la registrazione. Controlla i tuoi dati e riprova.');
+      // Messaggio di errore più generico e utile
+      setError('Errore durante la registrazione. Riprova più tardi.');
     } finally {
       setLoading(false);
     }
@@ -107,8 +119,8 @@ const Auth = ({ onLogin, mockAuth }) => {
     e.preventDefault();
     
     // Validazione input
-    if (!email.trim() || !email.includes('@')) {
-      setError('Inserisci un indirizzo email valido');
+    if (!email.trim()) {
+      setError('Inserisci un indirizzo email');
       return;
     }
     
@@ -124,17 +136,23 @@ const Auth = ({ onLogin, mockAuth }) => {
     try {
       // Utilizziamo il mock invece dell'API reale
       const userData = await mockAuth.login(email, password);
+      
+      // Verifica che i dati utente siano validi
+      if (!userData || !userData.userId) {
+        throw new Error('Dati utente non validi');
+      }
+      
       setSuccess('Accesso effettuato con successo!');
 
       // Salva i dati utente e token
       localStorage.setItem('userId', userData.userId);
-      localStorage.setItem('userName', userData.userName);
-      localStorage.setItem('token', userData.token);
+      localStorage.setItem('userName', userData.userName || 'Utente');
+      localStorage.setItem('token', userData.token || 'default-token');
 
       // Breve pausa per mostrare il messaggio di successo
       setTimeout(() => {
         if (onLogin) {
-          onLogin(userData.userId, userData.userName);
+          onLogin(userData.userId, userData.userName || 'Utente', userData.token);
         }
       }, 1000);
     } catch (error) {
@@ -151,18 +169,23 @@ const Auth = ({ onLogin, mockAuth }) => {
     setError('');
     setSuccess('Accesso demo in corso...');
     
+    // Creazione dati utente demo
+    const demoUser = {
+      userId: 'demo-user',
+      userName: 'Utente Demo',
+      token: 'demo-token'
+    };
+    
+    // Salva i dati utente demo
+    localStorage.setItem('userId', demoUser.userId);
+    localStorage.setItem('userName', demoUser.userName);
+    localStorage.setItem('token', demoUser.token);
+    
+    // Breve pausa prima del redirect
     setTimeout(() => {
-      const demoUser = {
-        userId: 'demo-user',
-        userName: 'Utente Demo',
-        token: 'demo-token'
-      };
-      
-      localStorage.setItem('userId', demoUser.userId);
-      localStorage.setItem('userName', demoUser.userName);
-      localStorage.setItem('token', demoUser.token);
-      
-      onLogin(demoUser.userId, demoUser.userName);
+      if (onLogin) {
+        onLogin(demoUser.userId, demoUser.userName, demoUser.token);
+      }
     }, 1500);
   };
   

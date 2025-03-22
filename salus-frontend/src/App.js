@@ -56,29 +56,35 @@ API_BASE.interceptors.response.use(
 // Mock login e registrazione per testing senza API reale
 const mockAuth = {
   login: async (email, password) => {
-    // Verifica credenziali di test
-    if (email === 'test@example.com' && password === 'password') {
+    // Simuliamo un ritardo di rete
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Verifica credenziali (molto semplificata per demo)
+    if (email && password) {
       return {
-        userId: 'user-123',
-        userName: 'Utente Test',
-        token: 'mock-jwt-token'
+        userId: 'user-' + Math.random().toString(36).substr(2, 9),
+        userName: email.split('@')[0],
+        token: 'mock-token-' + Math.random().toString(36).substr(2, 16)
       };
+    } else {
+      throw new Error('Credenziali non valide');
     }
-    // Per qualsiasi altra combinazione, permetti l'accesso per scopi di demo
-    return {
-      userId: 'user-' + Math.floor(Math.random() * 1000),
-      userName: email.split('@')[0],
-      token: 'mock-jwt-token-' + Math.random().toString(36).substring(2)
-    };
   },
   
   register: async (name, email, password) => {
-    // Simula registrazione con successo
-    return {
-      userId: 'user-' + Math.floor(Math.random() * 1000),
-      userName: name,
-      token: 'mock-jwt-token-' + Math.random().toString(36).substring(2)
-    };
+    // Simuliamo un ritardo di rete
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Simuliamo registrazione (molto semplificata per demo)
+    if (name && email && password) {
+      return {
+        userId: 'user-' + Math.random().toString(36).substr(2, 9),
+        userName: name,
+        token: 'mock-token-' + Math.random().toString(36).substr(2, 16)
+      };
+    } else {
+      throw new Error('Dati di registrazione non validi');
+    }
   }
 };
 
@@ -202,20 +208,20 @@ function App() {
   }, []);
 
   const handleLogin = (userId, userName, token) => {
-    // Salva dati di autenticazione
-    localStorage.setItem('userId', userId);
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('token', token);
-    
-    // Aggiorna lo stato
+    setIsLoggedIn(true);
     setUserId(userId);
     setUserName(userName);
-    setIsLoggedIn(true);
+    
+    // Impostiamo anche i dati in localStorage come backup
+    if (userId) localStorage.setItem('userId', userId);
+    if (userName) localStorage.setItem('userName', userName);
+    if (token) localStorage.setItem('token', token);
     
     // Notifica di login riuscito
     window.dispatchEvent(new CustomEvent('salus:notification', {
-      detail: { 
+      detail: {
         type: 'success',
+        title: 'Benvenuto!',
         message: 'Login effettuato con successo!'
       }
     }));

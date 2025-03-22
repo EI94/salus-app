@@ -115,29 +115,14 @@ export const isInOfflineMode = () => isOfflineMode;
 // Interceptor per aggiungere il token di autenticazione alle richieste
 API.interceptors.request.use(
   config => {
-    // Se in modalità offline, non inviare richieste reali
-    if (isOfflineMode) {
-      // Annulliamo la richiesta reale e risolviamo con la nostra mock
-      const mockMethod = config.method || 'get';
-      const mockUrl = config.url;
-      const mockData = config.data;
-      
-      // Creiamo un'istanza di AbortController per annullare la richiesta
-      const controller = new AbortController();
-      config.signal = controller.signal;
-      controller.abort();
-      
-      // Memorizziamo i dettagli della richiesta per il nostro gestore di errori
-      config.mockResponse = getMockResponse(mockUrl, mockMethod, mockData);
-    }
-
-    // Log dell'URL per debug
-    console.log('API Request URL:', config.baseURL + config.url);
-
+    // Aggiungi token a tutte le richieste tranne login e registrazione
     const token = localStorage.getItem('token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    const url = config.url || '';
+    
+    if (token && !url.includes('/auth/login') && !url.includes('/auth/register')) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    
     return config;
   },
   error => {
@@ -151,39 +136,44 @@ API.interceptors.response.use(
     return response;
   },
   error => {
-    // Se l'errore è stato generato dalla nostra modalità offline
-    if (error.code === 'ERR_CANCELED' && error.config && error.config.mockResponse) {
-      return error.config.mockResponse;
-    }
-
-    // Log dell'errore per debug
-    console.error('Errore di risposta:', error.response ? error.response.status : error.message);
-
-    // Se il token è scaduto (status 401), logout automatico
+    // Se ricevi errore 401 (non autorizzato), esci e vai alla pagina di login
     if (error.response && error.response.status === 401) {
+      // Pulisci dati di autenticazione
+      localStorage.removeItem('token');
       localStorage.removeItem('userId');
       localStorage.removeItem('userName');
-      localStorage.removeItem('token');
       
-      // Evento personalizzato per il logout
-      window.dispatchEvent(new CustomEvent('salus:auth:logout', {
-        detail: { reason: 'token_expired' }
-      }));
-    }
-
-    // Mostra una notifica all'utente per errori di rete
-    if (error.code === 'ERR_NETWORK') {
+      // Notifica utente
       window.dispatchEvent(new CustomEvent('salus:notification', {
-        detail: { 
+        detail: {
           type: 'error',
-          message: 'Impossibile connettersi al server. Verifica la tua connessione Internet.' 
+          title: 'Sessione scaduta',
+          message: 'La tua sessione è scaduta. Effettua nuovamente il login.'
         }
       }));
       
-      // Attiva automaticamente la modalità offline
-      toggleOfflineMode(true);
+      // Reindirizza alla pagina di login (se non sei già lì)
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login';
+      }
     }
-
+    
+    // Gestione fallback per il mock e per modalità offline
+    const isAuthRequest = 
+      error.config.url.includes('/auth/login') || 
+      error.config.url.includes('/auth/register');
+    
+    if (isAuthRequest && process.env.NODE_ENV === 'development') {
+      console.log('Modalità mock/offline per autenticazione');
+      const mockData = {
+        userId: 'offline-' + Math.random().toString(36).substr(2, 9),
+        userName: 'Utente Offline',
+        token: 'offline-token'
+      };
+      
+      return Promise.resolve({ data: mockData });
+    }
+    
     return Promise.reject(error);
   }
 );
