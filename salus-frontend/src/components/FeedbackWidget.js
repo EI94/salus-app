@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/FeedbackWidget.css';
+import axios from 'axios';
 
 function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -89,18 +90,17 @@ function FeedbackWidget() {
     setIsSubmitting(true);
     
     try {
-      // Qui andrebbe l'implementazione reale dell'invio dell'email
-      // Per ora simulo un'attesa
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Invio reale del feedback tramite API
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await axios.post(`${apiUrl}/api/feedback/send`, feedback);
       
-      // In un'implementazione reale, qui si invierebbe una richiesta a un endpoint del backend
-      // che gestisce l'invio delle email a michelevalente_94@yahoo.it e pierpaolo.laurito@gmail.com
-      console.log('Feedback inviato:', feedback);
+      console.log('Feedback inviato:', response.data);
       
       // Feedback inviato con successo
       setIsSubmitted(true);
     } catch (error) {
       console.error('Errore durante l\'invio del feedback:', error);
+      alert('Si è verificato un errore durante l\'invio del feedback. Riprova più tardi.');
     } finally {
       setIsSubmitting(false);
     }

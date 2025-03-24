@@ -55,6 +55,7 @@ const symptomRoutes = require('./routes/symptoms');
 const aiRoutes = require('./routes/ai');
 const wellnessRoutes = require('./routes/wellness');
 const medicationRoutes = require('./routes/medications');
+const feedbackRoutes = require('./routes/feedback');
 
 // Uso delle route
 app.use('/api/auth', authRoutes);
@@ -62,6 +63,7 @@ app.use('/api/symptoms', symptomRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/wellness', wellnessRoutes);
 app.use('/api/medications', medicationRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Endpoint di healthcheck per servizi di hosting
 app.get('/health', (req, res) => {
