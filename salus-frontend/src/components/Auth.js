@@ -1,454 +1,347 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import '../styles/Auth.css';
 
-// Immagini salute e benessere
-const healthImages = [
-  '/assets/images/health1.jpg',
-  '/assets/images/health2.jpg',
-  '/assets/images/health3.jpg'
-];
-
-// Frasi motivazionali
-const motivationalQuotes = [
-  "Prendi il controllo della tua salute con Salus",
-  "Il tuo benessere, la nostra priorità",
-  "Una vita sana inizia con piccoli passi quotidiani",
-  "Monitora, comprendi, migliora il tuo benessere"
-];
-
-// Configurazione di base di axios
-const API = axios.create({
-  baseURL: 'https://api.salusapp.it', // URL di base dell'API
-  timeout: 15000, // 15 secondi
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
-});
-
-const Auth = ({ onLogin, mockAuth }) => {
-  // Fallback per mockAuth se non viene passato
-  const authService = mockAuth || {
-    login: async (email, password) => {
-      console.log('Utilizzo servizio di autenticazione fallback');
-      // Simuliamo un ritardo
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      if (email && password) {
-        return {
-          userId: 'fallback-' + Math.random().toString(36).substring(2, 9),
-          userName: email.split('@')[0] || 'Utente',
-          token: 'fallback-token-' + Date.now()
-        };
-      }
-      throw new Error('Credenziali non valide');
-    },
-    register: async (name, email, password) => {
-      console.log('Utilizzo servizio di registrazione fallback');
-      // Simuliamo un ritardo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (name && email && password) {
-        return {
-          userId: 'fallback-' + Math.random().toString(36).substring(2, 9),
-          userName: name,
-          token: 'fallback-token-' + Date.now()
-        };
-      }
-      throw new Error('Dati di registrazione incompleti');
-    }
-  };
-  
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [quote, setQuote] = useState('');
-  const [backgroundIndex, setBackgroundIndex] = useState(0);
-  
-  // Form state
+function Auth({ onLogin, mockAuth }) {
+  const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  
-  // Effetto per cambiare la citazione e lo sfondo
-  useEffect(() => {
-    // Seleziona citazione casuale all'inizio
-    const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-    setQuote(randomQuote);
-    
-    // Cambia sfondo e citazione ogni 10 secondi
-    const interval = setInterval(() => {
-      setBackgroundIndex(prev => (prev + 1) % healthImages.length);
-      const newQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-      setQuote(newQuote);
-    }, 10000);
-    
-    return () => clearInterval(interval);
-  }, []);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [authService, setAuthService] = useState(null);
 
+  // Verifica se il servizio di autenticazione è disponibile all'avvio
+  useEffect(() => {
+    // Per questo esempio, assumiamo che mockAuth sia sempre disponibile
+    setAuthService(mockAuth || {
+      login: async (email, password) => {
+        // Implementazione di sicurezza di base per i test
+        console.log('Tentativo di login con:', { email, password });
+        console.log('Auth service disponibile:', !!mockAuth);
+        
+        // Simula un'attesa per l'API
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Accetta qualsiasi email/password per test
+        const userData = { 
+          id: 'user123', 
+          name: 'Utente Test',
+          email: email
+        };
+        const token = 'fake-jwt-token-123456789';
+        
+        console.log('Login completato:', { userData, token });
+        return { success: true, userData, token };
+      },
+      
+      register: async (name, email, password) => {
+        // Implementazione di sicurezza di base per i test
+        console.log('Tentativo di registrazione con:', { name, email, password });
+        console.log('Auth service disponibile:', !!mockAuth);
+        
+        // Simula un'attesa per l'API
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Accetta qualsiasi registrazione per test
+        const userData = { 
+          id: 'user123', 
+          name: name,
+          email: email
+        };
+        const token = 'fake-jwt-token-123456789';
+        
+        console.log('Registrazione completata:', { userData, token });
+        return { success: true, userData, token };
+      }
+    });
+  }, [mockAuth]);
+
+  // Gestione del form di registrazione
   const handleRegister = async (e) => {
     e.preventDefault();
+    setError('');
     
-    // Validazione input
-    if (!name.trim()) {
-      setError('Inserisci il tuo nome');
+    // Validazione dei dati base
+    if (!name || !email || !password || !confirmPassword) {
+      setError('Tutti i campi sono obbligatori');
       return;
     }
     
-    if (!email.trim()) {
-      setError('Inserisci un indirizzo email');
-      return;
-    }
-    
-    if (!password) {
-      setError('Inserisci una password');
+    if (password !== confirmPassword) {
+      setError('Le password non corrispondono');
       return;
     }
     
     if (password.length < 6) {
-      setError('La password deve contenere almeno 6 caratteri');
+      setError('La password deve essere lunga almeno 6 caratteri');
       return;
     }
     
     setLoading(true);
-    setError('');
-    setSuccess('');
     
-    // Debug info
-    console.log('Tentativo di registrazione con:', { name, email });
-
     try {
-      // Utilizziamo il servizio di autenticazione con fallback
-      console.log('Auth service disponibile:', !!authService);
-      const userData = await authService.register(name, email, password);
-      console.log('Registrazione completata:', userData);
+      const response = await authService.register(name, email, password);
+      console.log('Registrazione completata:', response);
       
-      // Verifica che i dati utente siano validi
-      if (!userData || !userData.userId) {
+      if (response && response.success) {
+        // Registrazione riuscita
+        handleLoginAfterRegistration(response.userData, response.token);
+      } else {
         throw new Error('Registrazione fallita - Dati utente non validi');
       }
-      
-      setSuccess('Registrazione completata con successo!');
-
-      // Salva i dati utente e token
-      localStorage.setItem('userId', userData.userId);
-      localStorage.setItem('userName', userData.userName || name);
-      localStorage.setItem('token', userData.token || 'default-token');
-
-      // Breve pausa per mostrare il messaggio di successo
-      setTimeout(() => {
-        if (onLogin) {
-          onLogin(userData.userId, userData.userName || name, userData.token);
-        } else {
-          console.warn('Funzione onLogin non disponibile');
-        }
-      }, 1000);
     } catch (error) {
-      console.error('Errore durante la registrazione:', error);
-      // Messaggio di errore più specifico basato sull'errore
-      let errorMessage = 'Errore durante la registrazione. ';
-      
-      if (error.message && error.message.includes('network')) {
-        errorMessage += 'Controlla la tua connessione internet.';
-      } else if (error.response && error.response.status === 409) {
-        errorMessage += 'Questo indirizzo email è già registrato.';
-      } else if (error.response && error.response.status === 400) {
-        errorMessage += 'I dati inseriti non sono validi.';
-      } else {
-        errorMessage += 'Riprova più tardi.';
-      }
-      
-      setError(errorMessage);
+      console.log('Errore durante la registrazione:', error);
+      setError(error.message || 'Errore durante la registrazione');
     } finally {
       setLoading(false);
     }
   };
-  
+
+  // Gestione del login automatico dopo la registrazione
+  const handleLoginAfterRegistration = (userData, token) => {
+    // Dopo la registrazione, effettua automaticamente il login
+    if (onLogin && typeof onLogin === 'function') {
+      onLogin(userData, token);
+    } else {
+      setError('Impossibile effettuare il login automatico dopo la registrazione');
+    }
+  };
+
+  // Gestione del form di login
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
     
-    // Validazione input
-    if (!email.trim()) {
-      setError('Inserisci un indirizzo email');
-      return;
-    }
-    
-    if (!password.trim()) {
-      setError('Inserisci la password');
+    // Validazione dei dati base
+    if (!email || !password) {
+      setError('Email e password sono obbligatori');
       return;
     }
     
     setLoading(true);
-    setError('');
-    setSuccess('');
     
-    // Debug info
-    console.log('Tentativo di login con:', { email });
-
     try {
-      // Utilizziamo il servizio di autenticazione con fallback
-      console.log('Auth service disponibile:', !!authService);
-      const userData = await authService.login(email, password);
-      console.log('Login completato:', userData);
+      const response = await authService.login(email, password);
+      console.log('Login completato:', response);
       
-      // Verifica che i dati utente siano validi
-      if (!userData || !userData.userId) {
+      if (response && response.success && response.userData && response.token) {
+        // Login riuscito
+        if (onLogin && typeof onLogin === 'function') {
+          onLogin(response.userData, response.token);
+        } else {
+          throw new Error('Callback onLogin non disponibile');
+        }
+      } else {
         throw new Error('Dati utente non validi');
       }
-      
-      setSuccess('Accesso effettuato con successo!');
-
-      // Salva i dati utente e token
-      localStorage.setItem('userId', userData.userId);
-      localStorage.setItem('userName', userData.userName || 'Utente');
-      localStorage.setItem('token', userData.token || 'default-token');
-
-      // Breve pausa per mostrare il messaggio di successo
-      setTimeout(() => {
-        if (onLogin) {
-          onLogin(userData.userId, userData.userName || 'Utente', userData.token);
-        } else {
-          console.warn('Funzione onLogin non disponibile');
-        }
-      }, 1000);
     } catch (error) {
-      console.error('Errore durante il login:', error);
-      
-      // Messaggio di errore più specifico basato sull'errore
-      let errorMessage = 'Errore durante il login. ';
-      
-      if (error.message && error.message.includes('network')) {
-        errorMessage += 'Controlla la tua connessione internet.';
-      } else if (error.response && error.response.status === 401) {
-        errorMessage += 'Email o password non validi.';
-      } else if (error.response && error.response.status === 404) {
-        errorMessage += 'Utente non trovato.';
-      } else {
-        errorMessage += 'Controlla le tue credenziali e riprova.';
-      }
-      
-      setError(errorMessage);
+      console.log('Errore durante il login:', error);
+      setError(error.message || 'Errore durante il login');
     } finally {
       setLoading(false);
     }
   };
-  
-  // Form di accesso demo rapido
-  const handleDemoLogin = () => {
-    setLoading(true);
+
+  // Cambio tra login e registrazione
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin);
     setError('');
-    setSuccess('Accesso demo in corso...');
-    
-    // Creazione dati utente demo
-    const demoUser = {
-      userId: 'demo-user',
-      userName: 'Utente Demo',
-      token: 'demo-token'
-    };
-    
-    // Salva i dati utente demo
-    localStorage.setItem('userId', demoUser.userId);
-    localStorage.setItem('userName', demoUser.userName);
-    localStorage.setItem('token', demoUser.token);
-    
-    // Breve pausa prima del redirect
-    setTimeout(() => {
-      if (onLogin) {
-        onLogin(demoUser.userId, demoUser.userName, demoUser.token);
-      }
-    }, 1500);
   };
-  
+
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        <div 
-          className="auth-image" 
-          style={{backgroundImage: `url(${healthImages[backgroundIndex]})`}}
-        >
-          <div className="auth-overlay">
-            <div className="brand-container">
-              <div className="brand-logo">
-                <img src="/logo.svg" alt="Salus Logo" />
-                <span>Salus</span>
-              </div>
-              <div className="brand-tagline">La tua salute, nelle tue mani</div>
-            </div>
-            
-            <div className="quote-container">
-              <div className="quote fade-in">{quote}</div>
-              <div className="quote-author">Salus Health</div>
-            </div>
-            
-            <div className="features-preview">
-              <div className="feature-item">
-                <i className="fas fa-chart-line"></i>
-                <span>Traccia i tuoi sintomi</span>
-              </div>
-              <div className="feature-item">
-                <i className="fas fa-pills"></i>
-                <span>Gestisci i tuoi farmaci</span>
-              </div>
-              <div className="feature-item">
-                <i className="fas fa-brain"></i>
-                <span>Monitora il tuo benessere</span>
-              </div>
-            </div>
-          </div>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <img src="/assets/icons/logo.svg" alt="Salus" className="auth-logo" />
+          <h1>Salus</h1>
+          <p className="app-description">
+            La tua piattaforma personale per il monitoraggio della salute
+          </p>
         </div>
         
-        <div className="auth-form-container">
-          <div className="auth-form-wrapper">
-            <h2 className="auth-title slide-in">
-              {isRegistering ? 'Crea il tuo account' : 'Bentornato'}
-            </h2>
-            <p className="auth-subtitle slide-in">
-              {isRegistering 
-                ? 'Inizia il tuo percorso verso una salute migliore' 
-                : 'Accedi per continuare il tuo percorso di benessere'}
-            </p>
-            
-            {error && (
-              <div className="message-box error-message slide-in">
-                <i className="fas fa-exclamation-circle"></i> {error}
-              </div>
-            )}
-            
-            {success && (
-              <div className="message-box success-message slide-in">
-                <i className="fas fa-check-circle"></i> {success}
-              </div>
-            )}
-            
-            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="auth-form">
-              {isRegistering && (
-                <div className="form-group slide-in">
-                  <label className="form-label">Il tuo nome</label>
-                  <div className="input-with-icon">
-                    <i className="fas fa-user"></i>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Come ti chiami?"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-              
-              <div className="form-group slide-in">
-                <label className="form-label">Email</label>
-                <div className="input-with-icon">
-                  <i className="fas fa-envelope"></i>
-                  <input
-                    type="email"
-                    className="form-input"
-                    placeholder="La tua email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="form-group slide-in">
-                <label className="form-label">Password</label>
-                <div className="input-with-icon">
-                  <i className="fas fa-lock"></i>
-                  <input
-                    type="password"
-                    className="form-input"
-                    placeholder="La tua password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
-                </div>
-              </div>
-              
-              <button 
-                type="submit" 
-                className={`auth-button primary-button slide-in ${loading ? 'loading' : ''}`}
+        <div className="auth-tabs">
+          <button 
+            className={`auth-tab ${isLogin ? 'active' : ''}`}
+            onClick={() => setIsLogin(true)}
+          >
+            Accedi
+          </button>
+          <button 
+            className={`auth-tab ${!isLogin ? 'active' : ''}`}
+            onClick={() => setIsLogin(false)}
+          >
+            Registrati
+          </button>
+        </div>
+        
+        {isLogin ? (
+          <form className="auth-form" onSubmit={handleLogin}>
+            <div className="form-group">
+              <label htmlFor="login-email">Email</label>
+              <input 
+                type="email" 
+                id="login-email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="La tua email"
                 disabled={loading}
-              >
-                {loading ? (
-                  <div className="loader"></div>
-                ) : (
-                  isRegistering ? 'Registrati ora' : 'Accedi'
-                )}
-              </button>
-              
-              <div className="auth-separator slide-in">
-                <span>oppure</span>
-              </div>
-            </form>
-            
-            <div className="social-auth slide-in">
-              <button className="auth-button social-button google">
-                <img src="/assets/icons/google-icon.svg" alt="Google" />
-                <span>Continua con Google</span>
-              </button>
-              <button className="auth-button social-button apple">
-                <img src="/assets/icons/apple-icon.svg" alt="Apple" />
-                <span>Continua con Apple</span>
-              </button>
+              />
             </div>
             
-            <div className="demo-access slide-in">
-              <button 
-                className="auth-button demo-button"
-                onClick={handleDemoLogin}
+            <div className="form-group">
+              <label htmlFor="login-password">Password</label>
+              <input 
+                type="password" 
+                id="login-password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="La tua password"
                 disabled={loading}
-              >
-                <i className="fas fa-bolt"></i>
-                <span>Prova Salus senza registrazione</span>
-              </button>
+              />
             </div>
             
-            <div className="auth-toggle slide-in">
-              {isRegistering ? (
-                <>
-                  Hai già un account?{' '}
-                  <button
-                    className="toggle-button"
-                    onClick={() => setIsRegistering(false)}
-                    type="button"
-                  >
-                    Accedi
-                  </button>
-                </>
-              ) : (
-                <>
-                  Non hai un account?{' '}
-                  <button
-                    className="toggle-button"
-                    onClick={() => setIsRegistering(true)}
-                    type="button"
-                  >
-                    Registrati ora
-                  </button>
-                </>
-              )}
+            <div className="form-action">
+              <a href="#forgot-password" className="forgot-password">
+                Password dimenticata?
+              </a>
             </div>
+            
+            {error && <div className="auth-error">{error}</div>}
+            
+            <button 
+              type="submit" 
+              className="auth-button"
+              disabled={loading}
+            >
+              {loading ? 'Accesso in corso...' : 'Accedi'}
+            </button>
+            
+            <div className="auth-toggle">
+              Non hai un account? <button type="button" onClick={toggleAuthMode}>Registrati</button>
+            </div>
+          </form>
+        ) : (
+          <form className="auth-form" onSubmit={handleRegister}>
+            <div className="form-group">
+              <label htmlFor="register-name">Nome completo</label>
+              <input 
+                type="text" 
+                id="register-name" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Il tuo nome"
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="register-email">Email</label>
+              <input 
+                type="email" 
+                id="register-email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="La tua email"
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="register-password">Password</label>
+              <input 
+                type="password" 
+                id="register-password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Crea una password"
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="register-confirm-password">Conferma password</label>
+              <input 
+                type="password" 
+                id="register-confirm-password" 
+                value={confirmPassword} 
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Conferma la password"
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="form-terms">
+              <input 
+                type="checkbox" 
+                id="terms" 
+                required 
+                disabled={loading}
+              />
+              <label htmlFor="terms">
+                Accetto i <a href="#terms">Termini di Servizio</a> e la <a href="#privacy">Privacy Policy</a>
+              </label>
+            </div>
+            
+            {error && <div className="auth-error">{error}</div>}
+            
+            <button 
+              type="submit" 
+              className="auth-button"
+              disabled={loading}
+            >
+              {loading ? 'Registrazione in corso...' : 'Registrati'}
+            </button>
+            
+            <div className="auth-toggle">
+              Hai già un account? <button type="button" onClick={toggleAuthMode}>Accedi</button>
+            </div>
+          </form>
+        )}
+      </div>
+      
+      <div className="auth-features">
+        <div className="features-header">
+          <h2>Funzionalità principali</h2>
+          <p>Salus ti aiuta a monitorare e gestire la tua salute in modo semplice ed efficace</p>
+        </div>
+        
+        <div className="feature-cards">
+          <div className="feature-card">
+            <div className="feature-icon">
+              <i className="fas fa-heartbeat"></i>
+            </div>
+            <h3>Monitoraggio sintomi</h3>
+            <p>Tieni traccia dei tuoi sintomi nel tempo e visualizza l'andamento</p>
           </div>
           
-          <div className="auth-footer">
-            <div className="footer-links">
-              <a href="#privacy">Privacy</a>
-              <a href="#terms">Termini</a>
-              <a href="#help">Aiuto</a>
+          <div className="feature-card">
+            <div className="feature-icon">
+              <i className="fas fa-pills"></i>
             </div>
-            <div className="footer-copy">&copy; 2025 Salus Health App</div>
+            <h3>Gestione farmaci</h3>
+            <p>Organizza e ricorda i tuoi farmaci con notifiche personalizzate</p>
+          </div>
+          
+          <div className="feature-card">
+            <div className="feature-icon">
+              <i className="fas fa-robot"></i>
+            </div>
+            <h3>Assistente IA</h3>
+            <p>Ricevi consigli personalizzati basati sui tuoi dati di salute</p>
+          </div>
+          
+          <div className="feature-card">
+            <div className="feature-icon">
+              <i className="fas fa-chart-line"></i>
+            </div>
+            <h3>Statistiche e report</h3>
+            <p>Visualizza grafici e report dettagliati sul tuo stato di salute</p>
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default Auth; 
