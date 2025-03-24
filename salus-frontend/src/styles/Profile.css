@@ -372,7 +372,39 @@ input:checked + .slider:before {
   background-color: #c82333;
 }
 
-/* Responsive */
+/* Stili per il selettore di lingua */
+.language-selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 15px 0;
+}
+
+.language-options {
+  width: 200px;
+}
+
+.language-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background-color: white;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.language-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.language-select option {
+  padding: 10px;
+}
+
+/* Stile responsive per dispositivi mobili */
 @media (max-width: 768px) {
   .profile-container {
     flex-direction: column;
@@ -418,5 +450,15 @@ input:checked + .slider:before {
   .save-btn, .cancel-btn {
     width: 100%;
     margin-bottom: 10px;
+  }
+  
+  .language-selection {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .language-options {
+    width: 100%;
+    margin-top: 10px;
   }
 } 

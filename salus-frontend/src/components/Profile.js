@@ -42,6 +42,9 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
     twoFactorAuth: userData?.privacySettings?.twoFactorAuth || false,
   });
 
+  // Impostazioni della lingua
+  const [language, setLanguage] = useState(userData?.language || 'italian');
+
   // Carica i dati dell'utente
   useEffect(() => {
     if (userId && !propUserData) {
@@ -77,6 +80,11 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
         
         if (data.privacySettings) {
           setPrivacySettings(data.privacySettings);
+        }
+
+        // Inizializza impostazione lingua
+        if (data.language) {
+          setLanguage(data.language);
         }
       }
     }
@@ -114,13 +122,19 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
     });
   };
 
+  // Gestisce il cambiamento della lingua
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+  };
+
   // Salva le modifiche al profilo
   const handleSaveProfile = () => {
     const updatedUserData = {
       ...userData,
       ...formData,
       notificationSettings,
-      privacySettings
+      privacySettings,
+      language
     };
     
     // Salva i dati aggiornati
@@ -622,6 +636,27 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
               />
               <span className="slider round"></span>
             </label>
+          </div>
+        </div>
+        
+        <div className="settings-card">
+          <h3>Lingua dell'Applicazione</h3>
+          <div className="settings-item language-selection">
+            <div className="settings-info">
+              <h4>Seleziona la Lingua</h4>
+              <p>Scegli la lingua in cui visualizzare l'applicazione</p>
+            </div>
+            <div className="language-options">
+              <select
+                value={language}
+                onChange={handleLanguageChange}
+                className="language-select"
+              >
+                <option value="italian">Italiano</option>
+                <option value="english">English (Inglese)</option>
+                <option value="hindi">हिन्दी (Hindi)</option>
+              </select>
+            </div>
           </div>
         </div>
         

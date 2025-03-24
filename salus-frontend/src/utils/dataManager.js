@@ -40,6 +40,7 @@ export const resetDemoData = () => {
       name: '',
       phone: ''
     },
+    language: 'italian', // Impostazione predefinita della lingua
     lastUpdate: new Date().toISOString()
   };
   
@@ -65,16 +66,42 @@ export const loadUserData = (userId) => {
   const wellnessData = JSON.parse(localStorage.getItem('wellnessData')) || [];
   const userProfile = JSON.parse(localStorage.getItem('userProfile')) || {};
   
+  // Assicurati che ci sia un'impostazione della lingua
+  if (!userProfile.language) {
+    userProfile.language = 'italian';
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+  }
+  
   return {
+    userId,
     symptoms,
     medications,
     wellnessData,
-    userProfile
+    userProfile,
+    language: userProfile.language || 'italian',
+    lastUpdate: new Date().toISOString()
   };
 };
 
-// Funzione per salvare dati dell'utente
-export const saveUserData = (dataType, data) => {
-  localStorage.setItem(dataType, JSON.stringify(data));
-  return true;
+// Funzione per salvare i dati dell'utente
+export const saveUserData = (userId, userData) => {
+  // Qui in futuro possiamo fare una chiamata API per salvare i dati reali dell'utente
+  // Per ora utilizziamo localStorage
+  
+  // Assicurati che l'impostazione della lingua venga salvata
+  if (userData.language) {
+    // Salva le preferenze di lingua nel localStorage
+    const userProfile = JSON.parse(localStorage.getItem('userProfile')) || {};
+    userProfile.language = userData.language;
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+    
+    // Aggiorna eventuali altre impostazioni dell'utente
+    localStorage.setItem('userData_' + userId, JSON.stringify(userData));
+  }
+  
+  return {
+    success: true,
+    message: 'Dati utente salvati con successo',
+    lastUpdate: new Date().toISOString()
+  };
 }; 
