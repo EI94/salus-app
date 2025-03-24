@@ -40,6 +40,13 @@ function Auth({ onLogin, mockAuth }) {
       passwordMismatch: "Le password non corrispondono",
       passwordLengthError: "La password deve essere lunga almeno 6 caratteri",
       emailPasswordRequired: "Email e password sono obbligatori",
+      emailFormatError: "Inserisci un indirizzo email valido",
+      userNotFound: "Utente non trovato. Controlla l'email o registrati",
+      invalidPassword: "Password non valida. Riprova",
+      emailAlreadyRegistered: "Email già registrata. Prova ad accedere",
+      registrationSuccess: "Registrazione completata con successo!",
+      loginSuccess: "Login effettuato con successo!",
+      genericError: "Si è verificato un errore. Riprova più tardi",
       appTitle: "Salus",
       appDescription: "La tua piattaforma personale per il monitoraggio della salute",
       featuresTitle: "Funzionalità principali",
@@ -77,6 +84,13 @@ function Auth({ onLogin, mockAuth }) {
       passwordMismatch: "Passwords do not match",
       passwordLengthError: "Password must be at least 6 characters long",
       emailPasswordRequired: "Email and password are required",
+      emailFormatError: "Please enter a valid email address",
+      userNotFound: "User not found. Check your email or sign up",
+      invalidPassword: "Invalid password. Please try again",
+      emailAlreadyRegistered: "Email already registered. Try logging in instead",
+      registrationSuccess: "Registration completed successfully!",
+      loginSuccess: "Login successful!",
+      genericError: "An error occurred. Please try again later",
       appTitle: "Salus",
       appDescription: "Your personal health monitoring platform",
       featuresTitle: "Main Features",
@@ -114,6 +128,13 @@ function Auth({ onLogin, mockAuth }) {
       passwordMismatch: "पासवर्ड मेल नहीं खाते",
       passwordLengthError: "पासवर्ड कम से कम 6 अक्षर लंबा होना चाहिए",
       emailPasswordRequired: "ईमेल और पासवर्ड आवश्यक हैं",
+      emailFormatError: "कृपया एक वैध ईमेल पता दर्ज करें",
+      userNotFound: "उपयोगकर्ता नहीं मिला। अपना ईमेल जांचें या साइन अप करें",
+      invalidPassword: "अमान्य पासवर्ड। कृपया पुन: प्रयास करें",
+      emailAlreadyRegistered: "ईमेल पहले से पंजीकृत है। इसके बजाय लॉगिन करने का प्रयास करें",
+      registrationSuccess: "पंजीकरण सफलतापूर्वक पूरा हुआ!",
+      loginSuccess: "लॉगिन सफल!",
+      genericError: "एक त्रुटि हुई। कृपया बाद में पुन: प्रयास करें",
       appTitle: "सेलस",
       appDescription: "आपका व्यक्तिगत स्वास्थ्य निगरानी प्लेटफॉर्म",
       featuresTitle: "मुख्य विशेषताएं",
@@ -136,27 +157,31 @@ function Auth({ onLogin, mockAuth }) {
     localStorage.setItem('userLanguage', newLanguage);
   };
 
-  // Verifica se il servizio di autenticazione è disponibile all'avvio
-  useEffect(() => {
-    // Per questo esempio, implementiamo un servizio di autenticazione avanzato
-    setAuthService(mockAuth || {
-      login: async (email, password) => {
-        // Simulazione di login con API
-        console.log('Tentativo di login con:', { email, password });
-        
-        // Simula un'attesa per l'API
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
+  // Funzione per validare l'email
+  const isValidEmail = (email) => {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+  };
+
+  // Servizio di autenticazione locale
+  const localAuthService = {
+    login: async (email, password) => {
+      console.log('Tentativo di login con:', { email, password });
+      
+      // Simula un'attesa per l'API
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      try {
         // Ricerca utente registrato nel localStorage
         const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
         const user = users.find(u => u.email === email);
         
         if (!user) {
-          throw new Error('Utente non trovato');
+          throw new Error(t.userNotFound);
         }
         
         if (user.password !== password) {
-          throw new Error('Password non valida');
+          throw new Error(t.invalidPassword);
         }
         
         // Crea token JWT simulato con scadenza
@@ -190,18 +215,23 @@ function Auth({ onLogin, mockAuth }) {
           }, 
           token: token.token
         };
-      },
+      } catch (error) {
+        console.error('Errore login:', error);
+        throw error;
+      }
+    },
+    
+    register: async (name, email, password) => {
+      console.log('Tentativo di registrazione con:', { name, email, password });
       
-      register: async (name, email, password) => {
-        console.log('Tentativo di registrazione con:', { name, email, password });
-        
-        // Simula un'attesa per l'API
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+      // Simula un'attesa per l'API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      try {
         // Verifica se l'utente esiste già
         const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
         if (users.some(u => u.email === email)) {
-          throw new Error('Email già registrata');
+          throw new Error(t.emailAlreadyRegistered);
         }
         
         // Crea nuovo utente
@@ -258,58 +288,71 @@ function Auth({ onLogin, mockAuth }) {
           }, 
           token: token.token
         };
-      },
-      
-      // Funzione per verificare validità del token
-      verifyToken: () => {
+      } catch (error) {
+        console.error('Errore registrazione:', error);
+        throw error;
+      }
+    },
+    
+    // Funzione per verificare validità del token
+    verifyToken: () => {
+      try {
         const storedToken = localStorage.getItem('authToken');
         if (!storedToken) return false;
         
-        try {
-          const token = JSON.parse(storedToken);
-          const now = new Date();
-          const expiryDate = new Date(token.expires);
-          
-          return now < expiryDate;
-        } catch (error) {
-          console.error('Errore nella verifica del token:', error);
-          return false;
-        }
-      },
-      
-      // Funzione per recuperare utente attualmente autenticato
-      getCurrentUser: () => {
+        const token = JSON.parse(storedToken);
+        const now = new Date();
+        const expiryDate = new Date(token.expires);
+        
+        return now < expiryDate;
+      } catch (error) {
+        console.error('Errore nella verifica del token:', error);
+        return false;
+      }
+    },
+    
+    // Funzione per recuperare utente attualmente autenticato
+    getCurrentUser: () => {
+      try {
         const currentUser = localStorage.getItem('currentUser');
         if (!currentUser) return null;
         
-        try {
-          return JSON.parse(currentUser);
-        } catch (error) {
-          console.error('Errore nel recupero dell\'utente corrente:', error);
-          return null;
-        }
+        return JSON.parse(currentUser);
+      } catch (error) {
+        console.error('Errore nel recupero dell\'utente corrente:', error);
+        return null;
       }
-    });
+    }
+  };
+
+  // Inizializza il servizio di autenticazione
+  useEffect(() => {
+    // Utilizza l'authService fornito o il nostro servizio locale
+    setAuthService(mockAuth || localAuthService);
+  }, [mockAuth]);
+
+  // Verifica se esiste già una sessione attiva
+  useEffect(() => {
+    if (!authService) return; // Evita l'esecuzione se authService non è ancora inizializzato
     
-    // Verifica se l'utente è già autenticato con token valido
-    const checkExistingAuth = async () => {
-      if (authService.verifyToken && authService.getCurrentUser) {
-        if (authService.verifyToken()) {
-          const currentUser = authService.getCurrentUser();
+    const checkExistingAuth = () => {
+      try {
+        if (localAuthService.verifyToken()) {
+          const currentUser = localAuthService.getCurrentUser();
           if (currentUser && currentUser.authenticated) {
             // Se esiste un token valido, effettua il login automatico
             onLogin(currentUser, JSON.parse(localStorage.getItem('authToken')).token);
           }
-        } else {
-          // Se il token è scaduto, rimuovi i dati di autenticazione
-          localStorage.removeItem('currentUser');
-          localStorage.removeItem('authToken');
         }
+      } catch (error) {
+        console.error('Errore durante la verifica dell\'autenticazione:', error);
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('authToken');
       }
     };
     
     checkExistingAuth();
-  }, [mockAuth, onLogin, language]);
+  }, [authService, onLogin]);
 
   // Gestione del form di registrazione
   const handleRegister = async (e) => {
@@ -319,6 +362,11 @@ function Auth({ onLogin, mockAuth }) {
     // Validazione dei dati base
     if (!name || !email || !password || !confirmPassword) {
       setError(t.allFieldsRequired);
+      return;
+    }
+    
+    if (!isValidEmail(email)) {
+      setError(t.emailFormatError);
       return;
     }
     
@@ -339,14 +387,17 @@ function Auth({ onLogin, mockAuth }) {
       console.log('Registrazione completata:', response);
       
       if (response && response.success) {
-        // Registrazione riuscita
+        // Mostra messaggio di successo
+        setError('');
+        
+        // Registrazione riuscita, effettua login automatico
         handleLoginAfterRegistration(response.userData, response.token);
       } else {
-        throw new Error('Registrazione fallita - Dati utente non validi');
+        throw new Error(t.genericError);
       }
     } catch (error) {
       console.log('Errore durante la registrazione:', error);
-      setError(error.message || 'Errore durante la registrazione');
+      setError(error.message || t.genericError);
     } finally {
       setLoading(false);
     }
@@ -373,6 +424,11 @@ function Auth({ onLogin, mockAuth }) {
       return;
     }
     
+    if (!isValidEmail(email)) {
+      setError(t.emailFormatError);
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -381,17 +437,19 @@ function Auth({ onLogin, mockAuth }) {
       
       if (response && response.success && response.userData && response.token) {
         // Login riuscito
+        setError('');
+        
         if (onLogin && typeof onLogin === 'function') {
           onLogin(response.userData, response.token);
         } else {
           throw new Error('Callback onLogin non disponibile');
         }
       } else {
-        throw new Error('Dati utente non validi');
+        throw new Error(t.genericError);
       }
     } catch (error) {
       console.log('Errore durante il login:', error);
-      setError(error.message || 'Errore durante il login');
+      setError(error.message || t.genericError);
     } finally {
       setLoading(false);
     }

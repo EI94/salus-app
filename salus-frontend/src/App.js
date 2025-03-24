@@ -61,27 +61,151 @@ API_BASE.interceptors.response.use(
 const mockAuth = {
   login: async (email, password) => {
     try {
-      // Simula una semplice operazione asincrona (in un ambiente reale, sarebbe una chiamata API)
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('Mock login con:', email, password);
       
-      // Eseguirebbe una chiamata API per ottenere l'utente e il token
-      return true;
+      // Simula un'attesa per l'API
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Cerca l'utente nel localStorage (utilizziamo lo stesso sistema del componente Auth)
+      const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+      const user = users.find(u => u.email === email);
+      
+      if (!user) {
+        throw new Error('Utente non trovato');
+      }
+      
+      if (user.password !== password) {
+        throw new Error('Password non valida');
+      }
+      
+      // Crea token JWT simulato con scadenza
+      const now = new Date();
+      const expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 ore
+      
+      const token = {
+        token: `user-${user.id}-${now.getTime()}`,
+        expires: expiryDate.toISOString()
+      };
+      
+      // Salva nel localStorage i dati correnti di autenticazione
+      localStorage.setItem('currentUser', JSON.stringify({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        language: user.language || 'italian',
+        authenticated: true,
+        lastLogin: new Date().toISOString()
+      }));
+      
+      localStorage.setItem('authToken', JSON.stringify(token));
+      
+      return { 
+        success: true, 
+        userData: { 
+          id: user.id, 
+          name: user.name,
+          email: user.email,
+          language: user.language || 'italian'
+        }, 
+        token: token.token
+      };
     } catch (error) {
-      console.error('Errore durante il login:', error);
-      return false;
+      console.error('Errore login:', error);
+      return { success: false, error: error.message };
     }
   },
   
   register: async (name, email, password) => {
     try {
-      // Simula una semplice operazione asincrona (in un ambiente reale, sarebbe una chiamata API)
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('Mock registrazione con:', name, email, password);
       
-      // Eseguirebbe una chiamata API per registrare l'utente e ottenere un token
-      return true;
+      // Simula un'attesa per l'API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Verifica se l'utente esiste già
+      const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+      if (users.some(u => u.email === email)) {
+        throw new Error('Email già registrata');
+      }
+      
+      // Crea nuovo utente
+      const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newUser = { 
+        id: userId, 
+        name, 
+        email, 
+        password, // Nota: in un'app reale, la password dovrebbe essere criptata
+        language: localStorage.getItem('userLanguage') || 'italian',
+        registrationDate: new Date().toISOString()
+      };
+      
+      // Salva l'utente nel localStorage
+      users.push(newUser);
+      localStorage.setItem('registeredUsers', JSON.stringify(users));
+      
+      // Crea token JWT simulato
+      const now = new Date();
+      const expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 ore
+      
+      const token = {
+        token: `user-${userId}-${now.getTime()}`,
+        expires: expiryDate.toISOString()
+      };
+      
+      // Salva nel localStorage i dati correnti di autenticazione
+      localStorage.setItem('currentUser', JSON.stringify({
+        id: userId,
+        name,
+        email,
+        language: localStorage.getItem('userLanguage') || 'italian',
+        authenticated: true,
+        lastLogin: new Date().toISOString()
+      }));
+      
+      localStorage.setItem('authToken', JSON.stringify(token));
+      
+      return { 
+        success: true, 
+        userData: { 
+          id: userId, 
+          name,
+          email,
+          language: localStorage.getItem('userLanguage') || 'italian'
+        }, 
+        token: token.token
+      };
     } catch (error) {
-      console.error('Errore durante la registrazione:', error);
+      console.error('Errore registrazione:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Aggiunta delle funzioni necessarie per l'integrazione con il componente Auth
+  verifyToken: () => {
+    try {
+      const storedToken = localStorage.getItem('authToken');
+      if (!storedToken) return false;
+      
+      const token = JSON.parse(storedToken);
+      const now = new Date();
+      const expiryDate = new Date(token.expires);
+      
+      return now < expiryDate;
+    } catch (error) {
+      console.error('Errore nella verifica del token:', error);
       return false;
+    }
+  },
+  
+  getCurrentUser: () => {
+    try {
+      const currentUser = localStorage.getItem('currentUser');
+      if (!currentUser) return null;
+      
+      return JSON.parse(currentUser);
+    } catch (error) {
+      console.error('Errore nel recupero dell\'utente corrente:', error);
+      return null;
     }
   }
 };
