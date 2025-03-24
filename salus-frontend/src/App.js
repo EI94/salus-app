@@ -9,6 +9,7 @@ import AIAssistant from './components/AIAssistant';
 import NotificationCenter from './components/NotificationCenter';
 import Home from './components/Home';
 import Profile from './components/Profile';
+import FeedbackWidget from './components/FeedbackWidget';
 import './styles/complete-app.css'; /* Tutti gli stili dell'app */
 import './App.css';  /* File minimo solo per compatibilità */
 import API from './api';
@@ -266,6 +267,9 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
       
       {/* Centro notifiche */}
       {showNotifications && <NotificationCenter onClose={() => setShowNotifications(false)} />}
+      
+      {/* Widget di feedback */}
+      <FeedbackWidget />
     </div>
   );
 }
@@ -332,7 +336,12 @@ function App() {
 
   // Mostra il loader durante il caricamento iniziale
   if (!isAuthenticated) {
-    return <Auth onLogin={handleLogin} mockAuth={mockAuth} />;
+    return (
+      <>
+        <Auth onLogin={handleLogin} mockAuth={mockAuth} />
+        <FeedbackWidget />
+      </>
+    );
   }
 
   // Se l'utente è loggato, mostra l'app con tutte le funzionalità
