@@ -61,41 +61,27 @@ API_BASE.interceptors.response.use(
 const mockAuth = {
   login: async (email, password) => {
     try {
-      // Qui in futuro: chiamata API reale
-      console.log('Login con:', email, password);
+      // Simula una semplice operazione asincrona (in un ambiente reale, sarebbe una chiamata API)
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Simula risposta del server
-      const userData = { 
-        id: 'user123', 
-        name: 'Mario Rossi',
-        email: email
-      };
-      const token = 'fake-jwt-token-123456789';
-      
-      return { success: true, userData, token };
+      // Eseguirebbe una chiamata API per ottenere l'utente e il token
+      return true;
     } catch (error) {
-      console.error('Errore login:', error);
-      return { success: false, error: error.message };
+      console.error('Errore durante il login:', error);
+      return false;
     }
   },
   
   register: async (name, email, password) => {
     try {
-      // Qui in futuro: chiamata API reale
-      console.log('Registrazione:', name, email, password);
+      // Simula una semplice operazione asincrona (in un ambiente reale, sarebbe una chiamata API)
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Simula risposta del server
-      const userData = { 
-        id: 'user123', 
-        name: name,
-        email: email
-      };
-      const token = 'fake-jwt-token-123456789';
-      
-      return { success: true, userData, token };
+      // Eseguirebbe una chiamata API per registrare l'utente e ottenere un token
+      return true;
     } catch (error) {
-      console.error('Errore registrazione:', error);
-      return { success: false, error: error.message };
+      console.error('Errore durante la registrazione:', error);
+      return false;
     }
   }
 };
@@ -277,64 +263,90 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
 // Funzione principale dell'app
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [userName, setUserName] = useState('');
-  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState(null);
+  const [userToken, setUserToken] = useState(null);
   const [hasNotifications, setHasNotifications] = useState(false);
 
-  // Carica lo stato di autenticazione e dati utente al mount
+  // Verifica se l'utente è già autenticato all'avvio dell'app
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUserId = localStorage.getItem('userId');
-    const storedUserName = localStorage.getItem('userName');
-    
-    if (storedToken && storedUserId) {
-      setIsAuthenticated(true);
-      setToken(storedToken);
-      setUserId(storedUserId);
-      setUserName(storedUserName || 'Utente');
+    const verifyAuthentication = () => {
+      const storedToken = localStorage.getItem('authToken');
+      const currentUser = localStorage.getItem('currentUser');
       
-      // Carica i dati dell'utente
-      const data = loadUserData(storedUserId);
-      setUserData(data);
-    }
+      if (storedToken && currentUser) {
+        try {
+          const token = JSON.parse(storedToken);
+          const user = JSON.parse(currentUser);
+          const now = new Date();
+          const expiryDate = new Date(token.expires);
+          
+          if (now < expiryDate && user.authenticated) {
+            setUserData(user);
+            setUserToken(token.token);
+            setIsAuthenticated(true);
+          } else {
+            // Token scaduto, cancella dati autenticazione
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('authToken');
+            setIsAuthenticated(false);
+          }
+        } catch (error) {
+          console.error('Errore durante la verifica dell\'autenticazione:', error);
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+      
+      setIsLoading(false);
+    };
+    
+    verifyAuthentication();
   }, []);
 
-  // Gestore del login
+  // Gestione del login
   const handleLogin = (userData, token) => {
-    // Salva dati utente e token in localStorage
-    localStorage.setItem('token', token);
-    localStorage.setItem('userId', userData.id);
-    localStorage.setItem('userName', userData.name || 'Utente');
-    
-    // Aggiorna stato
+    console.log('Login completato:', { userData, token });
+    setUserData(userData);
+    setUserToken(token);
     setIsAuthenticated(true);
-    setUserId(userData.id);
-    setUserName(userData.name || 'Utente');
-    setToken(token);
-    
-    // Carica i dati dell'utente
-    const data = loadUserData(userData.id);
-    setUserData(data);
   };
 
-  // Gestore del logout
+  // Gestione del logout
   const handleLogout = () => {
-    // Rimuovi token e dati utente da localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
-    
-    // Aggiorna stato
-    setIsAuthenticated(false);
-    setUserId(null);
-    setUserName('');
-    setToken(null);
+    // Rimuovi i dati di autenticazione
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('authToken');
     setUserData(null);
+    setUserToken(null);
+    setIsAuthenticated(false);
   };
 
-  // Mostra il loader durante il caricamento iniziale
+  // Aggiunge il token alle richieste autenticate
+  axios.interceptors.request.use(
+    config => {
+      if (userToken) {
+        config.headers['Authorization'] = `Bearer ${userToken}`;
+      }
+      return config;
+    },
+    error => {
+      return Promise.reject(error);
+    }
+  );
+
+  // Visualizza un loader durante il caricamento iniziale
+  if (isLoading) {
+    return (
+      <div className="app-loader">
+        <div className="loader-spinner"></div>
+        <p>Caricamento in corso...</p>
+      </div>
+    );
+  }
+
+  // Mostra il componente Auth se l'utente non è autenticato
   if (!isAuthenticated) {
     return (
       <>
@@ -344,7 +356,7 @@ function App() {
     );
   }
 
-  // Se l'utente è loggato, mostra l'app con tutte le funzionalità
+  // Visualizza l'applicazione per utenti autenticati
   return (
     <Router>
       <Routes>
@@ -352,39 +364,39 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Home userId={userId} userName={userName} userData={userData} />
+            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <Home userId={userData.id} userName={userData.name} userData={userData} />
             </Layout>
           }
         />
         <Route
           path="/sintomi"
           element={
-            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <SymptomTracker userId={userId} />
+            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <SymptomTracker userId={userData.id} />
             </Layout>
           }
         />
         <Route
           path="/farmaci"
           element={
-            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <MedicationTracker userId={userId} />
+            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <MedicationTracker userId={userData.id} />
             </Layout>
           }
         />
         <Route
           path="/benessere"
           element={
-            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <WellnessTracker userId={userId} />
+            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <WellnessTracker userId={userData.id} />
             </Layout>
           }
         />
         <Route
           path="/assistente"
           element={
-            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
+            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
               <div className="assistant-container">
                 <AIAssistant />
               </div>
@@ -394,24 +406,24 @@ function App() {
         <Route
           path="/profilo"
           element={
-            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Profile userId={userId} userName={userName} userData={userData} />
+            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <Profile userId={userData.id} userName={userData.name} userData={userData} />
             </Layout>
           }
         />
         <Route
           path="/impostazioni"
           element={
-            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Profile userId={userId} userName={userName} userData={userData} activeTab="privacy" />
+            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <Profile userId={userData.id} userName={userData.name} userData={userData} activeTab="privacy" />
             </Layout>
           }
         />
         <Route
           path="/privacy"
           element={
-            <Layout userId={userId} userName={userName} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Profile userId={userId} userName={userName} userData={userData} activeTab="privacy" />
+            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <Profile userId={userData.id} userName={userData.name} userData={userData} activeTab="privacy" />
             </Layout>
           }
         />

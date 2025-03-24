@@ -10,52 +10,306 @@ function Auth({ onLogin, mockAuth }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [authService, setAuthService] = useState(null);
+  const [language, setLanguage] = useState(localStorage.getItem('userLanguage') || 'italian');
+
+  // Traduzione dei testi in base alla lingua selezionata
+  const translations = {
+    italian: {
+      login: "Accedi",
+      register: "Registrati",
+      emailPlaceholder: "La tua email",
+      passwordPlaceholder: "La tua password",
+      namePlaceholder: "Il tuo nome",
+      confirmPasswordPlaceholder: "Conferma la password",
+      forgotPassword: "Password dimenticata?",
+      noAccount: "Non hai un account?",
+      haveAccount: "Hai già un account?",
+      loginBtn: "Accedi",
+      registerBtn: "Registrati",
+      loginLoading: "Accesso in corso...",
+      registerLoading: "Registrazione in corso...",
+      termsText: "Accetto i",
+      termsLink: "Termini di Servizio",
+      privacyText: "e la",
+      privacyLink: "Privacy Policy",
+      languageSelector: "Lingua:",
+      italian: "Italiano",
+      english: "Inglese",
+      hindi: "Hindi",
+      allFieldsRequired: "Tutti i campi sono obbligatori",
+      passwordMismatch: "Le password non corrispondono",
+      passwordLengthError: "La password deve essere lunga almeno 6 caratteri",
+      emailPasswordRequired: "Email e password sono obbligatori",
+      appTitle: "Salus",
+      appDescription: "La tua piattaforma personale per il monitoraggio della salute",
+      featuresTitle: "Funzionalità principali",
+      featuresDescription: "Salus ti aiuta a monitorare e gestire la tua salute in modo semplice ed efficace",
+      featureSymptoms: "Monitoraggio sintomi",
+      featureSymptomsDesc: "Tieni traccia dei tuoi sintomi nel tempo e visualizza l'andamento",
+      featureMedications: "Gestione farmaci",
+      featureMedicationsDesc: "Organizza e ricorda i tuoi farmaci con notifiche personalizzate",
+      featureAI: "Assistente IA",
+      featureAIDesc: "Ricevi consigli personalizzati basati sui tuoi dati di salute"
+    },
+    english: {
+      login: "Login",
+      register: "Sign Up",
+      emailPlaceholder: "Your email",
+      passwordPlaceholder: "Your password",
+      namePlaceholder: "Your name",
+      confirmPasswordPlaceholder: "Confirm password",
+      forgotPassword: "Forgot password?",
+      noAccount: "Don't have an account?",
+      haveAccount: "Already have an account?",
+      loginBtn: "Login",
+      registerBtn: "Sign Up",
+      loginLoading: "Logging in...",
+      registerLoading: "Signing up...",
+      termsText: "I accept the",
+      termsLink: "Terms of Service",
+      privacyText: "and",
+      privacyLink: "Privacy Policy",
+      languageSelector: "Language:",
+      italian: "Italian",
+      english: "English",
+      hindi: "Hindi",
+      allFieldsRequired: "All fields are required",
+      passwordMismatch: "Passwords do not match",
+      passwordLengthError: "Password must be at least 6 characters long",
+      emailPasswordRequired: "Email and password are required",
+      appTitle: "Salus",
+      appDescription: "Your personal health monitoring platform",
+      featuresTitle: "Main Features",
+      featuresDescription: "Salus helps you monitor and manage your health simply and effectively",
+      featureSymptoms: "Symptom Monitoring",
+      featureSymptomsDesc: "Track your symptoms over time and visualize trends",
+      featureMedications: "Medication Management",
+      featureMedicationsDesc: "Organize and remember your medications with custom notifications",
+      featureAI: "AI Assistant",
+      featureAIDesc: "Receive personalized advice based on your health data"
+    },
+    hindi: {
+      login: "लॉग इन करें",
+      register: "साइन अप करें",
+      emailPlaceholder: "आपका ईमेल",
+      passwordPlaceholder: "आपका पासवर्ड",
+      namePlaceholder: "आपका नाम",
+      confirmPasswordPlaceholder: "पासवर्ड की पुष्टि करें",
+      forgotPassword: "पासवर्ड भूल गए?",
+      noAccount: "खाता नहीं है?",
+      haveAccount: "पहले से ही खाता है?",
+      loginBtn: "लॉग इन करें",
+      registerBtn: "साइन अप करें",
+      loginLoading: "लॉग इन हो रहा है...",
+      registerLoading: "साइन अप हो रहा है...",
+      termsText: "मैं स्वीकार करता हूं",
+      termsLink: "सेवा की शर्तें",
+      privacyText: "और",
+      privacyLink: "गोपनीयता नीति",
+      languageSelector: "भाषा:",
+      italian: "इतालवी",
+      english: "अंग्रे़ी",
+      hindi: "हिंदी",
+      allFieldsRequired: "सभी फ़ील्ड आवश्यक हैं",
+      passwordMismatch: "पासवर्ड मेल नहीं खाते",
+      passwordLengthError: "पासवर्ड कम से कम 6 अक्षर लंबा होना चाहिए",
+      emailPasswordRequired: "ईमेल और पासवर्ड आवश्यक हैं",
+      appTitle: "सेलस",
+      appDescription: "आपका व्यक्तिगत स्वास्थ्य निगरानी प्लेटफॉर्म",
+      featuresTitle: "मुख्य विशेषताएं",
+      featuresDescription: "सेलस आपको अपने स्वास्थ्य की निगरानी और प्रबंधन सरल और प्रभावी ढंग से करने में मदद करता है",
+      featureSymptoms: "लक्षण निगरानी",
+      featureSymptomsDesc: "समय के साथ अपने लक्षणों को ट्रैक करें और रुझानों को देखें",
+      featureMedications: "दवा प्रबंधन",
+      featureMedicationsDesc: "कस्टम नोटिफिकेशन के साथ अपनी दवाओं को व्यवस्थित करें और याद रखें",
+      featureAI: "AI सहायक",
+      featureAIDesc: "अपने स्वास्थ्य डेटा के आधार पर व्यक्तिगत सलाह प्राप्त करें"
+    }
+  };
+
+  const t = translations[language];
+
+  // Funzione per cambiare la lingua
+  const handleLanguageChange = (e) => {
+    const newLanguage = e.target.value;
+    setLanguage(newLanguage);
+    localStorage.setItem('userLanguage', newLanguage);
+  };
 
   // Verifica se il servizio di autenticazione è disponibile all'avvio
   useEffect(() => {
-    // Per questo esempio, assumiamo che mockAuth sia sempre disponibile
+    // Per questo esempio, implementiamo un servizio di autenticazione avanzato
     setAuthService(mockAuth || {
       login: async (email, password) => {
-        // Implementazione di sicurezza di base per i test
+        // Simulazione di login con API
         console.log('Tentativo di login con:', { email, password });
-        console.log('Auth service disponibile:', !!mockAuth);
         
         // Simula un'attesa per l'API
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        // Accetta qualsiasi email/password per test
-        const userData = { 
-          id: 'user123', 
-          name: 'Utente Test',
-          email: email
-        };
-        const token = 'fake-jwt-token-123456789';
+        // Ricerca utente registrato nel localStorage
+        const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+        const user = users.find(u => u.email === email);
         
-        console.log('Login completato:', { userData, token });
-        return { success: true, userData, token };
+        if (!user) {
+          throw new Error('Utente non trovato');
+        }
+        
+        if (user.password !== password) {
+          throw new Error('Password non valida');
+        }
+        
+        // Crea token JWT simulato con scadenza
+        const now = new Date();
+        const expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 ore
+        
+        const token = {
+          token: `user-${user.id}-${now.getTime()}`,
+          expires: expiryDate.toISOString()
+        };
+        
+        // Salva nel localStorage i dati correnti di autenticazione
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          language: user.language || language,
+          authenticated: true,
+          lastLogin: new Date().toISOString()
+        }));
+        
+        localStorage.setItem('authToken', JSON.stringify(token));
+        
+        return { 
+          success: true, 
+          userData: { 
+            id: user.id, 
+            name: user.name,
+            email: user.email,
+            language: user.language || language
+          }, 
+          token: token.token
+        };
       },
       
       register: async (name, email, password) => {
-        // Implementazione di sicurezza di base per i test
         console.log('Tentativo di registrazione con:', { name, email, password });
-        console.log('Auth service disponibile:', !!mockAuth);
         
         // Simula un'attesa per l'API
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Accetta qualsiasi registrazione per test
-        const userData = { 
-          id: 'user123', 
-          name: name,
-          email: email
-        };
-        const token = 'fake-jwt-token-123456789';
+        // Verifica se l'utente esiste già
+        const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+        if (users.some(u => u.email === email)) {
+          throw new Error('Email già registrata');
+        }
         
-        console.log('Registrazione completata:', { userData, token });
-        return { success: true, userData, token };
+        // Crea nuovo utente
+        const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const newUser = { 
+          id: userId, 
+          name, 
+          email, 
+          password, // Nota: in un'app reale, la password dovrebbe essere criptata
+          language,
+          registrationDate: new Date().toISOString()
+        };
+        
+        // Salva l'utente nel localStorage
+        users.push(newUser);
+        localStorage.setItem('registeredUsers', JSON.stringify(users));
+        
+        // Inizializza i dati dell'utente
+        localStorage.setItem(`userData_${userId}`, JSON.stringify({
+          name,
+          email,
+          language,
+          createdAt: new Date().toISOString()
+        }));
+        
+        // Crea token JWT simulato
+        const now = new Date();
+        const expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 ore
+        
+        const token = {
+          token: `user-${userId}-${now.getTime()}`,
+          expires: expiryDate.toISOString()
+        };
+        
+        // Salva nel localStorage i dati correnti di autenticazione
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: userId,
+          name,
+          email,
+          language,
+          authenticated: true,
+          lastLogin: new Date().toISOString()
+        }));
+        
+        localStorage.setItem('authToken', JSON.stringify(token));
+        
+        return { 
+          success: true, 
+          userData: { 
+            id: userId, 
+            name,
+            email,
+            language
+          }, 
+          token: token.token
+        };
+      },
+      
+      // Funzione per verificare validità del token
+      verifyToken: () => {
+        const storedToken = localStorage.getItem('authToken');
+        if (!storedToken) return false;
+        
+        try {
+          const token = JSON.parse(storedToken);
+          const now = new Date();
+          const expiryDate = new Date(token.expires);
+          
+          return now < expiryDate;
+        } catch (error) {
+          console.error('Errore nella verifica del token:', error);
+          return false;
+        }
+      },
+      
+      // Funzione per recuperare utente attualmente autenticato
+      getCurrentUser: () => {
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) return null;
+        
+        try {
+          return JSON.parse(currentUser);
+        } catch (error) {
+          console.error('Errore nel recupero dell\'utente corrente:', error);
+          return null;
+        }
       }
     });
-  }, [mockAuth]);
+    
+    // Verifica se l'utente è già autenticato con token valido
+    const checkExistingAuth = async () => {
+      if (authService.verifyToken && authService.getCurrentUser) {
+        if (authService.verifyToken()) {
+          const currentUser = authService.getCurrentUser();
+          if (currentUser && currentUser.authenticated) {
+            // Se esiste un token valido, effettua il login automatico
+            onLogin(currentUser, JSON.parse(localStorage.getItem('authToken')).token);
+          }
+        } else {
+          // Se il token è scaduto, rimuovi i dati di autenticazione
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('authToken');
+        }
+      }
+    };
+    
+    checkExistingAuth();
+  }, [mockAuth, onLogin, language]);
 
   // Gestione del form di registrazione
   const handleRegister = async (e) => {
@@ -64,17 +318,17 @@ function Auth({ onLogin, mockAuth }) {
     
     // Validazione dei dati base
     if (!name || !email || !password || !confirmPassword) {
-      setError('Tutti i campi sono obbligatori');
+      setError(t.allFieldsRequired);
       return;
     }
     
     if (password !== confirmPassword) {
-      setError('Le password non corrispondono');
+      setError(t.passwordMismatch);
       return;
     }
     
     if (password.length < 6) {
-      setError('La password deve essere lunga almeno 6 caratteri');
+      setError(t.passwordLengthError);
       return;
     }
     
@@ -115,7 +369,7 @@ function Auth({ onLogin, mockAuth }) {
     
     // Validazione dei dati base
     if (!email || !password) {
-      setError('Email e password sono obbligatori');
+      setError(t.emailPasswordRequired);
       return;
     }
     
@@ -154,10 +408,19 @@ function Auth({ onLogin, mockAuth }) {
       <div className="auth-card">
         <div className="auth-header">
           <img src="/assets/icons/logo.svg" alt="Salus" className="auth-logo" />
-          <h1>Salus</h1>
+          <h1>{t.appTitle}</h1>
           <p className="app-description">
-            La tua piattaforma personale per il monitoraggio della salute
+            {t.appDescription}
           </p>
+        </div>
+        
+        <div className="language-selector">
+          <label>{t.languageSelector}</label>
+          <select value={language} onChange={handleLanguageChange}>
+            <option value="italian">{t.italian}</option>
+            <option value="english">{t.english}</option>
+            <option value="hindi">{t.hindi}</option>
+          </select>
         </div>
         
         <div className="auth-tabs">
@@ -165,13 +428,13 @@ function Auth({ onLogin, mockAuth }) {
             className={`auth-tab ${isLogin ? 'active' : ''}`}
             onClick={() => setIsLogin(true)}
           >
-            Accedi
+            {t.login}
           </button>
           <button 
             className={`auth-tab ${!isLogin ? 'active' : ''}`}
             onClick={() => setIsLogin(false)}
           >
-            Registrati
+            {t.register}
           </button>
         </div>
         
@@ -184,7 +447,7 @@ function Auth({ onLogin, mockAuth }) {
                 id="login-email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="La tua email"
+                placeholder={t.emailPlaceholder}
                 disabled={loading}
               />
             </div>
@@ -196,14 +459,14 @@ function Auth({ onLogin, mockAuth }) {
                 id="login-password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="La tua password"
+                placeholder={t.passwordPlaceholder}
                 disabled={loading}
               />
             </div>
             
             <div className="form-action">
               <a href="#forgot-password" className="forgot-password">
-                Password dimenticata?
+                {t.forgotPassword}
               </a>
             </div>
             
@@ -214,11 +477,11 @@ function Auth({ onLogin, mockAuth }) {
               className="auth-button"
               disabled={loading}
             >
-              {loading ? 'Accesso in corso...' : 'Accedi'}
+              {loading ? t.loginLoading : t.loginBtn}
             </button>
             
             <div className="auth-toggle">
-              Non hai un account? <button type="button" onClick={toggleAuthMode}>Registrati</button>
+              {t.noAccount} <button type="button" onClick={toggleAuthMode}>{t.register}</button>
             </div>
           </form>
         ) : (
@@ -230,7 +493,7 @@ function Auth({ onLogin, mockAuth }) {
                 id="register-name" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Il tuo nome"
+                placeholder={t.namePlaceholder}
                 disabled={loading}
               />
             </div>
@@ -242,101 +505,93 @@ function Auth({ onLogin, mockAuth }) {
                 id="register-email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="La tua email"
+                placeholder={t.emailPlaceholder}
                 disabled={loading}
               />
             </div>
             
             <div className="form-group">
               <label htmlFor="register-password">Password</label>
-              <input 
-                type="password" 
-                id="register-password" 
-                value={password} 
+              <input
+                type="password"
+                id="register-password"
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Crea una password"
+                placeholder={t.passwordPlaceholder}
                 disabled={loading}
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="register-confirm-password">Conferma password</label>
-              <input 
-                type="password" 
-                id="register-confirm-password" 
-                value={confirmPassword} 
+              <input
+                type="password"
+                id="register-confirm-password"
+                value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Conferma la password"
+                placeholder={t.confirmPasswordPlaceholder}
                 disabled={loading}
               />
             </div>
-            
+
             <div className="form-terms">
-              <input 
-                type="checkbox" 
-                id="terms" 
-                required 
+              <input
+                type="checkbox"
+                id="terms"
+                required
                 disabled={loading}
               />
               <label htmlFor="terms">
-                Accetto i <a href="#terms">Termini di Servizio</a> e la <a href="#privacy">Privacy Policy</a>
+                {t.termsText} <a href="#terms">{t.termsLink}</a> {t.privacyText} <a href="#privacy">{t.privacyLink}</a>
               </label>
             </div>
-            
+
             {error && <div className="auth-error">{error}</div>}
-            
-            <button 
-              type="submit" 
+
+            <button
+              type="submit"
               className="auth-button"
               disabled={loading}
             >
-              {loading ? 'Registrazione in corso...' : 'Registrati'}
+              {loading ? t.registerLoading : t.registerBtn}
             </button>
-            
+
             <div className="auth-toggle">
-              Hai già un account? <button type="button" onClick={toggleAuthMode}>Accedi</button>
+              {t.haveAccount} <button type="button" onClick={toggleAuthMode}>{t.login}</button>
             </div>
           </form>
         )}
       </div>
-      
+
       <div className="auth-features">
         <div className="features-header">
-          <h2>Funzionalità principali</h2>
-          <p>Salus ti aiuta a monitorare e gestire la tua salute in modo semplice ed efficace</p>
+          <h2>{t.featuresTitle}</h2>
+          <p>{t.featuresDescription}</p>
         </div>
-        
+
         <div className="feature-cards">
           <div className="feature-card">
             <div className="feature-icon">
               <i className="fas fa-heartbeat"></i>
             </div>
-            <h3>Monitoraggio sintomi</h3>
-            <p>Tieni traccia dei tuoi sintomi nel tempo e visualizza l'andamento</p>
+            <h3>{t.featureSymptoms}</h3>
+            <p>{t.featureSymptomsDesc}</p>
           </div>
-          
+
           <div className="feature-card">
             <div className="feature-icon">
               <i className="fas fa-pills"></i>
             </div>
-            <h3>Gestione farmaci</h3>
-            <p>Organizza e ricorda i tuoi farmaci con notifiche personalizzate</p>
+            <h3>{t.featureMedications}</h3>
+            <p>{t.featureMedicationsDesc}</p>
           </div>
-          
+
           <div className="feature-card">
             <div className="feature-icon">
               <i className="fas fa-robot"></i>
             </div>
-            <h3>Assistente IA</h3>
-            <p>Ricevi consigli personalizzati basati sui tuoi dati di salute</p>
-          </div>
-          
-          <div className="feature-card">
-            <div className="feature-icon">
-              <i className="fas fa-chart-line"></i>
-            </div>
-            <h3>Statistiche e report</h3>
-            <p>Visualizza grafici e report dettagliati sul tuo stato di salute</p>
+            <h3>{t.featureAI}</h3>
+            <p>{t.featureAIDesc}</p>
           </div>
         </div>
       </div>
