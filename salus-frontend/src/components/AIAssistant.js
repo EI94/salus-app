@@ -1,340 +1,180 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/AIAssistant.css';
-import openaiConfig from '../utils/openaiConfig';
 
-const AIAssistant = () => {
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+function AIAssistant() {
+  const [messages, setMessages] = useState([
+    {
+      role: 'assistant',
+      content: 'Ciao! Sono il tuo assistente Salus. Come posso aiutarti con la tua salute oggi?'
+    }
+  ]);
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [useSpeech, setUseSpeech] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [apiKeyError, setApiKeyError] = useState('');
-  const chatAreaRef = useRef(null);
-  const inputRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
-  // Suggerimenti iniziali
-  const suggestions = [
-    'Come posso migliorare il mio benessere?',
-    'Consigli per dormire meglio',
-    'Esercizi per ridurre lo stress',
-    'Idee per pasti salutari'
-  ];
-
-  // Carica la cronologia e le impostazioni al primo caricamento
-  useEffect(() => {
-    const savedMessages = localStorage.getItem('ai_assistant_messages');
-    if (savedMessages) {
-      try {
-        setMessages(JSON.parse(savedMessages));
-      } catch (e) {
-        console.error('Errore nel caricamento dei messaggi salvati:', e);
-      }
-    }
-
-    // Carica impostazioni
-    const darkMode = localStorage.getItem('ai_assistant_dark_mode') === 'true';
-    setIsDarkMode(darkMode);
+  // Simula le risposte dell'assistente IA
+  const aiResponse = (query) => {
+    // Simula una breve attesa per rendere l'interazione più naturale
+    setIsLoading(true);
     
-    const speech = localStorage.getItem('ai_assistant_speech') === 'true';
-    setUseSpeech(speech);
-    
-    // Verifica se c'è già una chiave API salvata
-    if (openaiConfig.hasApiKey()) {
-      setApiKey(openaiConfig.getApiKey() || '');
-    }
-  }, []);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Risposte predefinite basate su parole chiave nel messaggio dell'utente
+        let response = '';
+        const lowercaseQuery = query.toLowerCase();
+        
+        if (lowercaseQuery.includes('mal di testa') || lowercaseQuery.includes('cefalea')) {
+          response = "I mal di testa possono essere causati da stress, disidratazione o problemi di vista. Ti consiglio di bere più acqua, riposare in una stanza buia e silenziosa, e se i sintomi persistono, di consultare il tuo medico.";
+        } 
+        else if (lowercaseQuery.includes('pressione') || lowercaseQuery.includes('ipertensione')) {
+          response = "Per gestire la pressione sanguigna è importante mantenere uno stile di vita sano: ridurre il sale nella dieta, fare regolare esercizio fisico, limitare l'alcol e non fumare. Continua a monitorare regolarmente i tuoi valori.";
+        }
+        else if (lowercaseQuery.includes('diabete') || lowercaseQuery.includes('glicemia')) {
+          response = "Il controllo del diabete richiede una combinazione di dieta equilibrata, esercizio fisico regolare e, se prescritti, farmaci. Monitora regolarmente i livelli di zucchero nel sangue e segui le indicazioni del tuo medico.";
+        }
+        else if (lowercaseQuery.includes('ansia') || lowercaseQuery.includes('stress')) {
+          response = "L'ansia e lo stress possono influire negativamente sulla salute. Tecniche di rilassamento come la respirazione profonda, la meditazione e l'attività fisica regolare possono aiutare. Considera anche la possibilità di parlare con un professionista della salute mentale.";
+        }
+        else if (lowercaseQuery.includes('sonno') || lowercaseQuery.includes('insonnia')) {
+          response = "Per migliorare il sonno, mantieni un orario regolare, evita caffeina e schermi luminosi prima di coricarti, e assicurati che la tua camera sia confortevole. Se l'insonnia persiste, consulta il tuo medico.";
+        }
+        else if (lowercaseQuery.includes('alimentazione') || lowercaseQuery.includes('dieta')) {
+          response = "Un'alimentazione equilibrata è fondamentale per la salute. Cerca di includere frutta, verdura, proteine magre e cereali integrali. Limita zuccheri, grassi saturi e sale. Ricorda di idratare adeguatamente il tuo corpo.";
+        }
+        else if (lowercaseQuery.includes('esercizio') || lowercaseQuery.includes('attività fisica')) {
+          response = "L'attività fisica regolare offre numerosi benefici per la salute, tra cui la riduzione del rischio di malattie croniche e il miglioramento dell'umore. Cerca di fare almeno 150 minuti di attività moderata alla settimana.";
+        }
+        else if (lowercaseQuery.includes('farmaco') || lowercaseQuery.includes('medicinale')) {
+          response = "È importante seguire attentamente le prescrizioni mediche. Non interrompere o modificare i dosaggi senza consultare il tuo medico. Se noti effetti collaterali, contatta subito un professionista sanitario.";
+        }
+        else if (lowercaseQuery.includes('grazie') || lowercaseQuery.includes('grazie mille')) {
+          response = "Prego! Sono qui per aiutarti. Non esitare a contattarmi se hai altre domande sulla tua salute.";
+        }
+        else if (lowercaseQuery.includes('ciao') || lowercaseQuery.includes('salve')) {
+          response = "Ciao! Come posso aiutarti oggi con la tua salute?";
+        }
+        else {
+          response = "Mi dispiace, non ho informazioni specifiche su questo argomento. Per consigli personalizzati, ti consiglio di consultare il tuo medico. Posso aiutarti con altro?";
+        }
+        
+        setIsLoading(false);
+        resolve(response);
+      }, 1500); // Simula un breve ritardo di risposta
+    });
+  };
 
-  // Salva i messaggi quando cambiano
+  // Gestisce l'invio di un nuovo messaggio
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    
+    if (!input.trim()) return;
+    
+    // Aggiunge il messaggio dell'utente
+    const userMessage = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    
+    // Ottiene la risposta dell'assistente
+    const response = await aiResponse(input);
+    
+    // Aggiunge la risposta dell'assistente
+    const assistantMessage = { role: 'assistant', content: response };
+    setMessages(prev => [...prev, assistantMessage]);
+  };
+
+  // Scorre automaticamente ai messaggi più recenti
   useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('ai_assistant_messages', JSON.stringify(messages));
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  // Salva le impostazioni quando cambiano
-  useEffect(() => {
-    localStorage.setItem('ai_assistant_dark_mode', isDarkMode);
-    localStorage.setItem('ai_assistant_speech', useSpeech);
-  }, [isDarkMode, useSpeech]);
-
-  // Scorrimento automatico alla fine della chat
-  useEffect(() => {
-    if (chatAreaRef.current) {
-      chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
-    }
-  }, [messages, isLoading]);
-
-  // Gestisce l'invio della chiave API
-  const handleApiKeySubmit = (e) => {
-    e.preventDefault();
-    
-    if (!apiKey.trim()) {
-      setApiKeyError('Per favore, inserisci una chiave API valida');
-      return;
-    }
-    
-    if (!apiKey.startsWith('sk-') || apiKey.length < 20) {
-      setApiKeyError('La chiave API non sembra valida. Deve iniziare con "sk-" e avere la lunghezza corretta');
-      return;
-    }
-    
-    openaiConfig.saveApiKey(apiKey);
-    setApiKeyError('');
-    
-    // Aggiunge un messaggio di conferma
-    setMessages(prev => [
-      ...prev,
-      { role: 'assistant', content: 'La chiave API è stata salvata. Ora puoi iniziare a chattare con me!', timestamp: new Date().toISOString() }
-    ]);
-  };
-
-  // Gestisce l'invio del messaggio
-  const handleSubmit = async (e) => {
-    e?.preventDefault();
-    
-    if (!message.trim() && !e?.currentTarget?.dataset?.suggestion) return;
-    
-    // Preparazione del messaggio
-    const userMessage = e?.currentTarget?.dataset?.suggestion || message;
-    
-    // Aggiunge il messaggio dell'utente
-    setMessages(prev => [
-      ...prev, 
-      { role: 'user', content: userMessage, timestamp: new Date().toISOString() }
-    ]);
-    
-    // Resetta il campo di input
-    setMessage('');
-    
-    // Verifica se c'è una chiave API
-    if (!openaiConfig.hasApiKey()) {
-      setMessages(prev => [
-        ...prev,
-        { 
-          role: 'error', 
-          content: 'Per utilizzare l\'assistente, devi prima inserire una chiave API OpenAI valida.',
-          timestamp: new Date().toISOString()
-        }
-      ]);
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      // Prepara i messaggi per l'API (massimo ultimi 10 messaggi)
-      const recentMessages = [...messages.slice(-10), { role: 'user', content: userMessage }]
-        .map(msg => ({ role: msg.role === 'error' ? 'user' : msg.role, content: msg.content }));
-      
-      // Chiamata API OpenAI
-      const response = await fetch(openaiConfig.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openaiConfig.getApiKey()}`
-        },
-        body: JSON.stringify({
-          model: openaiConfig.model,
-          messages: recentMessages,
-          temperature: 0.7,
-          max_tokens: 1000
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `Errore API: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      const assistantMessage = data.choices[0].message.content;
-      
-      // Aggiunge la risposta dell'assistente
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: assistantMessage, timestamp: new Date().toISOString() }
-      ]);
-      
-      // Sintesi vocale se abilitata
-      if (useSpeech && 'speechSynthesis' in window) {
-        const speech = new SpeechSynthesisUtterance(assistantMessage);
-        speech.lang = 'it-IT';
-        window.speechSynthesis.speak(speech);
-      }
-      
-    } catch (error) {
-      console.error('Errore nella chiamata API:', error);
-      setMessages(prev => [
-        ...prev,
-        { 
-          role: 'error', 
-          content: `Si è verificato un errore: ${error.message || 'Controlla la console per maggiori dettagli'}`,
-          timestamp: new Date().toISOString()
-        }
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Gestisce il click su un suggerimento
-  const handleSuggestionClick = (suggestion) => {
-    setMessage(suggestion);
-    handleSubmit({ preventDefault: () => {}, currentTarget: { dataset: { suggestion } } });
-  };
-
-  // Pulisce la conversazione
-  const clearConversation = () => {
-    setMessages([]);
-    localStorage.removeItem('ai_assistant_messages');
+  // Espande/comprime l'assistente
+  const toggleExpansion = () => {
+    setIsExpanded(!isExpanded);
   };
 
   return (
-    <div className={`ai-assistant ${isDarkMode ? 'dark-mode' : ''} ${isExpanded ? 'expanded' : ''}`}>
-      {/* Header */}
-      <div className="ai-header" onClick={() => setIsExpanded(!isExpanded)}>
-        <div className="ai-title">
+    <div className={`ai-assistant-container ${isExpanded ? 'expanded' : 'collapsed'}`}>
+      <div className="ai-assistant-header">
+        <div className="ai-assistant-title">
           <i className="fas fa-robot"></i>
           <h3>Assistente Salus</h3>
         </div>
-        <div className="ai-controls">
+        <div className="ai-assistant-controls">
           <button 
-            className="ai-control-btn" 
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsDarkMode(!isDarkMode);
-            }}
-            title={isDarkMode ? "Modalità chiara" : "Modalità scura"}
+            className="ai-assistant-toggle"
+            onClick={toggleExpansion}
+            title={isExpanded ? 'Comprimi' : 'Espandi'}
           >
-            <i className={`fas fa-${isDarkMode ? 'sun' : 'moon'}`}></i>
-          </button>
-          <button 
-            className="ai-control-btn" 
-            onClick={(e) => {
-              e.stopPropagation();
-              setUseSpeech(!useSpeech);
-            }}
-            title={useSpeech ? "Disabilita audio" : "Abilita audio"}
-          >
-            <i className={`fas fa-${useSpeech ? 'volume-up' : 'volume-mute'}`}></i>
-          </button>
-          <button 
-            className="ai-toggle-btn" 
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsExpanded(!isExpanded);
-            }}
-          >
-            <i className={`fas fa-chevron-${isExpanded ? 'down' : 'up'}`}></i>
+            <i className={`fas fa-${isExpanded ? 'minus' : 'plus'}`}></i>
           </button>
         </div>
       </div>
       
       {isExpanded && (
-        <div className="ai-content">
-          {/* Form per la chiave API se non è già impostata */}
-          {!openaiConfig.hasApiKey() && (
-            <form className="api-key-form" onSubmit={handleApiKeySubmit}>
-              <h4>Inserisci la tua chiave API OpenAI</h4>
-              <p>Per utilizzare l'assistente IA, è necessaria una chiave API di OpenAI.</p>
-              <input
-                type="text"
-                className="api-key-input"
-                placeholder="sk-..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-              />
-              {apiKeyError && <div className="api-key-error">{apiKeyError}</div>}
-              <button type="submit" className="api-key-submit">Salva Chiave API</button>
-              <p className="api-key-info">
-                La chiave verrà salvata solo in questo browser. <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">Ottieni una chiave API</a>
-              </p>
-            </form>
-          )}
-          
-          {/* Area chat */}
-          <div className="ai-chat-area" ref={chatAreaRef}>
-            {messages.length === 0 ? (
-              <div className="ai-welcome">
-                <h3>Benvenuto nell'Assistente Salus!</h3>
-                <p>Chiedimi informazioni sul benessere o suggerimenti per migliorare il tuo stile di vita.</p>
-                <div className="ai-suggestions">
-                  {suggestions.map((suggestion, idx) => (
-                    <button
-                      key={idx}
-                      className="ai-suggestion"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="ai-messages">
-                {messages.map((msg, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`ai-message ${msg.role}`}
-                  >
-                    {msg.content}
+        <>
+          <div className="ai-assistant-messages">
+            {messages.map((msg, index) => (
+              <div 
+                key={index} 
+                className={`message ${msg.role === 'assistant' ? 'assistant' : 'user'}`}
+              >
+                {msg.role === 'assistant' && (
+                  <div className="avatar">
+                    <i className="fas fa-robot"></i>
                   </div>
-                ))}
-                {isLoading && (
-                  <div className="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                )}
+                <div className="content">
+                  <p>{msg.content}</p>
+                </div>
+                {msg.role === 'user' && (
+                  <div className="avatar">
+                    <i className="fas fa-user"></i>
                   </div>
                 )}
               </div>
+            ))}
+            {isLoading && (
+              <div className="message assistant">
+                <div className="avatar">
+                  <i className="fas fa-robot"></i>
+                </div>
+                <div className="content typing">
+                  <span className="dot"></span>
+                  <span className="dot"></span>
+                  <span className="dot"></span>
+                </div>
+              </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
           
-          {/* Area input */}
-          <form className="ai-input-area" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              className="ai-input"
-              placeholder={openaiConfig.hasApiKey() ? "Scrivi un messaggio..." : "Prima inserisci la chiave API..."}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              disabled={isLoading || !openaiConfig.hasApiKey()}
-              ref={inputRef}
+          <form className="ai-assistant-input" onSubmit={handleSendMessage}>
+            <input 
+              type="text" 
+              value={input} 
+              onChange={(e) => setInput(e.target.value)} 
+              placeholder="Scrivi un messaggio..."
+              disabled={isLoading}
             />
             <button 
               type="submit" 
-              className="ai-send-btn" 
-              disabled={isLoading || !message.trim() || !openaiConfig.hasApiKey()}
+              disabled={isLoading || !input.trim()}
+              title="Invia messaggio"
             >
               <i className="fas fa-paper-plane"></i>
             </button>
           </form>
           
-          {/* Pulsante per pulire la conversazione */}
-          {messages.length > 0 && openaiConfig.hasApiKey() && (
-            <div style={{ padding: '10px 15px', textAlign: 'center' }}>
-              <button 
-                onClick={clearConversation}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#ff5252',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                <i className="fas fa-trash-alt" style={{ marginRight: '5px' }}></i>
-                Cancella conversazione
-              </button>
-            </div>
-          )}
-        </div>
+          <div className="ai-assistant-footer">
+            <p>Assistente IA - Salus Health App</p>
+          </div>
+        </>
       )}
     </div>
   );
-};
+}
 
 export default AIAssistant; 
