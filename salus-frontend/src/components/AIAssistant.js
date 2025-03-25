@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/AIAssistant.css';
+import axios from 'axios';
 
 function AIAssistant() {
   const [messages, setMessages] = useState([
@@ -13,74 +14,54 @@ function AIAssistant() {
   const [isExpanded, setIsExpanded] = useState(true);
   const messagesEndRef = useRef(null);
 
-  // Simula le risposte dell'assistente IA
-  const aiResponse = (query) => {
-    // Simula una breve attesa per rendere l'interazione più naturale
-    setIsLoading(true);
-    
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Risposte predefinite basate su parole chiave nel messaggio dell'utente
-        let response = '';
-        const lowercaseQuery = query.toLowerCase();
-        
-        if (lowercaseQuery.includes('mal di testa') || lowercaseQuery.includes('cefalea')) {
-          response = "I mal di testa possono essere causati da stress, disidratazione o problemi di vista. Ti consiglio di bere più acqua, riposare in una stanza buia e silenziosa, e se i sintomi persistono, di consultare il tuo medico.";
-        } 
-        else if (lowercaseQuery.includes('pressione') || lowercaseQuery.includes('ipertensione')) {
-          response = "Per gestire la pressione sanguigna è importante mantenere uno stile di vita sano: ridurre il sale nella dieta, fare regolare esercizio fisico, limitare l'alcol e non fumare. Continua a monitorare regolarmente i tuoi valori.";
-        }
-        else if (lowercaseQuery.includes('diabete') || lowercaseQuery.includes('glicemia')) {
-          response = "Il controllo del diabete richiede una combinazione di dieta equilibrata, esercizio fisico regolare e, se prescritti, farmaci. Monitora regolarmente i livelli di zucchero nel sangue e segui le indicazioni del tuo medico.";
-        }
-        else if (lowercaseQuery.includes('ansia') || lowercaseQuery.includes('stress')) {
-          response = "L'ansia e lo stress possono influire negativamente sulla salute. Tecniche di rilassamento come la respirazione profonda, la meditazione e l'attività fisica regolare possono aiutare. Considera anche la possibilità di parlare con un professionista della salute mentale.";
-        }
-        else if (lowercaseQuery.includes('sonno') || lowercaseQuery.includes('insonnia')) {
-          response = "Per migliorare il sonno, mantieni un orario regolare, evita caffeina e schermi luminosi prima di coricarti, e assicurati che la tua camera sia confortevole. Se l'insonnia persiste, consulta il tuo medico.";
-        }
-        else if (lowercaseQuery.includes('alimentazione') || lowercaseQuery.includes('dieta')) {
-          response = "Un'alimentazione equilibrata è fondamentale per la salute. Cerca di includere frutta, verdura, proteine magre e cereali integrali. Limita zuccheri, grassi saturi e sale. Ricorda di idratare adeguatamente il tuo corpo.";
-        }
-        else if (lowercaseQuery.includes('esercizio') || lowercaseQuery.includes('attività fisica')) {
-          response = "L'attività fisica regolare offre numerosi benefici per la salute, tra cui la riduzione del rischio di malattie croniche e il miglioramento dell'umore. Cerca di fare almeno 150 minuti di attività moderata alla settimana.";
-        }
-        else if (lowercaseQuery.includes('farmaco') || lowercaseQuery.includes('medicinale')) {
-          response = "È importante seguire attentamente le prescrizioni mediche. Non interrompere o modificare i dosaggi senza consultare il tuo medico. Se noti effetti collaterali, contatta subito un professionista sanitario.";
-        }
-        else if (lowercaseQuery.includes('grazie') || lowercaseQuery.includes('grazie mille')) {
-          response = "Prego! Sono qui per aiutarti. Non esitare a contattarmi se hai altre domande sulla tua salute.";
-        }
-        else if (lowercaseQuery.includes('ciao') || lowercaseQuery.includes('salve')) {
-          response = "Ciao! Come posso aiutarti oggi con la tua salute?";
-        }
-        else {
-          response = "Mi dispiace, non ho informazioni specifiche su questo argomento. Per consigli personalizzati, ti consiglio di consultare il tuo medico. Posso aiutarti con altro?";
-        }
-        
-        setIsLoading(false);
-        resolve(response);
-      }, 1500); // Simula un breve ritardo di risposta
-    });
+  // Ottiene una risposta dall'API di OpenAI
+  const getAIResponse = async (query) => {
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await axios.post(`${apiUrl}/api/ai/chat`, {
+        message: query
+      });
+
+      if (response.data.success) {
+        return response.data.response;
+      } else {
+        throw new Error(response.data.error || 'Errore nella risposta del server');
+      }
+    } catch (error) {
+      console.error('Errore nella chiamata API:', error);
+      return "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche.";
+    }
   };
 
   // Gestisce l'invio di un nuovo messaggio
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
+
     if (!input.trim()) return;
-    
+
     // Aggiunge il messaggio dell'utente
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
-    
-    // Ottiene la risposta dell'assistente
-    const response = await aiResponse(input);
-    
-    // Aggiunge la risposta dell'assistente
-    const assistantMessage = { role: 'assistant', content: response };
-    setMessages(prev => [...prev, assistantMessage]);
+    setIsLoading(true);
+
+    try {
+      // Ottiene la risposta dall'AI
+      const response = await getAIResponse(input);
+
+      // Aggiunge la risposta dell'assistente
+      const assistantMessage = { role: 'assistant', content: response };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Errore nel processare il messaggio:', error);
+      const errorMessage = { 
+        role: 'assistant', 
+        content: "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche."
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Scorre automaticamente ai messaggi più recenti
@@ -103,7 +84,7 @@ function AIAssistant() {
           <h3>Assistente Salus</h3>
         </div>
         <div className="ai-assistant-controls">
-          <button 
+          <button
             className="ai-assistant-toggle"
             onClick={toggleExpansion}
             title={isExpanded ? 'Comprimi' : 'Espandi'}
@@ -112,13 +93,13 @@ function AIAssistant() {
           </button>
         </div>
       </div>
-      
+
       {isExpanded && (
         <>
           <div className="ai-assistant-messages">
             {messages.map((msg, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`message ${msg.role === 'assistant' ? 'assistant' : 'user'}`}
               >
                 {msg.role === 'assistant' && (
@@ -150,27 +131,23 @@ function AIAssistant() {
             )}
             <div ref={messagesEndRef} />
           </div>
-          
+
           <form className="ai-assistant-input" onSubmit={handleSendMessage}>
-            <input 
-              type="text" 
-              value={input} 
-              onChange={(e) => setInput(e.target.value)} 
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
               placeholder="Scrivi un messaggio..."
               disabled={isLoading}
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isLoading || !input.trim()}
               title="Invia messaggio"
             >
               <i className="fas fa-paper-plane"></i>
             </button>
           </form>
-          
-          <div className="ai-assistant-footer">
-            <p>Assistente IA - Salus Health App</p>
-          </div>
         </>
       )}
     </div>
