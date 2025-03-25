@@ -10,7 +10,7 @@ function Auth({ onLogin, mockAuth }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [authService, setAuthService] = useState(null);
-  const [language, setLanguage] = useState(localStorage.getItem('userLanguage') || 'italian');
+  const [language, setLanguage] = useState(localStorage.getItem('language') || 'it');
 
   // Traduzione dei testi in base alla lingua selezionata
   const translations = {
@@ -151,10 +151,27 @@ function Auth({ onLogin, mockAuth }) {
   const t = translations[language];
 
   // Funzione per cambiare la lingua
-  const handleLanguageChange = (e) => {
+  const handleLanguageChange = async (e) => {
     const newLanguage = e.target.value;
     setLanguage(newLanguage);
-    localStorage.setItem('userLanguage', newLanguage);
+    localStorage.setItem('language', newLanguage);
+    
+    // Aggiorna la lingua nel backend se l'utente è autenticato
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        await fetch('http://localhost:5000/api/users/language', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${JSON.parse(token).token}`
+          },
+          body: JSON.stringify({ language: newLanguage })
+        });
+      } catch (error) {
+        console.error('Errore durante l\'aggiornamento della lingua:', error);
+      }
+    }
   };
 
   // Funzione per validare l'email
@@ -240,8 +257,8 @@ function Auth({ onLogin, mockAuth }) {
           id: userId, 
           name, 
           email, 
-          password, // Nota: in un'app reale, la password dovrebbe essere criptata
-          language,
+          password,
+          language: language, // Salva la lingua selezionata
           registrationDate: new Date().toISOString()
         };
         
@@ -271,7 +288,7 @@ function Auth({ onLogin, mockAuth }) {
           id: userId,
           name,
           email,
-          language,
+          language: language, // Usa la lingua selezionata
           authenticated: true,
           lastLogin: new Date().toISOString()
         }));
@@ -475,9 +492,9 @@ function Auth({ onLogin, mockAuth }) {
         <div className="language-selector">
           <label>{t.languageSelector}</label>
           <select value={language} onChange={handleLanguageChange}>
-            <option value="italian">{t.italian}</option>
-            <option value="english">{t.english}</option>
-            <option value="hindi">{t.hindi}</option>
+            <option value="it">{t.italian}</option>
+            <option value="en">{t.english}</option>
+            <option value="hi">{t.hindi}</option>
           </select>
         </div>
         

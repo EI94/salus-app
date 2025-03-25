@@ -140,6 +140,52 @@ const resources = {
       enterYourPassword: 'Introduce tu contraseña',
       confirmYourPassword: 'Confirma tu contraseña'
     }
+  },
+  hi: {
+    translation: {
+      login: "लॉग इन करें",
+      register: "साइन अप करें",
+      email: "ईमेल",
+      password: "पासवर्ड",
+      name: "नाम",
+      symptoms: "लक्षण",
+      wellness: "स्वास्थ्य",
+      medications: "दवाएं",
+      assistant: "सलुस",
+      settings: "सेटिंग्स",
+      darkMode: "डार्क मोड",
+      logout: "लॉग आउट",
+      language: "भाषा",
+      welcomeTitle: "सलुस में आपका स्वागत है!",
+      welcomeMessage: "पंजीकरण के लिए धन्यवाद। सलुस आपकी स्वास्थ्य निगरानी में मदद करेगा।",
+      confirmEmail: "हमने आपको एक पुष्टि ईमेल भेजा है। कृपया अपना इनबॉक्स जांचें।",
+      nameValidation: "नाम कम से कम 3 अक्षर का होना चाहिए",
+      emailValidation: "कृपया एक मान्य ईमेल पता दर्ज करें",
+      passwordValidation: "पासवर्ड कम से कम 6 अक्षर का होना चाहिए",
+      nameRequired: "नाम आवश्यक है",
+      emailRequired: "ईमेल आवश्यक है",
+      emailInvalid: "कृपया एक मान्य ईमेल पता दर्ज करें",
+      passwordRequired: "पासवर्ड आवश्यक है",
+      passwordTooShort: "पासवर्ड कम से कम 6 अक्षर का होना चाहिए",
+      passwordsMustMatch: "पासवर्ड मेल नहीं खाते",
+      or: "या",
+      continueWithGoogle: "Google से जारी रखें",
+      continueWithApple: "Apple से जारी रखें",
+      alreadyHaveAccount: "पहले से ही खाता है? ",
+      dontHaveAccount: "खाता नहीं है? ",
+      forgotPassword: "पासवर्ड भूल गए?",
+      healthMonitoringMadeEasy: "स्वास्थ्य निगरानी को सरल बनाया",
+      trackSymptoms: "अपने लक्षणों को ट्रैक करें",
+      monitorMedications: "अपनी दवाओं की निगरानी करें",
+      aiAssistant: "व्यक्तिगत AI सहायक",
+      healthInsights: "स्वास्थ्य अंतर्दृष्टि",
+      createAccountToTrackHealth: "अपने स्वास्थ्य को ट्रैक करने के लिए खाता बनाएं",
+      welcomeBack: "वापस आने पर स्वागत है! जारी रखने के लिए साइन इन करें",
+      enterYourName: "अपना नाम दर्ज करें",
+      enterYourEmail: "अपना ईमेल दर्ज करें",
+      enterYourPassword: "अपना पासवर्ड दर्ज करें",
+      confirmYourPassword: "अपना पासवर्ड पुष्टि करें"
+    }
   }
 };
 
