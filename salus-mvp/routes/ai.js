@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const OpenAI = require('openai');
+const { Configuration, OpenAIApi } = require('openai');
+const authenticateToken = require('../middleware/auth');
 
-// Configura OpenAI con la nuova versione dell'API
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+// Configurazione OpenAI
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
 });
+const openai = new OpenAIApi(configuration);
 
 // Endpoint di test per verificare che OpenAI funzioni
 router.get('/test', async (req, res) => {
@@ -28,8 +30,8 @@ router.get('/test', async (req, res) => {
   }
 });
 
-// Endpoint per ottenere risposte dall'AI
-router.post('/chat', async (req, res) => {
+// Route per la chat con l'AI
+router.post('/chat', authenticateToken, async (req, res) => {
   try {
     const { message } = req.body;
     
@@ -37,43 +39,33 @@ router.post('/chat', async (req, res) => {
       return res.status(400).json({ error: 'Il messaggio è obbligatorio' });
     }
 
-    // Crea il prompt per l'AI
-    const prompt = `Sei un assistente sanitario virtuale di Salus, un'app per il monitoraggio della salute. 
-    Fornisci risposte utili e pertinenti in italiano, mantenendo un tono professionale ma amichevole.
-    Se non sei sicuro o la domanda richiede un consulto medico, suggerisci di consultare un professionista sanitario.
-    
-    Domanda dell'utente: ${message}`;
-
-    // Chiama l'API di OpenAI
-    const completion = await openai.chat.completions.create({
+    // Chiamata a OpenAI
+    const completion = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content: "Sei un assistente sanitario virtuale di Salus, un'app per il monitoraggio della salute. Fornisci risposte utili e pertinenti in italiano, mantenendo un tono professionale ma amichevole."
+          content: "Sei un assistente sanitario virtuale. Fornisci informazioni utili sulla salute e il benessere, ma ricorda di non sostituire mai un medico. Per questioni mediche specifiche, consiglia sempre di consultare un professionista sanitario."
         },
         {
           role: "user",
           content: message
         }
       ],
+      max_tokens: 500,
       temperature: 0.7,
-      max_tokens: 500
     });
 
-    // Estrai la risposta
-    const response = completion.choices[0].message.content;
-
+    // Invia la risposta
     res.json({ 
-      success: true, 
-      response: response 
+      response: completion.data.choices[0].message.content,
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
     console.error('Errore nella chiamata a OpenAI:', error);
     res.status(500).json({ 
-      success: false, 
-      error: 'Errore nel processare la richiesta',
+      error: 'Errore nella generazione della risposta',
       details: error.message 
     });
   }

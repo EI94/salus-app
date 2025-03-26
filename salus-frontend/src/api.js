@@ -178,4 +178,33 @@ API.interceptors.response.use(
   }
 );
 
+// Funzione per inviare un messaggio all'AI Assistant
+export const sendMessageToAI = async (message) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Utente non autenticato');
+    }
+
+    const response = await fetch(`${baseURL}/api/ai/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${JSON.parse(token).token}`
+      },
+      body: JSON.stringify({ message })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Errore nella chiamata API: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Errore nella chiamata API:', error);
+    throw error;
+  }
+};
+
 export default API; 
