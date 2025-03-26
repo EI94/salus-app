@@ -6,14 +6,39 @@
 }
 
 :root {
-  --primary-color: #3c8dbc;
-  --primary-dark: #2c6b8e;
-  --primary-light: #5aabdc;
-  --secondary-color: #f8f9fa;
-  --accent-color: #28a745;
+  /* Colori principali */
+  --primary-color: #4CAF50;
+  --primary-color-hover: #45a049;
+  --secondary-color: #2196F3;
+  --accent-color: #FFC107;
+  
+  /* Colori di sfondo */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --card-bg: #ffffff;
+  --card-bg-hover: #f8f8f8;
+  
+  /* Colori del testo */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  
+  /* Bordi e ombre */
+  --border-color: #e0e0e0;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  
+  /* Tema scuro */
+  --bg-primary-dark: #1a1a1a;
+  --bg-secondary-dark: #2d2d2d;
+  --card-bg-dark: #2d2d2d;
+  --card-bg-hover-dark: #3d3d3d;
+  --text-primary-dark: #ffffff;
+  --text-secondary-dark: #b3b3b3;
+  --border-color-dark: #404040;
+  
   --danger-color: #dc3545;
   --warning-color: #ffc107;
   --info-color: #17a2b8;
+  --text-light: #6c757d;
   --text-color: #333;
   --text-light: #6c757d;
   --border-color: #ddd;
@@ -32,9 +57,10 @@
 }
 
 body {
-  font-family: var(--font-sans);
-  color: var(--text-color);
-  background-color: #f5f7fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
   line-height: 1.5;
 }
 
@@ -412,5 +438,27 @@ ul, ol {
   .profile-dropdown {
     width: 220px;
     right: -10px;
+  }
+}
+
+/* Tema scuro */
+[data-theme="dark"] {
+  background-color: var(--bg-primary-dark);
+  color: var(--text-primary-dark);
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
   }
 } 

@@ -14,6 +14,9 @@ import './styles/complete-app.css'; /* Tutti gli stili dell'app */
 import './App.css';  /* File minimo solo per compatibilità */
 import API from './api';
 import { loadUserData } from './utils/dataManager';
+import { useTranslation } from 'react-i18next';
+import Dashboard from './components/Dashboard';
+import Settings from './components/Settings';
 
 // Configurazione di base per axios
 const API_BASE = axios.create({
@@ -386,6 +389,7 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
 
 // Funzione principale dell'app
 function App() {
+  const { t } = useTranslation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -489,7 +493,7 @@ function App() {
           path="/dashboard"
           element={
             <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Home userId={userData.id} userName={userData.name} userData={userData} />
+              <Dashboard />
             </Layout>
           }
         />
@@ -548,6 +552,14 @@ function App() {
           element={
             <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
               <Profile userId={userData.id} userName={userData.name} userData={userData} activeTab="privacy" />
+            </Layout>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
+              <Settings />
             </Layout>
           }
         />
