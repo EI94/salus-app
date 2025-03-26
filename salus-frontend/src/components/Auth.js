@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import '../styles/Auth.css';
 
 function Auth({ onLogin, mockAuth }) {
@@ -10,151 +11,12 @@ function Auth({ onLogin, mockAuth }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [authService, setAuthService] = useState(null);
-  const [language, setLanguage] = useState(localStorage.getItem('language') || 'it');
-
-  // Traduzione dei testi in base alla lingua selezionata
-  const translations = {
-    italian: {
-      login: "Accedi",
-      register: "Registrati",
-      emailPlaceholder: "La tua email",
-      passwordPlaceholder: "La tua password",
-      namePlaceholder: "Il tuo nome",
-      confirmPasswordPlaceholder: "Conferma la password",
-      forgotPassword: "Password dimenticata?",
-      noAccount: "Non hai un account?",
-      haveAccount: "Hai già un account?",
-      loginBtn: "Accedi",
-      registerBtn: "Registrati",
-      loginLoading: "Accesso in corso...",
-      registerLoading: "Registrazione in corso...",
-      termsText: "Accetto i",
-      termsLink: "Termini di Servizio",
-      privacyText: "e la",
-      privacyLink: "Privacy Policy",
-      languageSelector: "Lingua:",
-      italian: "Italiano",
-      english: "Inglese",
-      hindi: "Hindi",
-      allFieldsRequired: "Tutti i campi sono obbligatori",
-      passwordMismatch: "Le password non corrispondono",
-      passwordLengthError: "La password deve essere lunga almeno 6 caratteri",
-      emailPasswordRequired: "Email e password sono obbligatori",
-      emailFormatError: "Inserisci un indirizzo email valido",
-      userNotFound: "Utente non trovato. Controlla l'email o registrati",
-      invalidPassword: "Password non valida. Riprova",
-      emailAlreadyRegistered: "Email già registrata. Prova ad accedere",
-      registrationSuccess: "Registrazione completata con successo!",
-      loginSuccess: "Login effettuato con successo!",
-      genericError: "Si è verificato un errore. Riprova più tardi",
-      appTitle: "Salus",
-      appDescription: "La tua piattaforma personale per il monitoraggio della salute",
-      featuresTitle: "Funzionalità principali",
-      featuresDescription: "Salus ti aiuta a monitorare e gestire la tua salute in modo semplice ed efficace",
-      featureSymptoms: "Monitoraggio sintomi",
-      featureSymptomsDesc: "Tieni traccia dei tuoi sintomi nel tempo e visualizza l'andamento",
-      featureMedications: "Gestione farmaci",
-      featureMedicationsDesc: "Organizza e ricorda i tuoi farmaci con notifiche personalizzate",
-      featureAI: "Assistente IA",
-      featureAIDesc: "Ricevi consigli personalizzati basati sui tuoi dati di salute"
-    },
-    english: {
-      login: "Login",
-      register: "Sign Up",
-      emailPlaceholder: "Your email",
-      passwordPlaceholder: "Your password",
-      namePlaceholder: "Your name",
-      confirmPasswordPlaceholder: "Confirm password",
-      forgotPassword: "Forgot password?",
-      noAccount: "Don't have an account?",
-      haveAccount: "Already have an account?",
-      loginBtn: "Login",
-      registerBtn: "Sign Up",
-      loginLoading: "Logging in...",
-      registerLoading: "Signing up...",
-      termsText: "I accept the",
-      termsLink: "Terms of Service",
-      privacyText: "and",
-      privacyLink: "Privacy Policy",
-      languageSelector: "Language:",
-      italian: "Italian",
-      english: "English",
-      hindi: "Hindi",
-      allFieldsRequired: "All fields are required",
-      passwordMismatch: "Passwords do not match",
-      passwordLengthError: "Password must be at least 6 characters long",
-      emailPasswordRequired: "Email and password are required",
-      emailFormatError: "Please enter a valid email address",
-      userNotFound: "User not found. Check your email or sign up",
-      invalidPassword: "Invalid password. Please try again",
-      emailAlreadyRegistered: "Email already registered. Try logging in instead",
-      registrationSuccess: "Registration completed successfully!",
-      loginSuccess: "Login successful!",
-      genericError: "An error occurred. Please try again later",
-      appTitle: "Salus",
-      appDescription: "Your personal health monitoring platform",
-      featuresTitle: "Main Features",
-      featuresDescription: "Salus helps you monitor and manage your health simply and effectively",
-      featureSymptoms: "Symptom Monitoring",
-      featureSymptomsDesc: "Track your symptoms over time and visualize trends",
-      featureMedications: "Medication Management",
-      featureMedicationsDesc: "Organize and remember your medications with custom notifications",
-      featureAI: "AI Assistant",
-      featureAIDesc: "Receive personalized advice based on your health data"
-    },
-    hindi: {
-      login: "लॉग इन करें",
-      register: "साइन अप करें",
-      emailPlaceholder: "आपका ईमेल",
-      passwordPlaceholder: "आपका पासवर्ड",
-      namePlaceholder: "आपका नाम",
-      confirmPasswordPlaceholder: "पासवर्ड की पुष्टि करें",
-      forgotPassword: "पासवर्ड भूल गए?",
-      noAccount: "खाता नहीं है?",
-      haveAccount: "पहले से ही खाता है?",
-      loginBtn: "लॉग इन करें",
-      registerBtn: "साइन अप करें",
-      loginLoading: "लॉग इन हो रहा है...",
-      registerLoading: "साइन अप हो रहा है...",
-      termsText: "मैं स्वीकार करता हूं",
-      termsLink: "सेवा की शर्तें",
-      privacyText: "और",
-      privacyLink: "गोपनीयता नीति",
-      languageSelector: "भाषा:",
-      italian: "इतालवी",
-      english: "अंग्रे़ी",
-      hindi: "हिंदी",
-      allFieldsRequired: "सभी फ़ील्ड आवश्यक हैं",
-      passwordMismatch: "पासवर्ड मेल नहीं खाते",
-      passwordLengthError: "पासवर्ड कम से कम 6 अक्षर लंबा होना चाहिए",
-      emailPasswordRequired: "ईमेल और पासवर्ड आवश्यक हैं",
-      emailFormatError: "कृपया एक वैध ईमेल पता दर्ज करें",
-      userNotFound: "उपयोगकर्ता नहीं मिला। अपना ईमेल जांचें या साइन अप करें",
-      invalidPassword: "अमान्य पासवर्ड। कृपया पुन: प्रयास करें",
-      emailAlreadyRegistered: "ईमेल पहले से पंजीकृत है। इसके बजाय लॉगिन करने का प्रयास करें",
-      registrationSuccess: "पंजीकरण सफलतापूर्वक पूरा हुआ!",
-      loginSuccess: "लॉगिन सफल!",
-      genericError: "एक त्रुटि हुई। कृपया बाद में पुन: प्रयास करें",
-      appTitle: "सेलस",
-      appDescription: "आपका व्यक्तिगत स्वास्थ्य निगरानी प्लेटफॉर्म",
-      featuresTitle: "मुख्य विशेषताएं",
-      featuresDescription: "सेलस आपको अपने स्वास्थ्य की निगरानी और प्रबंधन सरल और प्रभावी ढंग से करने में मदद करता है",
-      featureSymptoms: "लक्षण निगरानी",
-      featureSymptomsDesc: "समय के साथ अपने लक्षणों को ट्रैक करें और रुझानों को देखें",
-      featureMedications: "दवा प्रबंधन",
-      featureMedicationsDesc: "कस्टम नोटिफिकेशन के साथ अपनी दवाओं को व्यवस्थित करें और याद रखें",
-      featureAI: "AI सहायक",
-      featureAIDesc: "अपने स्वास्थ्य डेटा के आधार पर व्यक्तिगत सलाह प्राप्त करें"
-    }
-  };
-
-  const t = translations[language];
+  const { t, i18n } = useTranslation();
 
   // Funzione per cambiare la lingua
   const handleLanguageChange = async (e) => {
     const newLanguage = e.target.value;
-    setLanguage(newLanguage);
-    localStorage.setItem('language', newLanguage);
+    await i18n.changeLanguage(newLanguage);
     
     // Aggiorna la lingua nel backend se l'utente è autenticato
     const token = localStorage.getItem('authToken');
@@ -194,11 +56,11 @@ function Auth({ onLogin, mockAuth }) {
         const user = users.find(u => u.email === email);
         
         if (!user) {
-          throw new Error(t.userNotFound);
+          throw new Error(t('userNotFound'));
         }
         
         if (user.password !== password) {
-          throw new Error(t.invalidPassword);
+          throw new Error(t('invalidPassword'));
         }
         
         // Crea token JWT simulato con scadenza
@@ -215,7 +77,7 @@ function Auth({ onLogin, mockAuth }) {
           id: user.id,
           name: user.name,
           email: user.email,
-          language: user.language || language,
+          language: user.language || i18n.language,
           authenticated: true,
           lastLogin: new Date().toISOString()
         }));
@@ -228,7 +90,7 @@ function Auth({ onLogin, mockAuth }) {
             id: user.id, 
             name: user.name,
             email: user.email,
-            language: user.language || language
+            language: user.language || i18n.language
           }, 
           token: token.token
         };
@@ -248,7 +110,7 @@ function Auth({ onLogin, mockAuth }) {
         // Verifica se l'utente esiste già
         const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
         if (users.some(u => u.email === email)) {
-          throw new Error(t.emailAlreadyRegistered);
+          throw new Error(t('emailAlreadyRegistered'));
         }
         
         // Crea nuovo utente
@@ -258,7 +120,7 @@ function Auth({ onLogin, mockAuth }) {
           name, 
           email, 
           password,
-          language: language, // Salva la lingua selezionata
+          language: i18n.language, // Salva la lingua selezionata
           registrationDate: new Date().toISOString()
         };
         
@@ -270,7 +132,7 @@ function Auth({ onLogin, mockAuth }) {
         localStorage.setItem(`userData_${userId}`, JSON.stringify({
           name,
           email,
-          language,
+          language: i18n.language,
           createdAt: new Date().toISOString()
         }));
         
@@ -288,7 +150,7 @@ function Auth({ onLogin, mockAuth }) {
           id: userId,
           name,
           email,
-          language: language, // Usa la lingua selezionata
+          language: i18n.language, // Usa la lingua selezionata
           authenticated: true,
           lastLogin: new Date().toISOString()
         }));
@@ -301,7 +163,7 @@ function Auth({ onLogin, mockAuth }) {
             id: userId, 
             name,
             email,
-            language
+            language: i18n.language
           }, 
           token: token.token
         };
@@ -378,22 +240,22 @@ function Auth({ onLogin, mockAuth }) {
     
     // Validazione dei dati base
     if (!name || !email || !password || !confirmPassword) {
-      setError(t.allFieldsRequired);
+      setError(t('allFieldsRequired'));
       return;
     }
     
     if (!isValidEmail(email)) {
-      setError(t.emailFormatError);
+      setError(t('emailFormatError'));
       return;
     }
     
     if (password !== confirmPassword) {
-      setError(t.passwordMismatch);
+      setError(t('passwordMismatch'));
       return;
     }
     
     if (password.length < 6) {
-      setError(t.passwordLengthError);
+      setError(t('passwordLengthError'));
       return;
     }
     
@@ -410,11 +272,11 @@ function Auth({ onLogin, mockAuth }) {
         // Registrazione riuscita, effettua login automatico
         handleLoginAfterRegistration(response.userData, response.token);
       } else {
-        throw new Error(t.genericError);
+        throw new Error(t('genericError'));
       }
     } catch (error) {
       console.log('Errore durante la registrazione:', error);
-      setError(error.message || t.genericError);
+      setError(error.message || t('genericError'));
     } finally {
       setLoading(false);
     }
@@ -437,12 +299,12 @@ function Auth({ onLogin, mockAuth }) {
     
     // Validazione dei dati base
     if (!email || !password) {
-      setError(t.emailPasswordRequired);
+      setError(t('emailPasswordRequired'));
       return;
     }
     
     if (!isValidEmail(email)) {
-      setError(t.emailFormatError);
+      setError(t('emailFormatError'));
       return;
     }
     
@@ -462,11 +324,11 @@ function Auth({ onLogin, mockAuth }) {
           throw new Error('Callback onLogin non disponibile');
         }
       } else {
-        throw new Error(t.genericError);
+        throw new Error(t('genericError'));
       }
     } catch (error) {
       console.log('Errore durante il login:', error);
-      setError(error.message || t.genericError);
+      setError(error.message || t('genericError'));
     } finally {
       setLoading(false);
     }
@@ -483,18 +345,18 @@ function Auth({ onLogin, mockAuth }) {
       <div className="auth-card">
         <div className="auth-header">
           <img src="/assets/icons/logo.svg" alt="Salus" className="auth-logo" />
-          <h1>{t.appTitle}</h1>
+          <h1>{t('appTitle')}</h1>
           <p className="app-description">
-            {t.appDescription}
+            {t('appDescription')}
           </p>
         </div>
         
         <div className="language-selector">
-          <label>{t.languageSelector}</label>
-          <select value={language} onChange={handleLanguageChange}>
-            <option value="it">{t.italian}</option>
-            <option value="en">{t.english}</option>
-            <option value="hi">{t.hindi}</option>
+          <label>{t('languageSelector')}</label>
+          <select value={i18n.language} onChange={handleLanguageChange}>
+            <option value="it">{t('italian')}</option>
+            <option value="en">{t('english')}</option>
+            <option value="hi">{t('hindi')}</option>
           </select>
         </div>
         
@@ -503,45 +365,45 @@ function Auth({ onLogin, mockAuth }) {
             className={`auth-tab ${isLogin ? 'active' : ''}`}
             onClick={() => setIsLogin(true)}
           >
-            {t.login}
+            {t('login')}
           </button>
           <button 
             className={`auth-tab ${!isLogin ? 'active' : ''}`}
             onClick={() => setIsLogin(false)}
           >
-            {t.register}
+            {t('register')}
           </button>
         </div>
         
         {isLogin ? (
           <form className="auth-form" onSubmit={handleLogin}>
             <div className="form-group">
-              <label htmlFor="login-email">Email</label>
+              <label htmlFor="login-email">{t('email')}</label>
               <input 
                 type="email" 
                 id="login-email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.emailPlaceholder}
+                placeholder={t('emailPlaceholder')}
                 disabled={loading}
               />
             </div>
             
             <div className="form-group">
-              <label htmlFor="login-password">Password</label>
+              <label htmlFor="login-password">{t('password')}</label>
               <input 
                 type="password" 
                 id="login-password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={t.passwordPlaceholder}
+                placeholder={t('passwordPlaceholder')}
                 disabled={loading}
               />
             </div>
             
             <div className="form-action">
               <a href="#forgot-password" className="forgot-password">
-                {t.forgotPassword}
+                {t('forgotPassword')}
               </a>
             </div>
             
@@ -552,59 +414,59 @@ function Auth({ onLogin, mockAuth }) {
               className="auth-button"
               disabled={loading}
             >
-              {loading ? t.loginLoading : t.loginBtn}
+              {loading ? t('loginLoading') : t('loginBtn')}
             </button>
             
             <div className="auth-toggle">
-              {t.noAccount} <button type="button" onClick={toggleAuthMode}>{t.register}</button>
+              {t('noAccount')} <button type="button" onClick={toggleAuthMode}>{t('register')}</button>
             </div>
           </form>
         ) : (
           <form className="auth-form" onSubmit={handleRegister}>
             <div className="form-group">
-              <label htmlFor="register-name">Nome completo</label>
+              <label htmlFor="register-name">{t('name')}</label>
               <input 
                 type="text" 
                 id="register-name" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                placeholder={t.namePlaceholder}
+                placeholder={t('namePlaceholder')}
                 disabled={loading}
               />
             </div>
             
             <div className="form-group">
-              <label htmlFor="register-email">Email</label>
+              <label htmlFor="register-email">{t('email')}</label>
               <input 
                 type="email" 
                 id="register-email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.emailPlaceholder}
+                placeholder={t('emailPlaceholder')}
                 disabled={loading}
               />
             </div>
             
             <div className="form-group">
-              <label htmlFor="register-password">Password</label>
+              <label htmlFor="register-password">{t('password')}</label>
               <input
                 type="password"
                 id="register-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={t.passwordPlaceholder}
+                placeholder={t('passwordPlaceholder')}
                 disabled={loading}
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="register-confirm-password">Conferma password</label>
+              <label htmlFor="register-confirm-password">{t('confirmPassword')}</label>
               <input
                 type="password"
                 id="register-confirm-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t.confirmPasswordPlaceholder}
+                placeholder={t('confirmPasswordPlaceholder')}
                 disabled={loading}
               />
             </div>
@@ -617,7 +479,7 @@ function Auth({ onLogin, mockAuth }) {
                 disabled={loading}
               />
               <label htmlFor="terms">
-                {t.termsText} <a href="#terms">{t.termsLink}</a> {t.privacyText} <a href="#privacy">{t.privacyLink}</a>
+                {t('termsText')} <a href="#terms">{t('termsLink')}</a> {t('privacyText')} <a href="#privacy">{t('privacyLink')}</a>
               </label>
             </div>
 
@@ -628,11 +490,11 @@ function Auth({ onLogin, mockAuth }) {
               className="auth-button"
               disabled={loading}
             >
-              {loading ? t.registerLoading : t.registerBtn}
+              {loading ? t('registerLoading') : t('registerBtn')}
             </button>
 
             <div className="auth-toggle">
-              {t.haveAccount} <button type="button" onClick={toggleAuthMode}>{t.login}</button>
+              {t('haveAccount')} <button type="button" onClick={toggleAuthMode}>{t('login')}</button>
             </div>
           </form>
         )}
@@ -640,8 +502,8 @@ function Auth({ onLogin, mockAuth }) {
 
       <div className="auth-features">
         <div className="features-header">
-          <h2>{t.featuresTitle}</h2>
-          <p>{t.featuresDescription}</p>
+          <h2>{t('featuresTitle')}</h2>
+          <p>{t('featuresDescription')}</p>
         </div>
 
         <div className="feature-cards">
@@ -649,24 +511,24 @@ function Auth({ onLogin, mockAuth }) {
             <div className="feature-icon">
               <i className="fas fa-heartbeat"></i>
             </div>
-            <h3>{t.featureSymptoms}</h3>
-            <p>{t.featureSymptomsDesc}</p>
+            <h3>{t('featureSymptoms')}</h3>
+            <p>{t('featureSymptomsDesc')}</p>
           </div>
 
           <div className="feature-card">
             <div className="feature-icon">
               <i className="fas fa-pills"></i>
             </div>
-            <h3>{t.featureMedications}</h3>
-            <p>{t.featureMedicationsDesc}</p>
+            <h3>{t('featureMedications')}</h3>
+            <p>{t('featureMedicationsDesc')}</p>
           </div>
 
           <div className="feature-card">
             <div className="feature-icon">
               <i className="fas fa-robot"></i>
             </div>
-            <h3>{t.featureAI}</h3>
-            <p>{t.featureAIDesc}</p>
+            <h3>{t('featureAI')}</h3>
+            <p>{t('featureAIDesc')}</p>
           </div>
         </div>
       </div>
