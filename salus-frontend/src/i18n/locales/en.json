@@ -1,0 +1,8 @@
+{
+  "noSymptomsDescription": "Start recording your symptoms to track your health status",
+  "noMedicationsDescription": "Add the medications you're taking to monitor your therapy",
+  "noWellnessDescription": "Record your wellness activities to improve your health",
+  "addSymptoms": "Add Symptoms",
+  "addMedications": "Add Medications",
+  "addWellness": "Add Wellness"
+} 

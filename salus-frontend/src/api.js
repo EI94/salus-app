@@ -37,57 +37,15 @@ const getMockResponse = (url, method, data) => {
         });
       } else if (url.includes('/symptoms')) {
         resolve({
-          data: [
-            {
-              id: 1,
-              name: 'Mal di testa',
-              intensity: 7,
-              category: 'Neurologico',
-              description: 'Dolore pulsante alla tempia destra',
-              date: '2023-11-01',
-              time: '14:30'
-            },
-            {
-              id: 2,
-              name: 'Nausea',
-              intensity: 4,
-              category: 'Digestivo',
-              description: 'Leggera nausea dopo pranzo',
-              date: '2023-11-02',
-              time: '13:45'
-            }
-          ]
+          data: [] // Array vuoto invece di dati di esempio
         });
       } else if (url.includes('/medications')) {
         resolve({
-          data: [
-            {
-              id: 1,
-              name: 'Paracetamolo',
-              dosage: '1000',
-              unit: 'mg',
-              frequency: 'twice',
-              time: ['08:00', '20:00'],
-              startDate: '2023-10-15',
-              endDate: '2023-11-15',
-              notes: 'Prendere con acqua abbondante',
-              status: 'active',
-              adherence: 0.9
-            }
-          ]
+          data: [] // Array vuoto invece di dati di esempio
         });
       } else if (url.includes('/wellness')) {
         resolve({
-          data: [
-            {
-              id: 1,
-              date: '2023-11-05',
-              mood: 'buono',
-              sleepHours: 7,
-              activities: ['Camminata', 'Lettura'],
-              notes: 'Giornata produttiva'
-            }
-          ]
+          data: [] // Array vuoto invece di dati di esempio
         });
       } else if (url.includes('/ai/chat')) {
         resolve({
