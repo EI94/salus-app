@@ -34,6 +34,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
+      <h1 className="dashboard-title">{t('dashboard')}</h1>
       <div className="dashboard-grid">
         {/* Sintomi */}
         {symptoms.length === 0 ? (
