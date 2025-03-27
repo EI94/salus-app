@@ -1,0 +1,19 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sfondo circolare con gradiente -->
+  <circle cx="40" cy="40" r="37" fill="url(#logo-gradient)" />
+  <circle cx="40" cy="40" r="35" stroke="white" stroke-width="1" stroke-opacity="0.3" fill="none"/>
+  
+  <!-- Simbolo cuore/salute -->
+  <path d="M40 22C45.6 16.8 54.4 17.2 59.2 23C64 28.8 64 37.6 59.2 43.4L40 62L20.8 43.4C16 37.6 16 28.8 20.8 23C25.6 17.2 34.4 16.8 40 22Z" fill="white"/>
+  
+  <!-- Pulsazione cardiaca -->
+  <path d="M22 48H30L34 40L40 56L46 40L50 48H58" stroke="#3f51b5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Definizione del gradiente -->
+  <defs>
+    <linearGradient id="logo-gradient" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3f51b5" />
+      <stop offset="100%" stop-color="#303f9f" />
+    </linearGradient>
+  </defs>
+</svg> 
