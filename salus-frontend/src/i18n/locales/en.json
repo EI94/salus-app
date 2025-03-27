@@ -1,14 +1,41 @@
 {
   "welcome": "Welcome to Salus",
+  "appTitle": "Salus - Your health in one app",
+  "appDescription": "Monitor your symptoms, medications, and wellness with a single easy-to-use tool",
+  
+  "languageSelector": "Select language",
+  "italian": "Italian",
+  "english": "English",
+  "hindi": "Hindi",
+  
   "login": "Login",
   "register": "Register",
   "email": "Email",
+  "emailPlaceholder": "Enter your email",
   "password": "Password",
+  "passwordPlaceholder": "Enter your password",
+  "confirmPassword": "Confirm Password",
+  "confirmPasswordPlaceholder": "Confirm your password",
+  "name": "Name",
+  "namePlaceholder": "Enter your name",
   "forgotPassword": "Forgot Password?",
+  "loginBtn": "Log In",
+  "registerBtn": "Register",
   "noAccount": "Don't have an account?",
   "hasAccount": "Already have an account?",
-  "name": "Name",
-  "confirmPassword": "Confirm Password",
+  
+  "featuresTitle": "Everything you need",
+  "featuresDescription": "Salus provides all the tools to manage your health simply and securely",
+  
+  "featureSymptoms": "Symptom Monitoring",
+  "featureSymptomsDesc": "Track your symptoms over time and discover important patterns",
+  
+  "featureMedications": "Medication Management",
+  "featureMedicationsDesc": "Never forget to take your medications with personalized reminders",
+  
+  "featureAI": "AI Assistant",
+  "featureAIDesc": "Receive personalized advice based on your health data",
+  
   "resetPassword": "Reset Password",
   "sendResetLink": "Send Reset Link",
   "backToLogin": "Back to Login",
@@ -30,5 +57,27 @@
   "noWellnessDescription": "Record your wellness activities to improve your health",
   "addSymptoms": "Add Symptoms",
   "addMedications": "Add Medications",
-  "addWellness": "Add Wellness"
+  "addWellness": "Add Wellness",
+  
+  "passwordsDoNotMatch": "Passwords do not match",
+  "emailRequired": "Email is required",
+  "passwordRequired": "Password is required",
+  "nameRequired": "Name is required",
+  "invalidEmail": "Invalid email",
+  "passwordTooShort": "Password must be at least 6 characters",
+
+  "loginSuccess": "Login successful",
+  "loginError": "Login error",
+  "registerSuccess": "Registration successful",
+  "registerError": "Registration error",
+  
+  "rememberMe": "Remember me",
+  "or": "or",
+  "loginWithGoogle": "Log in with Google",
+  "loginWithFacebook": "Log in with Facebook",
+  
+  "privacyPolicy": "Privacy Policy",
+  "termsAndConditions": "Terms and Conditions",
+  "cookiePolicy": "Cookie Policy",
+  "copyright": "© 2023 Salus Health. All rights reserved."
 } 

@@ -1,14 +1,41 @@
 {
   "welcome": "सलुस में आपका स्वागत है",
+  "appTitle": "सलुस - आपका स्वास्थ्य एक ऐप में",
+  "appDescription": "एक आसान उपकरण के साथ अपने लक्षणों, दवाओं और कल्याण की निगरानी करें",
+  
+  "languageSelector": "भाषा चुनें",
+  "italian": "इतालवी",
+  "english": "अंग्रेज़ी",
+  "hindi": "हिंदी",
+  
   "login": "लॉग इन",
   "register": "पंजीकरण",
   "email": "ईमेल",
+  "emailPlaceholder": "अपना ईमेल दर्ज करें",
   "password": "पासवर्ड",
+  "passwordPlaceholder": "अपना पासवर्ड दर्ज करें",
+  "confirmPassword": "पासवर्ड की पुष्टि करें",
+  "confirmPasswordPlaceholder": "अपने पासवर्ड की पुष्टि करें",
+  "name": "नाम",
+  "namePlaceholder": "अपना नाम दर्ज करें",
   "forgotPassword": "पासवर्ड भूल गए?",
+  "loginBtn": "लॉग इन करें",
+  "registerBtn": "पंजीकरण करें",
   "noAccount": "खाता नहीं है?",
   "hasAccount": "पहले से खाता है?",
-  "name": "नाम",
-  "confirmPassword": "पासवर्ड की पुष्टि करें",
+  
+  "featuresTitle": "आपको जो चाहिए वह सब",
+  "featuresDescription": "सलुस आपको अपने स्वास्थ्य को सरल और सुरक्षित तरीके से प्रबंधित करने के लिए सभी उपकरण प्रदान करता है",
+  
+  "featureSymptoms": "लक्षण निगरानी",
+  "featureSymptomsDesc": "समय के साथ अपने लक्षणों का ट्रैक रखें और महत्वपूर्ण पैटर्न का पता लगाएं",
+  
+  "featureMedications": "दवा प्रबंधन",
+  "featureMedicationsDesc": "व्यक्तिगत अनुस्मारकों के साथ अपनी दवाएं लेना कभी न भूलें",
+  
+  "featureAI": "AI सहायक",
+  "featureAIDesc": "अपने स्वास्थ्य डेटा के आधार पर व्यक्तिगत सलाह प्राप्त करें",
+  
   "resetPassword": "पासवर्ड रीसेट",
   "sendResetLink": "रीसेट लिंक भेजें",
   "backToLogin": "लॉगिन पर वापस जाएं",
@@ -30,5 +57,27 @@
   "noWellnessDescription": "अपने स्वास्थ्य में सुधार के लिए अपनी कल्याण गतिविधियों को रिकॉर्ड करें",
   "addSymptoms": "लक्षण जोड़ें",
   "addMedications": "दवाएं जोड़ें",
-  "addWellness": "कल्याण जोड़ें"
+  "addWellness": "कल्याण जोड़ें",
+  
+  "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते",
+  "emailRequired": "ईमेल आवश्यक है",
+  "passwordRequired": "पासवर्ड आवश्यक है",
+  "nameRequired": "नाम आवश्यक है",
+  "invalidEmail": "अमान्य ईमेल",
+  "passwordTooShort": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+
+  "loginSuccess": "लॉगिन सफल",
+  "loginError": "लॉगिन त्रुटि",
+  "registerSuccess": "पंजीकरण सफल",
+  "registerError": "पंजीकरण त्रुटि",
+  
+  "rememberMe": "मुझे याद रखें",
+  "or": "या",
+  "loginWithGoogle": "Google के साथ लॉग इन करें",
+  "loginWithFacebook": "Facebook के साथ लॉग इन करें",
+  
+  "privacyPolicy": "गोपनीयता नीति",
+  "termsAndConditions": "नियम और शर्तें",
+  "cookiePolicy": "कुकी नीति",
+  "copyright": "© 2023 सलुस हेल्थ. सर्वाधिकार सुरक्षित."
 } 

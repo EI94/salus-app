@@ -1,14 +1,41 @@
 {
   "welcome": "Benvenuto in Salus",
+  "appTitle": "Salus - La tua salute in una app",
+  "appDescription": "Monitora i tuoi sintomi, farmaci e benessere con un unico strumento semplice da usare",
+  
+  "languageSelector": "Seleziona la lingua",
+  "italian": "Italiano",
+  "english": "Inglese",
+  "hindi": "Hindi",
+  
   "login": "Accedi",
   "register": "Registrati",
   "email": "Email",
+  "emailPlaceholder": "Inserisci la tua email",
   "password": "Password",
+  "passwordPlaceholder": "Inserisci la tua password",
+  "confirmPassword": "Conferma Password",
+  "confirmPasswordPlaceholder": "Conferma la tua password",
+  "name": "Nome",
+  "namePlaceholder": "Inserisci il tuo nome",
   "forgotPassword": "Password dimenticata?",
+  "loginBtn": "Accedi",
+  "registerBtn": "Registrati",
   "noAccount": "Non hai un account?",
   "hasAccount": "Hai già un account?",
-  "name": "Nome",
-  "confirmPassword": "Conferma Password",
+  
+  "featuresTitle": "Tutto ciò di cui hai bisogno",
+  "featuresDescription": "Salus ti offre tutti gli strumenti per gestire la tua salute in modo semplice e sicuro",
+  
+  "featureSymptoms": "Monitoraggio Sintomi",
+  "featureSymptomsDesc": "Tieni traccia dei tuoi sintomi nel tempo e scopri pattern importanti",
+  
+  "featureMedications": "Gestione Farmaci",
+  "featureMedicationsDesc": "Non dimenticare mai più di prendere i tuoi farmaci con promemoria personalizzati",
+  
+  "featureAI": "Assistente IA",
+  "featureAIDesc": "Ricevi consigli personalizzati basati sui tuoi dati sanitari",
+  
   "resetPassword": "Reimposta Password",
   "sendResetLink": "Invia Link di Reset",
   "backToLogin": "Torna al Login",
@@ -30,5 +57,27 @@
   "noWellnessDescription": "Registra le tue attività di benessere per migliorare la tua salute",
   "addSymptoms": "Aggiungi Sintomi",
   "addMedications": "Aggiungi Farmaci",
-  "addWellness": "Aggiungi Benessere"
+  "addWellness": "Aggiungi Benessere",
+  
+  "passwordsDoNotMatch": "Le password non corrispondono",
+  "emailRequired": "L'email è obbligatoria",
+  "passwordRequired": "La password è obbligatoria",
+  "nameRequired": "Il nome è obbligatorio",
+  "invalidEmail": "Email non valida",
+  "passwordTooShort": "La password deve essere di almeno 6 caratteri",
+
+  "loginSuccess": "Accesso effettuato con successo",
+  "loginError": "Errore di accesso",
+  "registerSuccess": "Registrazione completata con successo",
+  "registerError": "Errore durante la registrazione",
+  
+  "rememberMe": "Ricordami",
+  "or": "oppure",
+  "loginWithGoogle": "Accedi con Google",
+  "loginWithFacebook": "Accedi con Facebook",
+  
+  "privacyPolicy": "Privacy Policy",
+  "termsAndConditions": "Termini e Condizioni",
+  "cookiePolicy": "Cookie Policy",
+  "copyright": "© 2023 Salus Health. Tutti i diritti riservati."
 } 

@@ -1,539 +1,366 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { changeLanguage } from '../i18n';
 import '../styles/Auth.css';
 
-function Auth({ onLogin, mockAuth }) {
+// Validazione email
+const isValidEmail = (email) => {
+  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+};
+
+const Auth = ({ onLogin, mockAuth }) => {
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [authService, setAuthService] = useState(null);
-  const { t, i18n } = useTranslation();
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    return localStorage.getItem('userLanguage') || 'it';
+  });
 
-  // Funzione per cambiare la lingua
-  const handleLanguageChange = async (e) => {
-    const newLanguage = e.target.value;
-    await i18n.changeLanguage(newLanguage);
+  // Carica la lingua salvata
+  useEffect(() => {
+    changeLanguage(selectedLanguage);
+  }, [selectedLanguage]);
+
+  // Gestisce il cambio di lingua
+  const handleLanguageChange = (lang) => {
+    setSelectedLanguage(lang);
+    changeLanguage(lang);
+    setShowLanguageSelector(false);
+  };
+
+  // Validazione del form
+  const validateForm = () => {
+    const newErrors = {};
     
-    // Aggiorna la lingua nel backend se l'utente è autenticato
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      try {
-        await fetch('http://localhost:5000/api/users/language', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${JSON.parse(token).token}`
-          },
-          body: JSON.stringify({ language: newLanguage })
-        });
-      } catch (error) {
-        console.error('Errore durante l\'aggiornamento della lingua:', error);
+    if (!email) newErrors.email = t('emailRequired');
+    else if (!isValidEmail(email)) newErrors.email = t('invalidEmail');
+    
+    if (!password) newErrors.password = t('passwordRequired');
+    else if (password.length < 6) newErrors.password = t('passwordTooShort');
+    
+    if (!isLogin) {
+      if (!name) newErrors.name = t('nameRequired');
+      
+      if (password !== confirmPassword) {
+        newErrors.confirmPassword = t('passwordsDoNotMatch');
       }
     }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  // Funzione per validare l'email
-  const isValidEmail = (email) => {
-    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(email).toLowerCase());
-  };
-
-  // Servizio di autenticazione locale
-  const localAuthService = {
-    login: async (email, password) => {
-      console.log('Tentativo di login con:', { email, password });
-      
-      // Simula un'attesa per l'API
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      try {
-        // Ricerca utente registrato nel localStorage
-        const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-        const user = users.find(u => u.email === email);
-        
-        if (!user) {
-          throw new Error(t('userNotFound'));
-        }
-        
-        if (user.password !== password) {
-          throw new Error(t('invalidPassword'));
-        }
-        
-        // Crea token JWT simulato con scadenza
-        const now = new Date();
-        const expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 ore
-        
-        const token = {
-          token: `user-${user.id}-${now.getTime()}`,
-          expires: expiryDate.toISOString()
-        };
-        
-        // Salva nel localStorage i dati correnti di autenticazione
-        localStorage.setItem('currentUser', JSON.stringify({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          language: user.language || i18n.language,
-          authenticated: true,
-          lastLogin: new Date().toISOString()
-        }));
-        
-        localStorage.setItem('authToken', JSON.stringify(token));
-        
-        return { 
-          success: true, 
-          userData: { 
-            id: user.id, 
-            name: user.name,
-            email: user.email,
-            language: user.language || i18n.language
-          }, 
-          token: token.token
-        };
-      } catch (error) {
-        console.error('Errore login:', error);
-        throw error;
-      }
-    },
+  // Gestione del submit del form
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
-    register: async (name, email, password) => {
-      console.log('Tentativo di registrazione con:', { name, email, password });
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
+    setMessage({ text: '', type: '' });
+    
+    try {
+      let response;
       
-      // Simula un'attesa per l'API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      try {
-        // Verifica se l'utente esiste già
-        const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-        if (users.some(u => u.email === email)) {
-          throw new Error(t('emailAlreadyRegistered'));
-        }
+      if (isLogin) {
+        // Login
+        response = await mockAuth.login(email, password);
         
-        // Crea nuovo utente
-        const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const newUser = { 
-          id: userId, 
-          name, 
-          email, 
-          password,
-          language: i18n.language, // Salva la lingua selezionata
-          registrationDate: new Date().toISOString()
-        };
-        
-        // Salva l'utente nel localStorage
-        users.push(newUser);
-        localStorage.setItem('registeredUsers', JSON.stringify(users));
-        
-        // Inizializza i dati dell'utente
-        localStorage.setItem(`userData_${userId}`, JSON.stringify({
-          name,
-          email,
-          language: i18n.language,
-          createdAt: new Date().toISOString()
-        }));
-        
-        // Crea token JWT simulato
-        const now = new Date();
-        const expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 ore
-        
-        const token = {
-          token: `user-${userId}-${now.getTime()}`,
-          expires: expiryDate.toISOString()
-        };
-        
-        // Salva nel localStorage i dati correnti di autenticazione
-        localStorage.setItem('currentUser', JSON.stringify({
-          id: userId,
-          name,
-          email,
-          language: i18n.language, // Usa la lingua selezionata
-          authenticated: true,
-          lastLogin: new Date().toISOString()
-        }));
-        
-        localStorage.setItem('authToken', JSON.stringify(token));
-        
-        return { 
-          success: true, 
-          userData: { 
-            id: userId, 
-            name,
-            email,
-            language: i18n.language
-          }, 
-          token: token.token
-        };
-      } catch (error) {
-        console.error('Errore registrazione:', error);
-        throw error;
-      }
-    },
-    
-    // Funzione per verificare validità del token
-    verifyToken: () => {
-      try {
-        const storedToken = localStorage.getItem('authToken');
-        if (!storedToken) return false;
-        
-        const token = JSON.parse(storedToken);
-        const now = new Date();
-        const expiryDate = new Date(token.expires);
-        
-        return now < expiryDate;
-      } catch (error) {
-        console.error('Errore nella verifica del token:', error);
-        return false;
-      }
-    },
-    
-    // Funzione per recuperare utente attualmente autenticato
-    getCurrentUser: () => {
-      try {
-        const currentUser = localStorage.getItem('currentUser');
-        if (!currentUser) return null;
-        
-        return JSON.parse(currentUser);
-      } catch (error) {
-        console.error('Errore nel recupero dell\'utente corrente:', error);
-        return null;
-      }
-    }
-  };
-
-  // Inizializza il servizio di autenticazione
-  useEffect(() => {
-    // Utilizza l'authService fornito o il nostro servizio locale
-    setAuthService(mockAuth || localAuthService);
-  }, [mockAuth]);
-
-  // Verifica se esiste già una sessione attiva
-  useEffect(() => {
-    if (!authService) return; // Evita l'esecuzione se authService non è ancora inizializzato
-    
-    const checkExistingAuth = () => {
-      try {
-        if (localAuthService.verifyToken()) {
-          const currentUser = localAuthService.getCurrentUser();
-          if (currentUser && currentUser.authenticated) {
-            // Se esiste un token valido, effettua il login automatico
-            onLogin(currentUser, JSON.parse(localStorage.getItem('authToken')).token);
+        if (response.success) {
+          setMessage({ text: t('loginSuccess'), type: 'success' });
+          // Salva l'utente in localStorage se "ricordami" è selezionato
+          if (rememberMe) {
+            localStorage.setItem('rememberEmail', email);
+          } else {
+            localStorage.removeItem('rememberEmail');
           }
-        }
-      } catch (error) {
-        console.error('Errore durante la verifica dell\'autenticazione:', error);
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('authToken');
-      }
-    };
-    
-    checkExistingAuth();
-  }, [authService, onLogin]);
-
-  // Gestione del form di registrazione
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    // Validazione dei dati base
-    if (!name || !email || !password || !confirmPassword) {
-      setError(t('allFieldsRequired'));
-      return;
-    }
-    
-    if (!isValidEmail(email)) {
-      setError(t('emailFormatError'));
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      setError(t('passwordMismatch'));
-      return;
-    }
-    
-    if (password.length < 6) {
-      setError(t('passwordLengthError'));
-      return;
-    }
-    
-    setLoading(true);
-    
-    try {
-      const response = await authService.register(name, email, password);
-      console.log('Registrazione completata:', response);
-      
-      if (response && response.success) {
-        // Mostra messaggio di successo
-        setError('');
-        
-        // Registrazione riuscita, effettua login automatico
-        handleLoginAfterRegistration(response.userData, response.token);
-      } else {
-        throw new Error(t('genericError'));
-      }
-    } catch (error) {
-      console.log('Errore durante la registrazione:', error);
-      setError(error.message || t('genericError'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Gestione del login automatico dopo la registrazione
-  const handleLoginAfterRegistration = (userData, token) => {
-    // Dopo la registrazione, effettua automaticamente il login
-    if (onLogin && typeof onLogin === 'function') {
-      onLogin(userData, token);
-    } else {
-      setError('Impossibile effettuare il login automatico dopo la registrazione');
-    }
-  };
-
-  // Gestione del form di login
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    // Validazione dei dati base
-    if (!email || !password) {
-      setError(t('emailPasswordRequired'));
-      return;
-    }
-    
-    if (!isValidEmail(email)) {
-      setError(t('emailFormatError'));
-      return;
-    }
-    
-    setLoading(true);
-    
-    try {
-      const response = await authService.login(email, password);
-      console.log('Login completato:', response);
-      
-      if (response && response.success && response.userData && response.token) {
-        // Login riuscito
-        setError('');
-        
-        if (onLogin && typeof onLogin === 'function') {
           onLogin(response.userData, response.token);
         } else {
-          throw new Error('Callback onLogin non disponibile');
+          setMessage({ text: response.error || t('loginError'), type: 'error' });
         }
       } else {
-        throw new Error(t('genericError'));
+        // Registrazione
+        response = await mockAuth.register(name, email, password);
+        
+        if (response.success) {
+          setMessage({ text: t('registerSuccess'), type: 'success' });
+          onLogin(response.userData, response.token);
+        } else {
+          setMessage({ text: response.error || t('registerError'), type: 'error' });
+        }
       }
     } catch (error) {
-      console.log('Errore durante il login:', error);
-      setError(error.message || t('genericError'));
+      setMessage({ text: error.message, type: 'error' });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Cambio tra login e registrazione
+  // Carica email salvata se "ricordami" era selezionato
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  // Toggle tra login e registrazione
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
-    setError('');
+    setErrors({});
+    setMessage({ text: '', type: '' });
   };
+
+  // Render per le caratteristiche dell'app
+  const renderFeatures = () => (
+    <div className="auth-features">
+      <h2>{t('featuresTitle')}</h2>
+      <p>{t('featuresDescription')}</p>
+      
+      <div className="feature-list">
+        <div className="feature-item">
+          <i className="fas fa-heartbeat"></i>
+          <h3>{t('featureSymptoms')}</h3>
+          <p>{t('featureSymptomsDesc')}</p>
+        </div>
+        
+        <div className="feature-item">
+          <i className="fas fa-pills"></i>
+          <h3>{t('featureMedications')}</h3>
+          <p>{t('featureMedicationsDesc')}</p>
+        </div>
+        
+        <div className="feature-item">
+          <i className="fas fa-robot"></i>
+          <h3>{t('featureAI')}</h3>
+          <p>{t('featureAIDesc')}</p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <img src="/assets/icons/logo.svg" alt="Salus" className="auth-logo" />
-          <h1>{t('appTitle')}</h1>
-          <p className="app-description">
-            {t('appDescription')}
-          </p>
+      <div className="auth-content">
+        <div className="auth-left">
+          {/* Logo e titolo */}
+          <div className="auth-logo">
+            <img src="/assets/icons/logo.svg" alt="Salus" />
+            <h1>{t('appTitle')}</h1>
+          </div>
+          
+          {/* Descrizione dell'app */}
+          <p className="auth-description">{t('appDescription')}</p>
+          
+          {/* Caratteristiche dell'app */}
+          {renderFeatures()}
         </div>
         
-        <div className="language-selector">
-          <label>{t('languageSelector')}</label>
-          <select value={i18n.language} onChange={handleLanguageChange}>
-            <option value="it">{t('italian')}</option>
-            <option value="en">{t('english')}</option>
-            <option value="hi">{t('hindi')}</option>
-          </select>
-        </div>
-        
-        <div className="auth-tabs">
-          <button 
-            className={`auth-tab ${isLogin ? 'active' : ''}`}
-            onClick={() => setIsLogin(true)}
-          >
-            {t('login')}
-          </button>
-          <button 
-            className={`auth-tab ${!isLogin ? 'active' : ''}`}
-            onClick={() => setIsLogin(false)}
-          >
-            {t('register')}
-          </button>
-        </div>
-        
-        {isLogin ? (
-          <form className="auth-form" onSubmit={handleLogin}>
-            <div className="form-group">
-              <label htmlFor="login-email">{t('email')}</label>
-              <input 
-                type="email" 
-                id="login-email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('emailPlaceholder')}
-                disabled={loading}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="login-password">{t('password')}</label>
-              <input 
-                type="password" 
-                id="login-password" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('passwordPlaceholder')}
-                disabled={loading}
-              />
-            </div>
-            
-            <div className="form-action">
-              <a href="#forgot-password" className="forgot-password">
-                {t('forgotPassword')}
-              </a>
-            </div>
-            
-            {error && <div className="auth-error">{error}</div>}
-            
+        <div className="auth-right">
+          {/* Selettore lingua */}
+          <div className="language-selector">
             <button 
-              type="submit" 
-              className="auth-button"
-              disabled={loading}
+              className="language-button"
+              onClick={() => setShowLanguageSelector(!showLanguageSelector)}
             >
-              {loading ? t('loginLoading') : t('loginBtn')}
+              <i className="fas fa-globe"></i>
+              <span>{t('languageSelector')}</span>
             </button>
             
-            <div className="auth-toggle">
-              {t('noAccount')} <button type="button" onClick={toggleAuthMode}>{t('register')}</button>
-            </div>
-          </form>
-        ) : (
-          <form className="auth-form" onSubmit={handleRegister}>
-            <div className="form-group">
-              <label htmlFor="register-name">{t('name')}</label>
-              <input 
-                type="text" 
-                id="register-name" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('namePlaceholder')}
-                disabled={loading}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="register-email">{t('email')}</label>
-              <input 
-                type="email" 
-                id="register-email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('emailPlaceholder')}
-                disabled={loading}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="register-password">{t('password')}</label>
-              <input
-                type="password"
-                id="register-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('passwordPlaceholder')}
-                disabled={loading}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="register-confirm-password">{t('confirmPassword')}</label>
-              <input
-                type="password"
-                id="register-confirm-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t('confirmPasswordPlaceholder')}
-                disabled={loading}
-              />
-            </div>
-
-            <div className="form-terms">
-              <input
-                type="checkbox"
-                id="terms"
-                required
-                disabled={loading}
-              />
-              <label htmlFor="terms">
-                {t('termsText')} <a href="#terms">{t('termsLink')}</a> {t('privacyText')} <a href="#privacy">{t('privacyLink')}</a>
-              </label>
-            </div>
-
-            {error && <div className="auth-error">{error}</div>}
-
-            <button
-              type="submit"
-              className="auth-button"
-              disabled={loading}
-            >
-              {loading ? t('registerLoading') : t('registerBtn')}
-            </button>
-
-            <div className="auth-toggle">
-              {t('haveAccount')} <button type="button" onClick={toggleAuthMode}>{t('login')}</button>
-            </div>
-          </form>
-        )}
-      </div>
-
-      <div className="auth-features">
-        <div className="features-header">
-          <h2>{t('featuresTitle')}</h2>
-          <p>{t('featuresDescription')}</p>
-        </div>
-
-        <div className="feature-cards">
-          <div className="feature-card">
-            <div className="feature-icon">
-              <i className="fas fa-heartbeat"></i>
-            </div>
-            <h3>{t('featureSymptoms')}</h3>
-            <p>{t('featureSymptomsDesc')}</p>
+            {showLanguageSelector && (
+              <div className="language-dropdown">
+                <button 
+                  className={`language-option ${selectedLanguage === 'it' ? 'active' : ''}`} 
+                  onClick={() => handleLanguageChange('it')}
+                >
+                  <span>🇮🇹</span> {t('italian')}
+                </button>
+                <button 
+                  className={`language-option ${selectedLanguage === 'en' ? 'active' : ''}`} 
+                  onClick={() => handleLanguageChange('en')}
+                >
+                  <span>🇬🇧</span> {t('english')}
+                </button>
+                <button 
+                  className={`language-option ${selectedLanguage === 'hi' ? 'active' : ''}`} 
+                  onClick={() => handleLanguageChange('hi')}
+                >
+                  <span>🇮🇳</span> {t('hindi')}
+                </button>
+              </div>
+            )}
           </div>
-
-          <div className="feature-card">
-            <div className="feature-icon">
-              <i className="fas fa-pills"></i>
+          
+          {/* Form di autenticazione */}
+          <div className="auth-form-container">
+            <h2>{isLogin ? t('login') : t('register')}</h2>
+            
+            {message.text && (
+              <div className={`message ${message.type}`}>
+                {message.text}
+              </div>
+            )}
+            
+            <form onSubmit={handleSubmit} className="auth-form">
+              {/* Campo nome (solo registrazione) */}
+              {!isLogin && (
+                <div className="form-group">
+                  <label htmlFor="name">{t('name')}</label>
+                  <div className="input-with-icon">
+                    <i className="fas fa-user"></i>
+                    <input
+                      type="text"
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder={t('namePlaceholder')}
+                      className={errors.name ? 'error' : ''}
+                    />
+                  </div>
+                  {errors.name && <span className="error-message">{errors.name}</span>}
+                </div>
+              )}
+              
+              {/* Campo email */}
+              <div className="form-group">
+                <label htmlFor="email">{t('email')}</label>
+                <div className="input-with-icon">
+                  <i className="fas fa-envelope"></i>
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t('emailPlaceholder')}
+                    className={errors.email ? 'error' : ''}
+                  />
+                </div>
+                {errors.email && <span className="error-message">{errors.email}</span>}
+              </div>
+              
+              {/* Campo password */}
+              <div className="form-group">
+                <label htmlFor="password">{t('password')}</label>
+                <div className="input-with-icon">
+                  <i className="fas fa-lock"></i>
+                  <input
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t('passwordPlaceholder')}
+                    className={errors.password ? 'error' : ''}
+                  />
+                </div>
+                {errors.password && <span className="error-message">{errors.password}</span>}
+              </div>
+              
+              {/* Campo conferma password (solo registrazione) */}
+              {!isLogin && (
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">{t('confirmPassword')}</label>
+                  <div className="input-with-icon">
+                    <i className="fas fa-lock"></i>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t('confirmPasswordPlaceholder')}
+                      className={errors.confirmPassword ? 'error' : ''}
+                    />
+                  </div>
+                  {errors.confirmPassword && (
+                    <span className="error-message">{errors.confirmPassword}</span>
+                  )}
+                </div>
+              )}
+              
+              {/* Opzioni aggiuntive per il login */}
+              {isLogin && (
+                <div className="form-options">
+                  <div className="remember-me">
+                    <input
+                      type="checkbox"
+                      id="rememberMe"
+                      checked={rememberMe}
+                      onChange={() => setRememberMe(!rememberMe)}
+                    />
+                    <label htmlFor="rememberMe">{t('rememberMe')}</label>
+                  </div>
+                  <a href="#" className="forgot-password">
+                    {t('forgotPassword')}
+                  </a>
+                </div>
+              )}
+              
+              {/* Pulsante di invio */}
+              <button
+                type="submit"
+                className="submit-button"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <span className="loading-spinner"></span>
+                ) : (
+                  isLogin ? t('loginBtn') : t('registerBtn')
+                )}
+              </button>
+              
+              {/* Opzioni di login social */}
+              <div className="social-login">
+                <div className="divider">
+                  <span>{t('or')}</span>
+                </div>
+                
+                <button type="button" className="social-button google">
+                  <i className="fab fa-google"></i>
+                  {t('loginWithGoogle')}
+                </button>
+                
+                <button type="button" className="social-button facebook">
+                  <i className="fab fa-facebook-f"></i>
+                  {t('loginWithFacebook')}
+                </button>
+              </div>
+            </form>
+            
+            {/* Toggle tra login e registrazione */}
+            <div className="auth-toggle">
+              <p>
+                {isLogin ? t('noAccount') : t('hasAccount')}
+                <button onClick={toggleAuthMode}>
+                  {isLogin ? t('register') : t('login')}
+                </button>
+              </p>
             </div>
-            <h3>{t('featureMedications')}</h3>
-            <p>{t('featureMedicationsDesc')}</p>
           </div>
-
-          <div className="feature-card">
-            <div className="feature-icon">
-              <i className="fas fa-robot"></i>
+          
+          {/* Footer */}
+          <div className="auth-footer">
+            <div className="footer-links">
+              <a href="#">{t('privacyPolicy')}</a>
+              <span className="divider">•</span>
+              <a href="#">{t('termsAndConditions')}</a>
+              <span className="divider">•</span>
+              <a href="#">{t('cookiePolicy')}</a>
             </div>
-            <h3>{t('featureAI')}</h3>
-            <p>{t('featureAIDesc')}</p>
+            <p className="copyright">{t('copyright')}</p>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default Auth; 
