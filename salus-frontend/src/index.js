@@ -1,17 +1,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import './styles/index.css';
 import './App.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import './i18n'; // Importa la configurazione i18n
+import UserProvider from './context/UserContext';
 
 // Rimuovo importazione font-awesome che causa errori
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <UserProvider>
+      <App />
+    </UserProvider>
   </React.StrictMode>
 );
 
