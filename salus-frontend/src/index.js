@@ -6,8 +6,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import './i18n'; // Importa la configurazione i18n
 
-// Importa Font Awesome
-import '@fortawesome/fontawesome-free/css/all.min.css';
+// Rimuovo importazione font-awesome che causa errori
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

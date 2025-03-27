@@ -129,19 +129,19 @@ const Auth = ({ onLogin, mockAuth }) => {
       
       <div className="feature-list">
         <div className="feature-item">
-          <i className="fas fa-heartbeat"></i>
+          <span className="feature-emoji">❤️</span>
           <h3>{t('featureSymptoms')}</h3>
           <p>{t('featureSymptomsDesc')}</p>
         </div>
         
         <div className="feature-item">
-          <i className="fas fa-pills"></i>
+          <span className="feature-emoji">💊</span>
           <h3>{t('featureMedications')}</h3>
           <p>{t('featureMedicationsDesc')}</p>
         </div>
         
         <div className="feature-item">
-          <i className="fas fa-robot"></i>
+          <span className="feature-emoji">🤖</span>
           <h3>{t('featureAI')}</h3>
           <p>{t('featureAIDesc')}</p>
         </div>
@@ -173,7 +173,7 @@ const Auth = ({ onLogin, mockAuth }) => {
               className="language-button"
               onClick={() => setShowLanguageSelector(!showLanguageSelector)}
             >
-              <i className="fas fa-globe"></i>
+              <span>🌐</span>
               <span>{t('languageSelector')}</span>
             </button>
             
@@ -217,7 +217,7 @@ const Auth = ({ onLogin, mockAuth }) => {
                 <div className="form-group">
                   <label htmlFor="name">{t('name')}</label>
                   <div className="input-with-icon">
-                    <i className="fas fa-user"></i>
+                    <span className="input-icon">👤</span>
                     <input
                       type="text"
                       id="name"
@@ -235,7 +235,7 @@ const Auth = ({ onLogin, mockAuth }) => {
               <div className="form-group">
                 <label htmlFor="email">{t('email')}</label>
                 <div className="input-with-icon">
-                  <i className="fas fa-envelope"></i>
+                  <span className="input-icon">✉️</span>
                   <input
                     type="email"
                     id="email"
@@ -252,7 +252,7 @@ const Auth = ({ onLogin, mockAuth }) => {
               <div className="form-group">
                 <label htmlFor="password">{t('password')}</label>
                 <div className="input-with-icon">
-                  <i className="fas fa-lock"></i>
+                  <span className="input-icon">🔒</span>
                   <input
                     type="password"
                     id="password"
@@ -270,7 +270,7 @@ const Auth = ({ onLogin, mockAuth }) => {
                 <div className="form-group">
                   <label htmlFor="confirmPassword">{t('confirmPassword')}</label>
                   <div className="input-with-icon">
-                    <i className="fas fa-lock"></i>
+                    <span className="input-icon">🔒</span>
                     <input
                       type="password"
                       id="confirmPassword"
@@ -324,12 +324,12 @@ const Auth = ({ onLogin, mockAuth }) => {
                 </div>
                 
                 <button type="button" className="social-button google">
-                  <i className="fab fa-google"></i>
+                  <span className="social-icon">G</span>
                   {t('loginWithGoogle')}
                 </button>
                 
                 <button type="button" className="social-button facebook">
-                  <i className="fab fa-facebook-f"></i>
+                  <span className="social-icon">f</span>
                   {t('loginWithFacebook')}
                 </button>
               </div>
