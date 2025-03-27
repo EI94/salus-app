@@ -1,12 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { changeLanguage } from '../i18n';
+import i18n from '../i18n'; // Importo direttamente i18n
 import '../styles/Auth.css';
 
 // Validazione email
 const isValidEmail = (email) => {
   const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(String(email).toLowerCase());
+};
+
+// Funzione per cambiare lingua
+const changeLanguage = (language) => {
+  i18n.changeLanguage(language);
+  localStorage.setItem('userLanguage', language);
+  
+  // Salviamo la lingua anche nell'utente corrente se esiste
+  try {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      const user = JSON.parse(currentUser);
+      user.language = language;
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      
+      // Aggiorniamo anche nell'elenco degli utenti registrati
+      const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+      const updatedUsers = users.map(u => {
+        if (u.id === user.id) {
+          return { ...u, language };
+        }
+        return u;
+      });
+      localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
+    }
+  } catch (error) {
+    console.error('Errore nel salvataggio della lingua:', error);
+  }
 };
 
 const Auth = ({ onLogin, mockAuth }) => {
