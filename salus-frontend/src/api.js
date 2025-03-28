@@ -1,14 +1,14 @@
 import axios from 'axios';
 
 // URL dell'API - definisce un URL finale indipendentemente dall'ambiente
-const baseURL = process.env.REACT_APP_API_URL || 'https://www.wearesalusapp.com/api';
+export const apiUrl = process.env.REACT_APP_API_URL || 'https://www.wearesalusapp.com/api';
 
 // Stato offline per il debug e test
 let isOfflineMode = false;
 
 // Crea una istanza di axios con configurazione personalizzata
 const API = axios.create({
-  baseURL,
+  baseURL: apiUrl,
   timeout: 15000, // 15 secondi
   headers: {
     'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ export const sendMessageToAI = async (message) => {
       throw new Error('Utente non autenticato');
     }
 
-    const response = await fetch(`${baseURL}/api/ai/chat`, {
+    const response = await fetch(`${apiUrl}/api/ai/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
