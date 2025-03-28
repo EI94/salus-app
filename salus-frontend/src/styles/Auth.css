@@ -4,28 +4,54 @@
 :root {
   --primary-color: #3f51b5;
   --primary-dark: #303f9f;
-  --primary-light: #7986cb;
+  --primary-light: #c5cae9;
   --accent-color: #ff4081;
-  --text-light: #ffffff;
-  --text-dark: #212121;
-  --text-muted: #757575;
-  --background-light: #fafafa;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --background-light: #ffffff;
   --background-dark: #121212;
+  --error-color: #f44336;
+  --success-color: #4caf50;
+  --border-color: #e0e0e0;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  --transition: all 0.3s ease;
   --border-radius: 12px;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
   --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
+/* Stili per il tema scuro */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --background-light: #121212;
+    --background-dark: #000000;
+    --border-color: #333333;
+  }
+}
+
+/* Container principale */
 .auth-container {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  font-family: var(--font-family);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pattern di sfondo */
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('../assets/images/pattern.svg');
+  opacity: 0.1;
+  pointer-events: none;
 }
 
 .auth-content {
