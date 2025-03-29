@@ -1,4 +1,4 @@
-/* Auth.css - Riprogettazione completa con stile professionale per app medicale */
+/* Auth.css - Design per pagina di accesso e registrazione */
 
 :root {
   /* Palette colori medicale professionale */
@@ -173,88 +173,12 @@ body {
 
 .auth-header {
   margin-bottom: 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .auth-title {
   font-size: 2rem;
   font-weight: 600;
   color: var(--text-primary);
-}
-
-.language-selector {
-  position: relative;
-}
-
-.language-button {
-  display: flex;
-  align-items: center;
-  padding: 0.6rem 1rem;
-  background-color: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--border-radius);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.language-button:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary);
-}
-
-.language-button svg {
-  width: 16px;
-  height: 16px;
-  margin-right: 0.5rem;
-}
-
-.language-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 0.5rem;
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-light);
-  overflow: hidden;
-  z-index: 10;
-  min-width: 150px;
-}
-
-.language-option {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  border: none;
-  background-color: transparent;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  transition: var(--transition);
-  color: var(--text-primary);
-}
-
-.language-option:hover,
-.language-option.active {
-  background-color: var(--primary-light);
-}
-
-.language-option.active {
-  font-weight: 500;
-  color: var(--primary);
-}
-
-.language-option img,
-.language-button img {
-  width: 20px;
-  height: 15px;
-  margin-right: 0.75rem;
-  object-fit: cover;
-  border-radius: 2px;
 }
 
 /* Messaggio di feedback */
@@ -426,9 +350,8 @@ body {
 
 /* Bottoni social */
 .social-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  display: flex;
+  justify-content: center;
 }
 
 .social-button {
@@ -436,6 +359,8 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0.9rem;
+  width: 100%;
+  max-width: 300px;
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
   background-color: transparent;
@@ -447,6 +372,7 @@ body {
 
 .social-button:hover {
   background-color: rgba(0, 0, 0, 0.03);
+  border-color: var(--primary);
 }
 
 .social-button svg {
@@ -531,9 +457,5 @@ body {
   
   .auth-form-section {
     padding: 1.5rem;
-  }
-  
-  .social-buttons {
-    grid-template-columns: 1fr;
   }
 } 
