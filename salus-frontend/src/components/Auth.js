@@ -8,6 +8,7 @@ import { apiUrl } from '../api';
 
 // Importazione immagini
 import salusLogo from '../assets/images/logo.svg';
+import patternSvg from '../assets/images/pattern.svg';
 
 const Auth = () => {
   const { t, i18n } = useTranslation();
@@ -38,6 +39,11 @@ const Auth = () => {
     localStorage.setItem('preferredLanguage', lng);
     setShowLanguage(false);
   };
+
+  // Imposta l'URL del pattern come variabile CSS
+  useEffect(() => {
+    document.documentElement.style.setProperty('--pattern-url', `url(${patternSvg})`);
+  }, []);
 
   // Controllo token esistente al caricamento
   useEffect(() => {
