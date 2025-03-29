@@ -11,9 +11,25 @@ import salusLogo from '../assets/images/logo.svg';
 import patternSvg from '../assets/images/pattern.svg';
 
 const Auth = () => {
+  // Utilizzo hook in modo incondizionato
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const { setUserData } = useContext(UserContext);
+  let navigate = null;
+  let userContextValue = null;
+  
+  // Avvolgi gli hook in blocchi try/catch
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    navigate = useNavigate();
+  } catch (error) {
+    console.log('Navigate non disponibile in questo contesto');
+  }
+  
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    userContextValue = useContext(UserContext);
+  } catch (error) {
+    console.log('UserContext non disponibile in questo contesto');
+  }
   
   // Stati per il form
   const [isLogin, setIsLogin] = useState(true);
@@ -33,6 +49,27 @@ const Auth = () => {
     { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' }
   ];
 
+  // Funzioni sicure per navigate e setUserData
+  const safeNavigate = (path) => {
+    if (navigate && typeof navigate === 'function') {
+      try {
+        navigate(path);
+      } catch (error) {
+        console.log('Errore durante la navigazione:', error);
+      }
+    }
+  };
+  
+  const safeSetUserData = (data) => {
+    if (userContextValue && typeof userContextValue.setUserData === 'function') {
+      try {
+        userContextValue.setUserData(data);
+      } catch (error) {
+        console.log('Errore durante l\'impostazione dei dati utente:', error);
+      }
+    }
+  };
+
   // Cambio lingua
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -47,17 +84,25 @@ const Auth = () => {
 
   // Controllo token esistente al caricamento
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/dashboard');
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        safeNavigate('/dashboard');
+      }
+    } catch (error) {
+      console.log('Errore durante la verifica del token:', error);
     }
     
     // Imposta la lingua preferita all'avvio
-    const storedLang = localStorage.getItem('preferredLanguage');
-    if (storedLang) {
-      i18n.changeLanguage(storedLang);
+    try {
+      const storedLang = localStorage.getItem('preferredLanguage');
+      if (storedLang) {
+        i18n.changeLanguage(storedLang);
+      }
+    } catch (error) {
+      console.log('Errore durante il cambio lingua:', error);
     }
-  }, [navigate, i18n]);
+  }, []);
 
   // Validazione form
   const validateForm = () => {
@@ -129,11 +174,11 @@ const Auth = () => {
       }
       
       // Aggiorna il contesto con i dati utente
-      setUserData(user);
+      safeSetUserData(user);
       
       // Reindirizza dopo un breve ritardo
       setTimeout(() => {
-        navigate('/dashboard');
+        safeNavigate('/dashboard');
       }, 1000);
       
     } catch (error) {
