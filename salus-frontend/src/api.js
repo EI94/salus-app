@@ -16,8 +16,8 @@ const API = axios.create({
   withCredentials: false // Imposta esplicitamente a false per evitare problemi CORS
 });
 
-// Variabile per modalità offline
-let isOfflineMode = true; // Impostato a true per default in caso di problemi con il server
+// Variabile per modalità offline - imposta a false per default per usare il server reale
+let isOfflineMode = false;
 
 // Funzione per simulare una risposta in modalità offline
 const getMockResponse = (url, method, data) => {

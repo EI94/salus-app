@@ -1,27 +1,43 @@
 /* Auth.css - Design per pagina di accesso e registrazione */
 
 :root {
-  /* Palette colori medicale professionale */
+  /* Variabili colori base */
   --primary: #1976d2;
-  --primary-dark: #0d47a1;
-  --primary-light: #e3f2fd;
-  --secondary: #26a69a;
+  --primary-light: #4791db;
+  --primary-dark: #115293;
+  --secondary: #6c757d;
+  --secondary-light: #868e96;
+  --secondary-dark: #343a40;
+  --success: #28a745;
+  --danger: #dc3545;
+  --warning: #ffc107;
+  --info: #17a2b8;
+  
+  /* Variabili tema colori */
+  --bg-primary: #f8f9fa;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-dark: #000000;
+  --text-light: #adb5bd;
+  --border: #dee2e6;
+  
+  /* Variabili dimensioni e spacing */
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.25s ease-in-out;
+  
+  /* Palette colori medicale professionale */
   --accent: #ff5722;
-  --text-primary: #212121;
-  --text-secondary: #757575;
   --text-white: #ffffff;
   --background: #f5f5f5;
-  --card-bg: #ffffff;
   --error: #d32f2f;
-  --success: #388e3c;
-  --border: #e0e0e0;
   --shadow-light: 0 2px 5px rgba(0, 0, 0, 0.08);
   --shadow-medium: 0 4px 10px rgba(0, 0, 0, 0.12);
   
   /* Tipografia */
   --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
-  --border-radius: 8px;
-  --transition: all 0.3s ease;
 }
 
 /* Tema scuro */
@@ -236,19 +252,31 @@ body {
 
 .form-control input {
   width: 100%;
-  padding: 0.9rem 1rem;
+  padding: 12px 16px;
   border: 1px solid var(--border);
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  background-color: var(--card-bg);
+  border-radius: 8px;
+  font-size: 16px;
   color: var(--text-primary);
-  transition: var(--transition);
+  background-color: var(--card-bg);
+  transition: all 0.3s ease;
+}
+
+.form-control input::placeholder {
+  color: var(--text-secondary);
 }
 
 .form-control input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
   outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+/* Specifico per input password - migliore contrasto */
+.form-control input[type="password"] {
+  color: var(--text-dark);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  background-color: var(--card-bg);
 }
 
 .form-control input.error {

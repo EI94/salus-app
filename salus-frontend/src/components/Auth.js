@@ -126,14 +126,21 @@ const Auth = () => {
   // Controllo token esistente al caricamento
   useEffect(() => {
     try {
+      // Previene loop infiniti di autenticazione
+      const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register' || window.location.pathname === '/';
+      
       if (userContext && userContext.isAuthenticated()) {
         console.log('Utente già autenticato, reindirizzamento alla dashboard');
-        navigate('/dashboard');
+        if (isAuthPage) {
+          navigate('/dashboard');
+        }
       } else {
         const token = localStorage.getItem('token');
         if (token) {
           console.log('Token trovato, verifica autenticazione');
-          navigate('/dashboard');
+          if (isAuthPage) {
+            navigate('/dashboard');
+          }
         }
       }
     } catch (error) {
