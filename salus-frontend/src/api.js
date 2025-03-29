@@ -3,9 +3,6 @@ import axios from 'axios';
 // URL dell'API - definisce un URL finale indipendentemente dall'ambiente
 export const apiUrl = process.env.REACT_APP_API_URL || 'https://www.wearesalusapp.com/api';
 
-// Stato offline per il debug e test
-let isOfflineMode = false;
-
 // Crea una istanza di axios con configurazione personalizzata
 const API = axios.create({
   baseURL: apiUrl,
@@ -17,6 +14,9 @@ const API = axios.create({
   },
   withCredentials: false // Imposta esplicitamente a false per evitare problemi CORS
 });
+
+// Variabile per modalità offline
+let isOfflineMode = false;
 
 // Funzione per simulare una risposta in modalità offline
 const getMockResponse = (url, method, data) => {
@@ -117,19 +117,21 @@ API.interceptors.response.use(
     }
     
     // Gestione fallback per il mock e per modalità offline
-    const isAuthRequest = 
-      error.config.url.includes('/auth/login') || 
-      error.config.url.includes('/auth/register');
-    
-    if (isAuthRequest && process.env.NODE_ENV === 'development') {
-      console.log('Modalità mock/offline per autenticazione');
-      const mockData = {
-        userId: 'offline-' + Math.random().toString(36).substr(2, 9),
-        userName: 'Utente Offline',
-        token: 'offline-token'
-      };
+    if (isOfflineMode && error.config) {
+      const isAuthRequest = 
+        error.config.url.includes('/auth/login') || 
+        error.config.url.includes('/auth/register');
       
-      return Promise.resolve({ data: mockData });
+      if (isAuthRequest && process.env.NODE_ENV === 'development') {
+        console.log('Modalità mock/offline per autenticazione');
+        const mockData = {
+          userId: 'offline-' + Math.random().toString(36).substr(2, 9),
+          userName: 'Utente Offline',
+          token: 'offline-token'
+        };
+        
+        return Promise.resolve({ data: mockData });
+      }
     }
     
     return Promise.reject(error);
@@ -139,7 +141,7 @@ API.interceptors.response.use(
 // Funzione per inviare un messaggio all'AI Assistant
 export const sendMessageToAI = async (message) => {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('Utente non autenticato');
     }
@@ -148,20 +150,22 @@ export const sendMessageToAI = async (message) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${JSON.parse(token).token}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ message })
     });
 
     if (!response.ok) {
-      throw new Error(`Errore nella chiamata API: ${response.status}`);
+      throw new Error('Errore nella richiesta all\'AI');
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error('Errore nella chiamata API:', error);
-    throw error;
+    console.error('Errore nel servizio AI:', error);
+    // In caso di errore, fornisci una risposta predefinita
+    return {
+      reply: "Mi dispiace, si è verificato un errore nella comunicazione. Riprova più tardi."
+    };
   }
 };
 

@@ -197,54 +197,119 @@ const Auth = () => {
     setMessage({ type: '', text: '' });
     
     try {
-      let response;
+      let result;
       
       if (isLogin) {
-        // Login
-        response = await axios.post(`${apiUrl}/api/users/login`, {
-          email,
-          password
-        });
-        
-        setMessage({
-          type: 'success',
-          text: 'Accesso effettuato con successo!'
-        });
+        // Login tramite context
+        if (userContext && userContext.login) {
+          result = await userContext.login(email, password, rememberMe);
+        } else {
+          // Fallback se il context non è disponibile
+          const response = await axios.post(`${apiUrl}/auth/login`, {
+            email,
+            password
+          });
+          
+          const { token, user } = response.data;
+          
+          // Salva token e dati utente
+          if (rememberMe) {
+            localStorage.setItem('token', token);
+          } else {
+            sessionStorage.setItem('token', token);
+          }
+          
+          // Salva i dati utente nel localStorage per persistenza
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          
+          // Aggiorna il contesto con i dati utente
+          safeSetUserData(user);
+          
+          result = { success: true };
+        }
       } else {
-        // Registrazione
-        response = await axios.post(`${apiUrl}/api/users/register`, {
-          email,
-          password
-        });
-        
-        setMessage({
-          type: 'success',
-          text: 'Registrazione completata con successo!'
-        });
+        // Registrazione tramite context
+        if (userContext && userContext.register) {
+          result = await userContext.register(email, password);
+        } else {
+          // Fallback se il context non è disponibile
+          const response = await axios.post(`${apiUrl}/auth/register`, {
+            email,
+            password
+          });
+          
+          const { token, user } = response.data;
+          
+          // Salva token e dati utente
+          localStorage.setItem('token', token);
+          
+          // Salva i dati utente nel localStorage per persistenza
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          
+          // Aggiorna il contesto con i dati utente
+          safeSetUserData(user);
+          
+          result = { success: true };
+        }
       }
       
-      const { token, user } = response.data;
-      
-      // Salva token e dati utente
-      if (rememberMe) {
-        localStorage.setItem('token', token);
-      } else {
-        sessionStorage.setItem('token', token);
+      if (result && result.success) {
+        setMessage({
+          type: 'success',
+          text: isLogin ? 'Accesso effettuato con successo!' : 'Registrazione completata con successo!'
+        });
+        
+        // Reindirizza dopo un breve ritardo
+        setTimeout(() => {
+          safeNavigate('/dashboard');
+        }, 1000);
+      } else if (result && result.error) {
+        throw new Error(result.error);
       }
-      
-      // Salva i dati utente nel localStorage per persistenza
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      
-      // Aggiorna il contesto con i dati utente
-      safeSetUserData(user);
-      
-      // Reindirizza dopo un breve ritardo
-      setTimeout(() => {
-        safeNavigate('/dashboard');
-      }, 1000);
       
     } catch (error) {
       console.error('Auth error:', error);
+      
+      // Gestione modalità offline/sviluppo
+      if (process.env.NODE_ENV === 'development' && (!error.response || error.response.status === 405)) {
+        console.log('Sviluppo: Simulazione autenticazione');
+        
+        // Crea un utente fittizio per lo sviluppo
+        const mockUser = {
+          id: 'dev-' + Math.random().toString(36).substring(2, 9),
+          email: email,
+          name: 'Utente Dev'
+        };
+        
+        const mockToken = 'dev-token-' + Date.now();
+        
+        // Salva token e dati utente
+        if (rememberMe) {
+          localStorage.setItem('token', mockToken);
+        } else {
+          sessionStorage.setItem('token', mockToken);
+        }
+        
+        // Salva i dati utente nel localStorage per persistenza
+        localStorage.setItem('currentUser', JSON.stringify(mockUser));
+        
+        // Aggiorna il contesto con i dati utente
+        safeSetUserData(mockUser);
+        
+        // Messaggio di successo
+        setMessage({
+          type: 'success',
+          text: isLogin ? 'Accesso simulato per sviluppo' : 'Registrazione simulata per sviluppo'
+        });
+        
+        // Reindirizza dopo un breve ritardo
+        setTimeout(() => {
+          safeNavigate('/dashboard');
+        }, 1000);
+        
+        setLoading(false);
+        return;
+      }
       
       // Ottieni un messaggio di errore user-friendly
       const errorMessage = getErrorMessage(error);
