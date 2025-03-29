@@ -56,6 +56,44 @@ const ErrorIcon = () => (
   </svg>
 );
 
+// Mappa dei codici di errore per messaggi user-friendly
+const ERROR_MESSAGES = {
+  'auth/email-already-exists': 'Questo indirizzo email è già registrato. Prova ad accedere.',
+  'auth/user-not-found': 'Nessun account trovato con questa email. Registrati per creare un account.',
+  'auth/wrong-password': 'Password errata. Riprova o usa "Password dimenticata?".',
+  'auth/invalid-email': 'L\'indirizzo email non è valido. Controlla e riprova.',
+  'auth/weak-password': 'La password è troppo debole. Deve contenere almeno 6 caratteri.',
+  'auth/network-request-failed': 'Errore di connessione. Verifica la tua connessione internet.',
+  'auth/too-many-requests': 'Troppi tentativi falliti. Riprova più tardi.',
+  'auth/expired-token': 'La sessione è scaduta. Accedi nuovamente.',
+  'default': 'Si è verificato un errore. Riprova più tardi.'
+};
+
+// Funzione per tradurre i codici di errore in messaggi user-friendly
+const getErrorMessage = (error) => {
+  // Estrai il codice di errore o messaggio dalla risposta
+  const errorCode = error?.response?.data?.error?.code || 
+                    error?.response?.data?.code ||
+                    error?.code || 
+                    'default';
+  
+  // Check se l'errore contiene un messaggio personalizzato dal server
+  const serverMessage = error?.response?.data?.message;
+  
+  // Check per errori di utente già esistente nella registrazione
+  if (serverMessage && serverMessage.includes('già registrato')) {
+    return 'Questo indirizzo email è già registrato. Prova ad accedere.';
+  }
+  
+  // Check per errori di credenziali errate nel login
+  if (serverMessage && serverMessage.includes('credenziali')) {
+    return 'Email o password errata. Riprova.';
+  }
+  
+  // Altrimenti usa la nostra mappa di errori
+  return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES['default'];
+};
+
 const Auth = () => {
   // Sicurezza per hooks
   let navigate = null;
@@ -84,6 +122,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [errors, setErrors] = useState({});
+  const [passwordStrength, setPasswordStrength] = useState(0); // 0-3: debole, media, forte
   
   // Funzioni sicure per navigate e setUserData
   const safeNavigate = (path) => {
@@ -117,29 +156,90 @@ const Auth = () => {
       console.log('Errore durante inizializzazione');
     }
   }, []);
+  
+  // Valuta la forza della password quando cambia
+  useEffect(() => {
+    if (!password) {
+      setPasswordStrength(0);
+      return;
+    }
+    
+    let strength = 0;
+    
+    // Almeno 8 caratteri
+    if (password.length >= 8) strength += 1;
+    
+    // Almeno una lettera maiuscola e una minuscola
+    if (/(?=.*[a-z])(?=.*[A-Z])/.test(password)) strength += 1;
+    
+    // Almeno un numero e un carattere speciale
+    if (/(?=.*\d)(?=.*[!@#$%^&*])/.test(password)) strength += 1;
+    
+    setPasswordStrength(strength);
+  }, [password]);
 
-  // Validazione form
+  // Validazione form avanzata
   const validateForm = () => {
     const newErrors = {};
     
+    // Validazione email
     if (!email) {
       newErrors.email = 'L\'email è obbligatoria';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Inserisci un indirizzo email valido';
     }
     
+    // Validazione password
     if (!password) {
       newErrors.password = 'La password è obbligatoria';
     } else if (password.length < 6) {
       newErrors.password = 'La password deve contenere almeno 6 caratteri';
     }
     
-    if (!isLogin && password !== confirmPassword) {
-      newErrors.confirmPassword = 'Le password non corrispondono';
+    // Validazione conferma password (solo per registrazione)
+    if (!isLogin) {
+      if (!confirmPassword) {
+        newErrors.confirmPassword = 'Conferma la tua password';
+      } else if (password !== confirmPassword) {
+        newErrors.confirmPassword = 'Le password non corrispondono';
+      }
+      
+      // Verifica forza password solo per registrazione
+      if (passwordStrength < 2 && password.length >= 6) {
+        newErrors.password = 'La password è troppo debole. Aggiungi lettere maiuscole, numeri o caratteri speciali.';
+      }
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Reset dell'applicazione (rimuove tutti i dati utente)
+  const resetUserData = () => {
+    // Rimuovi token e dati utente
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
+    
+    // Reset dello stato locale dell'applicazione
+    if (userContext && typeof userContext.logout === 'function') {
+      userContext.logout();
+    }
+    
+    // Mostra messaggio di conferma
+    setMessage({
+      type: 'success',
+      text: 'I tuoi dati sono stati rimossi con successo.'
+    });
+    
+    // Reset campi form
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setRememberMe(false);
+    
+    // Reindirizzamento alla pagina di login
+    setIsLogin(true);
   };
 
   // Gestione invio form
@@ -197,10 +297,33 @@ const Auth = () => {
       
     } catch (error) {
       console.error('Auth error:', error);
+      
+      // Ottieni un messaggio di errore user-friendly
+      const errorMessage = getErrorMessage(error);
+      
       setMessage({
         type: 'error',
-        text: error.response?.data?.message || 'Si è verificato un errore. Riprova più tardi.'
+        text: errorMessage
       });
+      
+      // Gestione speciale per alcuni errori
+      if (error.response?.status === 401) {
+        setErrors({ password: 'Password errata' });
+      } else if (error.response?.status === 404) {
+        setErrors({ email: 'Email non trovata' });
+      } else if (error.response?.status === 409) {
+        setErrors({ email: 'Email già registrata' });
+        // Suggerisci di effettuare il login
+        setMessage({
+          type: 'error',
+          text: 'Questo indirizzo email è già registrato. Vuoi accedere?'
+        });
+        // Aggiungi un pulsante di switch al login
+        setTimeout(() => {
+          if (!isLogin) setIsLogin(true);
+        }, 2000);
+      }
+      
     } finally {
       setLoading(false);
     }
@@ -216,6 +339,33 @@ const Auth = () => {
     setIsLogin(!isLogin);
     setMessage({ type: '', text: '' });
     setErrors({});
+  };
+
+  // Rendering di un indicatore di forza della password
+  const renderPasswordStrength = () => {
+    if (!password || isLogin) return null;
+    
+    const labels = ['Debole', 'Media', 'Forte'];
+    const colors = ['#f44336', '#ff9800', '#4caf50'];
+    
+    return (
+      <div className="password-strength">
+        <div className="strength-bars">
+          {[0, 1, 2].map(i => (
+            <div
+              key={i}
+              className={`strength-bar ${i <= passwordStrength - 1 ? 'active' : ''}`}
+              style={{ backgroundColor: i <= passwordStrength - 1 ? colors[i] : '#e0e0e0' }}
+            />
+          ))}
+        </div>
+        {password && (
+          <span className="strength-label" style={{ color: passwordStrength > 0 ? colors[passwordStrength - 1] : '#757575' }}>
+            {password ? (passwordStrength === 0 ? 'Debole' : labels[passwordStrength - 1]) : ''}
+          </span>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -308,6 +458,12 @@ const Auth = () => {
                 />
               </div>
               {errors.password && <span className="error-text">{errors.password}</span>}
+              {renderPasswordStrength()}
+              {!isLogin && (
+                <span className="password-hint">
+                  Usa almeno 8 caratteri con lettere maiuscole, numeri e simboli
+                </span>
+              )}
             </div>
             
             {!isLogin && (
@@ -370,6 +526,17 @@ const Auth = () => {
             {isLogin ? 'Non hai un account?' : 'Hai già un account?'}
             <button type="button" onClick={toggleAuthMode}>
               {isLogin ? 'Registrati' : 'Accedi'}
+            </button>
+          </div>
+          
+          {/* Link per resettare gli account (per test/dev) */}
+          <div className="reset-data-link">
+            <button 
+              type="button" 
+              className="text-button"
+              onClick={resetUserData}
+            >
+              Reimposta dati utente
             </button>
           </div>
           
