@@ -122,7 +122,6 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [errors, setErrors] = useState({});
-  const [passwordStrength, setPasswordStrength] = useState(0); // 0-3: debole, media, forte
   
   // Funzioni sicure per navigate e setUserData
   const safeNavigate = (path) => {
@@ -156,27 +155,6 @@ const Auth = () => {
       console.log('Errore durante inizializzazione');
     }
   }, []);
-  
-  // Valuta la forza della password quando cambia
-  useEffect(() => {
-    if (!password) {
-      setPasswordStrength(0);
-      return;
-    }
-    
-    let strength = 0;
-    
-    // Almeno 8 caratteri
-    if (password.length >= 8) strength += 1;
-    
-    // Almeno una lettera maiuscola e una minuscola
-    if (/(?=.*[a-z])(?=.*[A-Z])/.test(password)) strength += 1;
-    
-    // Almeno un numero e un carattere speciale
-    if (/(?=.*\d)(?=.*[!@#$%^&*])/.test(password)) strength += 1;
-    
-    setPasswordStrength(strength);
-  }, [password]);
 
   // Validazione form avanzata
   const validateForm = () => {
@@ -203,43 +181,10 @@ const Auth = () => {
       } else if (password !== confirmPassword) {
         newErrors.confirmPassword = 'Le password non corrispondono';
       }
-      
-      // Verifica forza password solo per registrazione
-      if (passwordStrength < 2 && password.length >= 6) {
-        newErrors.password = 'La password è troppo debole. Aggiungi lettere maiuscole, numeri o caratteri speciali.';
-      }
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // Reset dell'applicazione (rimuove tutti i dati utente)
-  const resetUserData = () => {
-    // Rimuovi token e dati utente
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-    localStorage.removeItem('currentUser');
-    
-    // Reset dello stato locale dell'applicazione
-    if (userContext && typeof userContext.logout === 'function') {
-      userContext.logout();
-    }
-    
-    // Mostra messaggio di conferma
-    setMessage({
-      type: 'success',
-      text: 'I tuoi dati sono stati rimossi con successo.'
-    });
-    
-    // Reset campi form
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setRememberMe(false);
-    
-    // Reindirizzamento alla pagina di login
-    setIsLogin(true);
   };
 
   // Gestione invio form
@@ -286,6 +231,9 @@ const Auth = () => {
       } else {
         sessionStorage.setItem('token', token);
       }
+      
+      // Salva i dati utente nel localStorage per persistenza
+      localStorage.setItem('currentUser', JSON.stringify(user));
       
       // Aggiorna il contesto con i dati utente
       safeSetUserData(user);
@@ -339,33 +287,6 @@ const Auth = () => {
     setIsLogin(!isLogin);
     setMessage({ type: '', text: '' });
     setErrors({});
-  };
-
-  // Rendering di un indicatore di forza della password
-  const renderPasswordStrength = () => {
-    if (!password || isLogin) return null;
-    
-    const labels = ['Debole', 'Media', 'Forte'];
-    const colors = ['#f44336', '#ff9800', '#4caf50'];
-    
-    return (
-      <div className="password-strength">
-        <div className="strength-bars">
-          {[0, 1, 2].map(i => (
-            <div
-              key={i}
-              className={`strength-bar ${i <= passwordStrength - 1 ? 'active' : ''}`}
-              style={{ backgroundColor: i <= passwordStrength - 1 ? colors[i] : '#e0e0e0' }}
-            />
-          ))}
-        </div>
-        {password && (
-          <span className="strength-label" style={{ color: passwordStrength > 0 ? colors[passwordStrength - 1] : '#757575' }}>
-            {password ? (passwordStrength === 0 ? 'Debole' : labels[passwordStrength - 1]) : ''}
-          </span>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -458,7 +379,6 @@ const Auth = () => {
                 />
               </div>
               {errors.password && <span className="error-text">{errors.password}</span>}
-              {renderPasswordStrength()}
               {!isLogin && (
                 <span className="password-hint">
                   Usa almeno 8 caratteri con lettere maiuscole, numeri e simboli
@@ -526,17 +446,6 @@ const Auth = () => {
             {isLogin ? 'Non hai un account?' : 'Hai già un account?'}
             <button type="button" onClick={toggleAuthMode}>
               {isLogin ? 'Registrati' : 'Accedi'}
-            </button>
-          </div>
-          
-          {/* Link per resettare gli account (per test/dev) */}
-          <div className="reset-data-link">
-            <button 
-              type="button" 
-              className="text-button"
-              onClick={resetUserData}
-            >
-              Reimposta dati utente
             </button>
           </div>
           
