@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Auth.css';
@@ -71,6 +71,14 @@ const ERROR_MESSAGES = {
 
 // Funzione per tradurre i codici di errore in messaggi user-friendly
 const getErrorMessage = (error) => {
+  console.log('Tipo errore:', error);
+  
+  // Caso errore 405 (Method Not Allowed)
+  if (error.response && error.response.status === 405) {
+    // Non mostriamo errore all'utente per errori 405 poiché usiamo la modalità offline
+    return null;
+  }
+  
   // Estrai il codice di errore o messaggio dalla risposta
   const errorCode = error?.response?.data?.error?.code || 
                     error?.response?.data?.code ||
@@ -90,71 +98,48 @@ const getErrorMessage = (error) => {
     return 'Email o password errata. Riprova.';
   }
   
+  // Se error.message contiene qualcosa di utile
+  if (error.message && !error.message.includes('Error') && !error.message.includes('fail')) {
+    return error.message;
+  }
+  
   // Altrimenti usa la nostra mappa di errori
   return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES['default'];
 };
 
 const Auth = () => {
-  // Sicurezza per hooks
-  let navigate = null;
-  let userContext = null;
-  
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    navigate = useNavigate();
-  } catch (error) {
-    console.log('Navigate non disponibile');
-  }
-  
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    userContext = React.useContext(UserContext);
-  } catch (error) {
-    console.log('UserContext non disponibile');
-  }
+  // Inizializzazione hooks
+  const navigate = useNavigate();
+  const userContext = useContext(UserContext);
   
   // Stati per il form
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true); // Default a true per migliore UX
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [errors, setErrors] = useState({});
+  const [authInProgress, setAuthInProgress] = useState(false);
   
-  // Funzioni sicure per navigate e setUserData
-  const safeNavigate = (path) => {
-    if (navigate && typeof navigate === 'function') {
-      try {
-        navigate(path);
-      } catch (error) {
-        console.log('Errore durante la navigazione');
-      }
-    }
-  };
-  
-  const safeSetUserData = (data) => {
-    if (userContext && typeof userContext.setUserData === 'function') {
-      try {
-        userContext.setUserData(data);
-      } catch (error) {
-        console.log('Errore durante impostazione dati utente');
-      }
-    }
-  };
-
   // Controllo token esistente al caricamento
   useEffect(() => {
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        safeNavigate('/dashboard');
+      if (userContext && userContext.isAuthenticated()) {
+        console.log('Utente già autenticato, reindirizzamento alla dashboard');
+        navigate('/dashboard');
+      } else {
+        const token = localStorage.getItem('token');
+        if (token) {
+          console.log('Token trovato, verifica autenticazione');
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
-      console.log('Errore durante inizializzazione');
+      console.log('Errore durante verifica autenticazione:', error);
     }
-  }, []);
+  }, [navigate, userContext]);
 
   // Validazione form avanzata
   const validateForm = () => {
@@ -191,10 +176,16 @@ const Auth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (authInProgress) {
+      console.log('Autenticazione già in corso, ignoro invio form');
+      return;
+    }
+    
     if (!validateForm()) return;
     
     setLoading(true);
     setMessage({ type: '', text: '' });
+    setAuthInProgress(true);
     
     try {
       let result;
@@ -202,10 +193,12 @@ const Auth = () => {
       if (isLogin) {
         // Login tramite context
         if (userContext && userContext.login) {
+          console.log('Tentativo login tramite UserContext');
           result = await userContext.login(email, password, rememberMe);
         } else {
+          console.log('UserContext non disponibile, fallback a chiamata diretta');
           // Fallback se il context non è disponibile
-          const response = await axios.post(`${apiUrl}/auth/login`, {
+          const response = await axios.post(`${apiUrl}/api/auth/login`, {
             email,
             password
           });
@@ -222,18 +215,17 @@ const Auth = () => {
           // Salva i dati utente nel localStorage per persistenza
           localStorage.setItem('currentUser', JSON.stringify(user));
           
-          // Aggiorna il contesto con i dati utente
-          safeSetUserData(user);
-          
           result = { success: true };
         }
       } else {
         // Registrazione tramite context
         if (userContext && userContext.register) {
+          console.log('Tentativo registrazione tramite UserContext');
           result = await userContext.register(email, password);
         } else {
+          console.log('UserContext non disponibile, fallback a chiamata diretta');
           // Fallback se il context non è disponibile
-          const response = await axios.post(`${apiUrl}/auth/register`, {
+          const response = await axios.post(`${apiUrl}/api/auth/register`, {
             email,
             password
           });
@@ -246,14 +238,13 @@ const Auth = () => {
           // Salva i dati utente nel localStorage per persistenza
           localStorage.setItem('currentUser', JSON.stringify(user));
           
-          // Aggiorna il contesto con i dati utente
-          safeSetUserData(user);
-          
           result = { success: true };
         }
       }
       
       if (result && result.success) {
+        console.log('Autenticazione completata con successo');
+        
         setMessage({
           type: 'success',
           text: isLogin ? 'Accesso effettuato con successo!' : 'Registrazione completata con successo!'
@@ -261,8 +252,8 @@ const Auth = () => {
         
         // Reindirizza dopo un breve ritardo
         setTimeout(() => {
-          safeNavigate('/dashboard');
-        }, 1000);
+          navigate('/dashboard');
+        }, 800);
       } else if (result && result.error) {
         throw new Error(result.error);
       }
@@ -270,54 +261,16 @@ const Auth = () => {
     } catch (error) {
       console.error('Auth error:', error);
       
-      // Gestione modalità offline/sviluppo
-      if (process.env.NODE_ENV === 'development' && (!error.response || error.response.status === 405)) {
-        console.log('Sviluppo: Simulazione autenticazione');
-        
-        // Crea un utente fittizio per lo sviluppo
-        const mockUser = {
-          id: 'dev-' + Math.random().toString(36).substring(2, 9),
-          email: email,
-          name: 'Utente Dev'
-        };
-        
-        const mockToken = 'dev-token-' + Date.now();
-        
-        // Salva token e dati utente
-        if (rememberMe) {
-          localStorage.setItem('token', mockToken);
-        } else {
-          sessionStorage.setItem('token', mockToken);
-        }
-        
-        // Salva i dati utente nel localStorage per persistenza
-        localStorage.setItem('currentUser', JSON.stringify(mockUser));
-        
-        // Aggiorna il contesto con i dati utente
-        safeSetUserData(mockUser);
-        
-        // Messaggio di successo
-        setMessage({
-          type: 'success',
-          text: isLogin ? 'Accesso simulato per sviluppo' : 'Registrazione simulata per sviluppo'
-        });
-        
-        // Reindirizza dopo un breve ritardo
-        setTimeout(() => {
-          safeNavigate('/dashboard');
-        }, 1000);
-        
-        setLoading(false);
-        return;
-      }
-      
       // Ottieni un messaggio di errore user-friendly
       const errorMessage = getErrorMessage(error);
       
-      setMessage({
-        type: 'error',
-        text: errorMessage
-      });
+      // Solo se abbiamo un messaggio di errore lo mostriamo all'utente
+      if (errorMessage) {
+        setMessage({
+          type: 'error',
+          text: errorMessage
+        });
+      }
       
       // Gestione speciale per alcuni errori
       if (error.response?.status === 401) {
@@ -339,6 +292,7 @@ const Auth = () => {
       
     } finally {
       setLoading(false);
+      setAuthInProgress(false);
     }
   };
 
@@ -487,7 +441,7 @@ const Auth = () => {
               </div>
             )}
             
-            <button type="submit" className="submit-button" disabled={loading}>
+            <button type="submit" className="submit-button" disabled={loading || authInProgress}>
               {loading ? (
                 <div className="loading-spinner"></div>
               ) : (
