@@ -132,21 +132,21 @@ const Auth = () => {
       if (userContext && userContext.isAuthenticated()) {
         console.log('Utente già autenticato, reindirizzamento alla dashboard');
         if (isAuthPage) {
-          navigate('/dashboard');
+          navigate('/dashboard', { replace: true });
         }
       } else {
         const token = localStorage.getItem('token');
         if (token) {
           console.log('Token trovato, verifica autenticazione');
           if (isAuthPage) {
-            navigate('/dashboard');
+            navigate('/dashboard', { replace: true });
           }
         }
       }
     } catch (error) {
       console.log('Errore durante verifica autenticazione:', error);
     }
-  }, [navigate, userContext]);
+  }, [navigate, userContext, userContext?.user]);
 
   // Validazione form avanzata
   const validateForm = () => {
@@ -257,10 +257,8 @@ const Auth = () => {
           text: isLogin ? 'Accesso effettuato con successo!' : 'Registrazione completata con successo!'
         });
         
-        // Reindirizza dopo un breve ritardo
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 800);
+        // Reindirizza direttamente se l'utente è autenticato
+        navigate('/dashboard', { replace: true });
       } else if (result && result.error) {
         throw new Error(result.error);
       }
