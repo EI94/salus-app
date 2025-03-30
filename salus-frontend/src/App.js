@@ -17,7 +17,7 @@ import { loadUserData } from './utils/dataManager';
 import { useTranslation } from 'react-i18next';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
-import { UserProvider, UserContext } from './contexts/UserContext';
+import { UserProvider, UserContext } from './context/UserContext';
 
 // Configurazione di base per axios
 const API_BASE = axios.create({
