@@ -4,6 +4,7 @@ import axios from 'axios';
 import '../styles/Auth.css';
 import { UserContext } from '../context/UserContext';
 import { apiUrl } from '../api';
+import { useTranslation } from 'react-i18next';
 
 // Icone in formato SVG
 const EmailIcon = () => (
@@ -108,20 +109,24 @@ const getErrorMessage = (error) => {
 };
 
 const Auth = () => {
-  // Inizializzazione hooks
-  const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [language, setLanguage] = useState(i18n.language);
   const userContext = useContext(UserContext);
+  const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
+  const [authInProgress, setAuthInProgress] = useState(false);
+  const [authError, setAuthError] = useState(null);
   
   // Stati per il form
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true); // Default a true per migliore UX
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [errors, setErrors] = useState({});
-  const [authInProgress, setAuthInProgress] = useState(false);
   
   // Controllo token esistente al caricamento
   useEffect(() => {
@@ -312,6 +317,52 @@ const Auth = () => {
     setMessage({ type: '', text: '' });
     setErrors({});
   };
+
+  // Gestione login
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
+    setAuthError(null);
+    
+    try {
+      console.log('Tentativo login tramite UserContext');
+      const response = await userContext.login(data.email, data.password, data.rememberMe);
+      
+      if (response.success) {
+        console.log('Autenticazione completata con successo');
+        
+        // Forza il reindirizzamento diretto alla dashboard
+        setTimeout(() => {
+          console.log("REINDIRIZZAMENTO FORZATO DA AUTH.JS");
+          window.location.href = '/dashboard';
+        }, 200);
+        
+      } else {
+        const errorMessage = response.error || 'Errore durante il login';
+        setAuthError(new Error(errorMessage));
+        console.log('Auth error:', new Error(errorMessage));
+      }
+    } catch (error) {
+      setAuthError(error);
+      console.log('Auth error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Verifica se l'utente è già autenticato
+  useEffect(() => {
+    if (userContext && userContext.isAuthenticated()) {
+      console.log('Utente già autenticato, reindirizzamento alla dashboard');
+      
+      // Forza il reindirizzamento diretto alla dashboard
+      setTimeout(() => {
+        console.log("REINDIRIZZAMENTO FORZATO DA AUTH.JS (USEEFFECT)");
+        window.location.href = '/dashboard';
+      }, 100);
+    }
+    // Cleanup on unmount
+    return () => {};
+  }, [userContext]);
 
   return (
     <div className="auth-container">

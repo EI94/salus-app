@@ -74,6 +74,13 @@ export const UserProvider = ({ children }) => {
     }
   };
   
+  // Forza il reindirizzamento alla dashboard
+  const redirectToDashboard = () => {
+    console.log("REINDIRIZZAMENTO FORZATO ALLA DASHBOARD");
+    // Forza il reindirizzamento con window.location invece di useNavigate
+    window.location.href = '/dashboard';
+  };
+  
   // Funzione per il login
   const login = async (email, password, rememberMe = true) => {
     console.log('Tentativo di login per:', email);
@@ -108,7 +115,9 @@ export const UserProvider = ({ children }) => {
       setUser(userData);
       
       // Forza la navigazione alla dashboard
-      navigate('/dashboard', { replace: true });
+      setTimeout(() => {
+        redirectToDashboard();
+      }, 100);
       
       return { success: true };
     } catch (error) {
@@ -175,8 +184,8 @@ export const UserProvider = ({ children }) => {
     
     // Forza il reindirizzamento alla dashboard
     setTimeout(() => {
-      navigate('/dashboard', { replace: true });
-    }, 10);
+      redirectToDashboard();
+    }, 100);
     
     return { success: true };
   };
