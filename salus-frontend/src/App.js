@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Auth from './components/Auth';
@@ -17,6 +17,7 @@ import { loadUserData } from './utils/dataManager';
 import { useTranslation } from 'react-i18next';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
+import { UserProvider, UserContext } from './contexts/UserContext';
 
 // Configurazione di base per axios
 const API_BASE = axios.create({
@@ -387,6 +388,29 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
   );
 }
 
+// Componente per reindirizzamento protetto
+const ProtectedRoute = ({ children }) => {
+  const userContext = useContext(UserContext);
+  
+  // Se l'utente non è autenticato, reindirizza al login
+  if (!userContext || !userContext.isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
+
+// Componente per reindirizzamento dalla root
+const RootRedirect = () => {
+  const userContext = useContext(UserContext);
+  
+  if (userContext && userContext.isAuthenticated()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <Navigate to="/login" replace />;
+};
+
 // Funzione principale dell'app
 function App() {
   const { t } = useTranslation();
@@ -487,85 +511,37 @@ function App() {
   // Visualizza l'applicazione per utenti autenticati
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route
-          path="/dashboard"
-          element={
-            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Dashboard />
-            </Layout>
-          }
-        />
-        <Route
-          path="/sintomi"
-          element={
-            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <SymptomTracker userId={userData.id} />
-            </Layout>
-          }
-        />
-        <Route
-          path="/farmaci"
-          element={
-            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <MedicationTracker userId={userData.id} />
-            </Layout>
-          }
-        />
-        <Route
-          path="/benessere"
-          element={
-            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <WellnessTracker userId={userData.id} />
-            </Layout>
-          }
-        />
-        <Route
-          path="/assistente"
-          element={
-            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <div className="assistant-container">
-                <AIAssistant />
-              </div>
-            </Layout>
-          }
-        />
-        <Route
-          path="/profilo"
-          element={
-            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Profile userId={userData.id} userName={userData.name} userData={userData} />
-            </Layout>
-          }
-        />
-        <Route
-          path="/impostazioni"
-          element={
-            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Profile userId={userData.id} userName={userData.name} userData={userData} activeTab="privacy" />
-            </Layout>
-          }
-        />
-        <Route
-          path="/privacy"
-          element={
-            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Profile userId={userData.id} userName={userData.name} userData={userData} activeTab="privacy" />
-            </Layout>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-              <Settings />
-            </Layout>
-          }
-        />
-        {/* Fallback per percorsi non gestiti */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
+      <UserProvider>
+        <div className="app-container">
+          <Routes>
+            {/* Reindirizzamento dalla root */}
+            <Route path="/" element={<RootRedirect />} />
+            
+            {/* Pagina di autenticazione */}
+            <Route path="/login" element={<Auth />} />
+            <Route path="/register" element={<Auth />} />
+            
+            {/* Rotte protette */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Altre rotte protette */}
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile userId={userData.id} userName={userData.name} userData={userData} />
+              </ProtectedRoute>
+            } />
+            
+            {/* Fallback per rotte inesistenti */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </UserProvider>
     </Router>
   );
 }
