@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { apiUrl, isInOfflineMode } from '../api';
+import { apiUrl, isInOfflineMode, toggleOfflineMode } from '../api';
 
 // Creazione del contesto utente
 export const UserContext = createContext(null);
@@ -8,300 +8,233 @@ export const UserContext = createContext(null);
 // Provider del contesto
 export const UserProvider = ({ children }) => {
   // Stato per i dati dell'utente
-  const [userData, setUserData] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Lista di utenti autorizzati per test
+  const authorizedUsers = [
+    { email: "admin@salus.com", password: "password123" },
+    { email: "test@example.com", password: "test1234" }
+    // Puoi aggiungere altri utenti autorizzati per test
+  ];
+
   // Carica i dati utente dal localStorage al mount del componente
   useEffect(() => {
-    const loadUserData = async () => {
+    const loadUser = () => {
       try {
-        setLoading(true);
-        setError(null);
+        const savedUser = localStorage.getItem('currentUser');
+        console.log('Utente caricato dal localStorage');
         
-        // Controlla se esiste un token valido
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        
-        if (!token) {
-          setLoading(false);
-          return;
-        }
-        
-        // Controlla se ci sono dati utente salvati
-        const storedUser = localStorage.getItem('currentUser');
-        
-        if (storedUser) {
-          // Usa i dati memorizzati per un caricamento rapido
-          setUserData(JSON.parse(storedUser));
-          console.log('Utente caricato dal localStorage');
-        }
-        
-        // In modalità offline non tentiamo di verificare i dati con il server
-        if (isInOfflineMode()) {
-          console.log('Modalità offline: usando dati locali');
-          setLoading(false);
-          return;
-        }
-        
-        // Verifica col server se i dati sono aggiornati
-        if (process.env.NODE_ENV !== 'development' && token) {
-          try {
-            const response = await axios.get(`${apiUrl}/api/auth/me`, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
-            
-            if (response.data && response.data.user) {
-              // Aggiorna i dati se ricevuti dal server
-              const serverUser = response.data.user;
-              localStorage.setItem('currentUser', JSON.stringify(serverUser));
-              setUserData(serverUser);
-              console.log('Dati utente aggiornati dal server');
-            }
-          } catch (verifyError) {
-            console.warn('Verifica dati utente non riuscita:', verifyError);
-            // Se riceviamo un 401, facciamo logout
-            if (verifyError.response && verifyError.response.status === 401) {
-              console.log('Token non valido, logout utente');
-              logout();
-            }
+        if (savedUser) {
+          // Controlla se il token esiste
+          const token = localStorage.getItem('token');
+          
+          if (token) {
+            setUser(JSON.parse(savedUser));
+            console.log(`Modalità offline: ${isInOfflineMode() ? 'usando dati locali' : 'connesso al server'}`);
+          } else {
+            // Se non c'è token, pulisci i dati utente
+            localStorage.removeItem('currentUser');
+            setUser(null);
           }
         }
       } catch (error) {
-        console.error('Errore nel caricamento dei dati utente:', error);
-        setError('Errore nel caricamento dei dati utente');
+        console.error('Errore caricamento utente:', error);
+        // In caso di errore, pulisci i dati utente
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('token');
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
-    
-    loadUserData();
+
+    loadUser();
   }, []);
   
   // Funzione per aggiornare i dati utente
-  const updateUserData = (newData) => {
+  const updateUser = (userData) => {
     // Preveniamo aggiornamenti a null o undefined
-    if (!newData) return;
+    if (!userData) return;
     
     try {
-      const updatedData = userData ? { ...userData, ...newData } : newData;
-      setUserData(updatedData);
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
       
       // Salva i dati aggiornati nel localStorage
-      localStorage.setItem('currentUser', JSON.stringify(updatedData));
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
       console.log('Dati utente aggiornati in localStorage');
+      return { success: true };
     } catch (error) {
-      console.error('Errore nell\'aggiornamento dei dati utente:', error);
+      console.error('Errore aggiornamento utente:', error);
+      return { success: false, error: 'Errore durante l\'aggiornamento dell\'utente' };
     }
   };
   
   // Funzione per il login
-  const login = async (email, password, rememberMe = false) => {
+  const login = async (email, password, rememberMe = true) => {
+    console.log(`Tentativo di login per: ${email}`);
+    console.log(`Modalità offline: ${isInOfflineMode()}`);
+    
     try {
-      setLoading(true);
-      setError(null);
-      
-      console.log(`Tentativo di login per: ${email}`);
-      console.log(`Modalità offline: ${isInOfflineMode()}`);
-      
-      // Se siamo in modalità offline o in sviluppo, creiamo un utente simulato
-      if (isInOfflineMode() || process.env.NODE_ENV === 'development') {
-        console.log('Usando login simulato per modalità offline/sviluppo');
-        
-        // Simuliamo un ritardo
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const mockUser = {
-          id: 'offline-' + Math.random().toString(36).substring(2, 9),
-          email: email,
-          name: email.split('@')[0]
-        };
-        
-        const mockToken = 'mock-token-' + Date.now();
-        
-        // Salva token in base alla scelta "ricordami"
-        if (rememberMe) {
-          localStorage.setItem('token', mockToken);
-        } else {
-          sessionStorage.setItem('token', mockToken);
-        }
-        
-        // Salva i dati utente simulati
-        localStorage.setItem('currentUser', JSON.stringify(mockUser));
-        setUserData(mockUser);
-        
-        console.log('Login simulato completato con successo');
-        return { success: true, user: mockUser };
+      if (isInOfflineMode()) {
+        console.log("Usando login simulato per modalità offline/sviluppo");
+        return await simulatedLogin(email, password);
       }
       
-      // Tentativo di login reale
+      // Tentativo di login con il server reale
       const response = await axios.post(`${apiUrl}/api/auth/login`, {
         email,
         password
       });
       
-      const { token, user } = response.data;
-      
-      // Salva token in base alla scelta "ricordami"
-      if (rememberMe) {
-        localStorage.setItem('token', token);
-      } else {
-        sessionStorage.setItem('token', token);
-      }
-      
-      // Salva i dati utente
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      setUserData(user);
-      
-      return { success: true, user };
-    } catch (error) {
-      console.error('Errore login:', error);
-      
-      // Gestione caso speciale per errori 405 (API non disponibile)
-      if (error.response && error.response.status === 405) {
-        console.log('API non disponibile (405), usando modalità simulata');
+      // Se la risposta è valida, salva i dati utente
+      if (response.data && response.data.token) {
+        const { token, user: userData } = response.data;
         
-        // Simuliamo un ritardo
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const mockUser = {
-          id: 'offline-' + Math.random().toString(36).substring(2, 9),
-          email: email,
-          name: email.split('@')[0]
-        };
-        
-        const mockToken = 'mock-token-' + Date.now();
-        
-        // Salva token in base alla scelta "ricordami"
+        // Salva dati autenticazione
         if (rememberMe) {
-          localStorage.setItem('token', mockToken);
+          localStorage.setItem('token', token);
         } else {
-          sessionStorage.setItem('token', mockToken);
+          sessionStorage.setItem('token', token);
         }
         
-        // Salva i dati utente simulati
-        localStorage.setItem('currentUser', JSON.stringify(mockUser));
-        setUserData(mockUser);
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        setUser(userData);
         
-        console.log('Login simulato completato con successo (dopo errore 405)');
-        return { success: true, user: mockUser };
+        return { success: true };
+      } else {
+        return { success: false, error: 'Errore durante il login' };
       }
       
-      setError(error.response?.data?.message || 'Errore durante il login');
+    } catch (error) {
+      console.log('Errore login:', error.message);
+      
+      // Verifica se l'errore è dovuto a un 405 Method Not Allowed (API non disponibile)
+      if (error.response && error.response.status === 405) {
+        console.log('API non disponibile (405), usando modalità simulata');
+        // Attiva modalità offline automaticamente
+        toggleOfflineMode(true);
+        
+        // Tentativo di login simulato ma con verifica delle credenziali
+        return await simulatedLogin(email, password);
+      }
+      
+      // Per altri errori, restituisci l'errore all'utente
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Credenziali non valide'
+        error: error.response?.data?.message || 'Errore durante il login'
       };
-    } finally {
-      setLoading(false);
     }
+  };
+  
+  // Login simulato con verifica delle credenziali
+  const simulatedLogin = async (email, password) => {
+    // Verifica se l'utente è nella lista degli utenti autorizzati
+    const validUser = authorizedUsers.find(
+      u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+    );
+    
+    // Se non troviamo un utente valido nella lista degli autorizzati
+    if (!validUser) {
+      console.log('Login simulato: credenziali non valide');
+      return { 
+        success: false, 
+        error: 'Email o password non valide'
+      };
+    }
+    
+    // Genera un token finto per test
+    const mockToken = 'mock-jwt-token-' + Math.random().toString(36).substring(2);
+    
+    // Crea un utente simulato
+    const userData = {
+      id: 'user-' + Math.random().toString(36).substring(2),
+      email: email,
+      name: email.split('@')[0]
+    };
+    
+    // Salva nel localStorage
+    localStorage.setItem('token', mockToken);
+    localStorage.setItem('currentUser', JSON.stringify(userData));
+    setUser(userData);
+    
+    console.log('Login simulato completato con successo');
+    return { success: true };
   };
   
   // Funzione per la registrazione
   const register = async (email, password) => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      console.log(`Tentativo di registrazione per: ${email}`);
-      console.log(`Modalità offline: ${isInOfflineMode()}`);
-      
-      // Se siamo in modalità offline o in sviluppo, creiamo un utente simulato
-      if (isInOfflineMode() || process.env.NODE_ENV === 'development') {
-        console.log('Usando registrazione simulata per modalità offline/sviluppo');
-        
-        // Simuliamo un ritardo
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const mockUser = {
-          id: 'new-user-' + Math.random().toString(36).substring(2, 9),
-          email: email,
-          name: email.split('@')[0]
-        };
-        
-        const mockToken = 'mock-token-' + Date.now();
-        
-        // Salva token e dati utente
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('currentUser', JSON.stringify(mockUser));
-        setUserData(mockUser);
-        
-        console.log('Registrazione simulata completata con successo');
-        return { success: true, user: mockUser };
+      if (isInOfflineMode()) {
+        console.log("Usando registrazione simulata per modalità offline/sviluppo");
+        // Aggiungi alla lista di utenti autorizzati
+        authorizedUsers.push({ email, password });
+        return await simulatedLogin(email, password);
       }
       
-      // Tentativo di registrazione reale
+      // Tentativo di registrazione con il server reale
       const response = await axios.post(`${apiUrl}/api/auth/register`, {
         email,
         password
       });
       
-      const { token, user } = response.data;
-      
-      // Salva token e dati utente
-      localStorage.setItem('token', token);
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      setUserData(user);
-      
-      return { success: true, user };
-    } catch (error) {
-      console.error('Errore registrazione:', error);
-      
-      // Gestione caso speciale per errori 405 (API non disponibile)
-      if (error.response && error.response.status === 405) {
-        console.log('API non disponibile (405), usando modalità simulata');
+      if (response.data && response.data.token) {
+        const { token, user: userData } = response.data;
         
-        // Simuliamo un ritardo
-        await new Promise(resolve => setTimeout(resolve, 500));
+        localStorage.setItem('token', token);
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        setUser(userData);
         
-        const mockUser = {
-          id: 'new-user-' + Math.random().toString(36).substring(2, 9),
-          email: email,
-          name: email.split('@')[0]
-        };
-        
-        const mockToken = 'mock-token-' + Date.now();
-        
-        // Salva token e dati utente simulati
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('currentUser', JSON.stringify(mockUser));
-        setUserData(mockUser);
-        
-        console.log('Registrazione simulata completata con successo (dopo errore 405)');
-        return { success: true, user: mockUser };
+        return { success: true };
+      } else {
+        return { success: false, error: 'Errore durante la registrazione' };
       }
       
-      setError(error.response?.data?.message || 'Errore durante la registrazione');
+    } catch (error) {
+      console.log('Errore registrazione:', error.message);
+      
+      // Verifica se l'errore è dovuto a un 405 Method Not Allowed (API non disponibile)
+      if (error.response && error.response.status === 405) {
+        console.log('API non disponibile (405), usando modalità simulata per registrazione');
+        // Attiva modalità offline automaticamente
+        toggleOfflineMode(true);
+        
+        // Aggiungi utente alla lista autorizzati e completa registrazione simulata
+        authorizedUsers.push({ email, password });
+        return await simulatedLogin(email, password);
+      }
+      
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Registrazione fallita'
+        error: error.response?.data?.message || 'Errore durante la registrazione'
       };
-    } finally {
-      setLoading(false);
     }
   };
   
   // Funzione per il logout
   const logout = () => {
-    // Rimuovi token e dati utente
+    // Rimuovi dati autenticazione
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
     localStorage.removeItem('currentUser');
-    setUserData(null);
-    console.log('Logout utente completato');
+    setUser(null);
+    
+    return { success: true };
   };
   
   // Verifica se l'utente è autenticato
   const isAuthenticated = () => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    return !!token && !!userData;
+    return !!user && !!localStorage.getItem('token');
   };
   
   return (
     <UserContext.Provider 
       value={{ 
-        userData, 
-        setUserData,
-        updateUserData,
+        user, 
+        setUser,
+        updateUser,
         login,
         register,
         logout,
