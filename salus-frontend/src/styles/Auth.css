@@ -230,7 +230,7 @@ body {
   color: var(--danger);
 }
 
-.message-box i {
+.message-box span {
   margin-right: 0.75rem;
   font-size: 1rem;
   margin-top: 0.1rem;
@@ -440,10 +440,11 @@ body {
   padding: 1rem;
 }
 
-.success-message i {
+.success-icon {
   font-size: 3rem;
   color: var(--success);
   margin-bottom: 1.5rem;
+  display: inline-block;
 }
 
 .success-message h2 {

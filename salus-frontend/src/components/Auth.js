@@ -362,8 +362,7 @@ const Auth = () => {
     <form onSubmit={handleLogin} className="auth-form">
       <div className="form-group">
         <label htmlFor="email">{t('email')}</label>
-        <div className="input-with-icon">
-          <i className="fas fa-envelope"></i>
+        <div className="input-field">
           <input
             type="email"
             id="email"
@@ -378,8 +377,7 @@ const Auth = () => {
       
       <div className="form-group">
         <label htmlFor="password">{t('password')}</label>
-        <div className="input-with-icon">
-          <i className="fas fa-lock"></i>
+        <div className="input-field">
           <input
             type={showPassword ? 'text' : 'password'}
             id="password"
@@ -393,7 +391,7 @@ const Auth = () => {
             className="toggle-password"
             onClick={() => setShowPassword(!showPassword)}
           >
-            <i className={`fas fa-${showPassword ? 'eye-slash' : 'eye'}`}></i>
+            {showPassword ? '👁️' : '👁️‍🗨️'}
           </button>
         </div>
         {errors.password && <div className="error-message">{errors.password}</div>}
@@ -424,7 +422,7 @@ const Auth = () => {
       
       {authError && (
         <div className="error-box">
-          <i className="fas fa-exclamation-circle"></i>
+          <span>⚠</span>
           <p>
             {authError.message === 'Email o password non valide' 
               ? t('invalidCredentials') 
@@ -447,11 +445,7 @@ const Auth = () => {
         className="auth-button"
         disabled={isSubmitting}
       >
-        {isSubmitting ? (
-          <span><i className="fas fa-spinner fa-spin"></i> {t('loggingIn')}</span>
-        ) : (
-          t('login')
-        )}
+        {isSubmitting ? t('loggingIn') : t('login')}
       </button>
       
       <div className="auth-footer">
@@ -472,8 +466,7 @@ const Auth = () => {
     <form onSubmit={handleRegister} className="auth-form">
       <div className="form-group">
         <label htmlFor="name">{t('name')}</label>
-        <div className="input-with-icon">
-          <i className="fas fa-user"></i>
+        <div className="input-field">
           <input
             type="text"
             id="name"
@@ -488,8 +481,7 @@ const Auth = () => {
       
       <div className="form-group">
         <label htmlFor="email">{t('email')}</label>
-        <div className="input-with-icon">
-          <i className="fas fa-envelope"></i>
+        <div className="input-field">
           <input
             type="email"
             id="email"
@@ -504,8 +496,7 @@ const Auth = () => {
       
       <div className="form-group">
         <label htmlFor="password">{t('password')}</label>
-        <div className="input-with-icon">
-          <i className="fas fa-lock"></i>
+        <div className="input-field">
           <input
             type={showPassword ? 'text' : 'password'}
             id="password"
@@ -519,7 +510,7 @@ const Auth = () => {
             className="toggle-password"
             onClick={() => setShowPassword(!showPassword)}
           >
-            <i className={`fas fa-${showPassword ? 'eye-slash' : 'eye'}`}></i>
+            {showPassword ? '👁️' : '👁️‍🗨️'}
           </button>
         </div>
         {errors.password && <div className="error-message">{errors.password}</div>}
@@ -527,8 +518,7 @@ const Auth = () => {
       
       <div className="form-group">
         <label htmlFor="confirmPassword">{t('confirmPassword')}</label>
-        <div className="input-with-icon">
-          <i className="fas fa-lock"></i>
+        <div className="input-field">
           <input
             type={showPassword ? 'text' : 'password'}
             id="confirmPassword"
@@ -543,8 +533,7 @@ const Auth = () => {
       
       <div className="form-group">
         <label htmlFor="language">{t('language')}</label>
-        <div className="input-with-icon">
-          <i className="fas fa-globe"></i>
+        <div className="input-field">
           <select
             id="language"
             value={language}
@@ -559,7 +548,7 @@ const Auth = () => {
       
       {authError && (
         <div className="error-box">
-          <i className="fas fa-exclamation-circle"></i>
+          <span>⚠</span>
           <p>{authError.message}</p>
         </div>
       )}
@@ -569,11 +558,7 @@ const Auth = () => {
         className="auth-button"
         disabled={isSubmitting}
       >
-        {isSubmitting ? (
-          <span><i className="fas fa-spinner fa-spin"></i> {t('registering')}</span>
-        ) : (
-          t('register')
-        )}
+        {isSubmitting ? t('registering') : t('register')}
       </button>
       
       <div className="auth-footer">
@@ -600,8 +585,7 @@ const Auth = () => {
       <form onSubmit={handleForgotPassword}>
         <div className="form-group">
           <label htmlFor="email">{t('email')}</label>
-          <div className="input-with-icon">
-            <i className="fas fa-envelope"></i>
+          <div className="input-field">
             <input
               type="email"
               id="email"
@@ -616,7 +600,7 @@ const Auth = () => {
         
         {authError && (
           <div className="error-box">
-            <i className="fas fa-exclamation-circle"></i>
+            <span>⚠</span>
             <p>{authError.message}</p>
           </div>
         )}
@@ -626,11 +610,7 @@ const Auth = () => {
           className="auth-button"
           disabled={isSubmitting}
         >
-          {isSubmitting ? (
-            <span><i className="fas fa-spinner fa-spin"></i> {t('sending')}</span>
-          ) : (
-            t('sendResetLink')
-          )}
+          {isSubmitting ? t('sending') : t('sendResetLink')}
         </button>
         
         <div className="auth-footer">
@@ -642,7 +622,7 @@ const Auth = () => {
               setAuthError(null);
             }}
           >
-            <i className="fas fa-arrow-left"></i> {t('backToLogin')}
+            ← {t('backToLogin')}
           </button>
         </div>
       </form>
@@ -653,7 +633,7 @@ const Auth = () => {
   const renderResetEmailSentMessage = () => (
     <div className="auth-form">
       <div className="success-message">
-        <i className="fas fa-check-circle"></i>
+        <div className="success-icon">✓</div>
         <h2>{t('resetLinkSent')}</h2>
         <p>{t('resetLinkInstructions')}</p>
         <button
@@ -675,7 +655,7 @@ const Auth = () => {
   const renderVerificationSentMessage = () => (
     <div className="auth-form">
       <div className="success-message">
-        <i className="fas fa-check-circle"></i>
+        <div className="success-icon">✓</div>
         <h2>{t('verificationLinkSent')}</h2>
         <p>{t('verificationLinkInstructions')}</p>
         <button
@@ -696,7 +676,7 @@ const Auth = () => {
   const renderRegistrationSuccessMessage = () => (
     <div className="auth-form">
       <div className="success-message">
-        <i className="fas fa-check-circle"></i>
+        <div className="success-icon">✓</div>
         <h2>{t('registrationSuccess')}</h2>
         <p>{t('registrationSuccessInstructions')}</p>
         <button
