@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="dotGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="rgba(255,255,255,0.15)"/>
+      <circle cx="15" cy="15" r="1.5" fill="rgba(255,255,255,0.1)"/>
+      <circle cx="28" cy="28" r="1" fill="rgba(255,255,255,0.15)"/>
+    </pattern>
+    
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(245, 158, 11, 0.15)"/>
+      <stop offset="100%" stop-color="rgba(245, 158, 11, 0.03)"/>
+    </linearGradient>
+    
+    <linearGradient id="maskGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.08)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    
+    <mask id="fadeMask">
+      <rect width="100%" height="100%" fill="url(#maskGradient)" />
+    </mask>
+  </defs>
+  
+  <!-- Background pattern -->
+  <rect width="100%" height="100%" fill="url(#dotGrid)"/>
+  
+  <!-- Accent shapes -->
+  <path d="M0,320 Q160,280 320,320 T640,320 T960,320" 
+        stroke="rgba(245, 158, 11, 0.15)" 
+        stroke-width="3" 
+        fill="none" 
+        transform="translate(0, -100)"/>
+  
+  <path d="M0,350 Q160,310 320,350 T640,350 T960,350" 
+        stroke="rgba(245, 158, 11, 0.1)" 
+        stroke-width="2" 
+        fill="none" 
+        transform="translate(0, -100)"/>
+        
+  <!-- Decorative elements -->
+  <g mask="url(#fadeMask)">
+    <!-- Hexagon grid -->
+    <g transform="scale(0.4) translate(50, 50)">
+      <path d="M86.6,50 L86.6,150 L0,200 L-86.6,150 L-86.6,50 L0,0 Z" 
+            fill="none" 
+            stroke="rgba(255,255,255,0.1)" 
+            stroke-width="1"
+            transform="translate(200, 200)"/>
+      <path d="M86.6,50 L86.6,150 L0,200 L-86.6,150 L-86.6,50 L0,0 Z" 
+            fill="none" 
+            stroke="rgba(255,255,255,0.1)" 
+            stroke-width="1"
+            transform="translate(373.2, 200)"/>
+      <path d="M86.6,50 L86.6,150 L0,200 L-86.6,150 L-86.6,50 L0,0 Z" 
+            fill="none" 
+            stroke="rgba(255,255,255,0.1)" 
+            stroke-width="1"
+            transform="translate(286.6, 100)"/>
+      <path d="M86.6,50 L86.6,150 L0,200 L-86.6,150 L-86.6,50 L0,0 Z" 
+            fill="none" 
+            stroke="rgba(255,255,255,0.1)" 
+            stroke-width="1"
+            transform="translate(286.6, 300)"/>
+    </g>
+  </g>
+  
+  <!-- Floating circles -->
+  <circle cx="85%" cy="15%" r="30" fill="url(#accentGradient)" opacity="0.4"/>
+  <circle cx="75%" cy="25%" r="15" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="10%" cy="30%" r="40" fill="rgba(255,255,255,0.03)"/>
+  <circle cx="15%" cy="85%" r="20" fill="rgba(245, 158, 11, 0.08)"/>
+  
+  <!-- Glowing accent -->
+  <circle cx="75%" cy="75%" r="100" fill="url(#accentGradient)" filter="blur(40px)" opacity="0.2"/>
+</svg> 

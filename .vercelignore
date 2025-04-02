@@ -1,0 +1,12 @@
+.git
+node_modules
+/node_modules
+salus-frontend/node_modules
+.env
+README.md
+DEPLOYMENT.md
+VERCEL_DEPLOYMENT.md
+CHECKLIST.md
+CHANGELOG.md
+avvia_salus.bat
+*.log 

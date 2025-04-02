@@ -1,0 +1,449 @@
+[33mcommit ddf428e9d35a46316af951aae25ed6205dc4c4b4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 01:13:54 2025 +0200
+
+    Aggiunto placeholder per OPENAI_API_KEY nel file .env
+
+[33mcommit c8f725b83b6c4d2ea3442ef0b0b3f8232d5c5dfa[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 01:13:14 2025 +0200
+
+    Aggiunta OPENAI_API_KEY al file .env
+
+[33mcommit a5148061a0d22245668c72ed8928b280e74eb649[m[33m ([m[1;31morigin/master[m[33m)[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 01:11:11 2025 +0200
+
+    Pulizia file non necessari
+
+[33mcommit d3837c129d4f5e9184bce01f21da13e4ef2943aa[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 01:07:45 2025 +0200
+
+    Rimosso codice di simulazione e implementata integrazione con API reali
+
+[33mcommit c970dbca7f5790c71dd37fbaa2c055e4346f66f9[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 01:02:57 2025 +0200
+
+    Migliorato supporto multilingua nell'applicazione aggiungendo traduzioni mancanti
+
+[33mcommit 3a73fc9d38c3788e1ff1965f940bbc8faa598277[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 01:01:23 2025 +0200
+
+    Aggiunto supporto multilingua all'assistente AI
+
+[33mcommit f90ea1dbd394c2a0ab35dde46f19b033dd560737[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:57:08 2025 +0200
+
+    Risolto problema con l'assistente AI utilizzando il servizio sendMessageToAI da api.js
+
+[33mcommit c1065cd089d4f580e10b2278f54d9e1bee433282[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:55:14 2025 +0200
+
+    Corretto il sistema di login e registrazione con persistenza degli utenti in localStorage
+
+[33mcommit b85afeb1d848910ef5541852ad0a9614af17a9b6[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:50:51 2025 +0200
+
+    Risolto problema cambio lingua nel profilo utente con una soluzione integrata in tutta l'app
+
+[33mcommit 85d6a8f78d3007e75e332769b7acd1c7af714b3f[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:46:47 2025 +0200
+
+    Migliorata gestione dell'assistente AI in modalità offline con risposte predefinite basate su parole chiave
+
+[33mcommit 2152e0b33d4b9081d04bc28f96953c7cfcb2efac[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:44:13 2025 +0200
+
+    Migliorata UI con nuova palette di colori armoniosa, sostituendo la combinazione verde-blu con viola-ambra
+
+[33mcommit 973193cb0d18a2d4f93a1e4c49cedc447350f9bf[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:39:24 2025 +0200
+
+    Migliorata UI della pagina di login con colori moderni e contrasto migliore per i campi di input
+
+[33mcommit e3620e54c7a14a9577601ac04191ead8ec2cea8e[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:32:40 2025 +0200
+
+    Risolto il problema con la registrazione in modalità offline che causava un loop infinito
+
+[33mcommit 6efe3ec39efce401b549c52989c507d09fe24f9f[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:27:14 2025 +0200
+
+    Abilitata registrazione e login per tutti gli utenti in modalità offline
+
+[33mcommit 6f42333aafb9e415cc4a884dcd760827b4697671[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:23:52 2025 +0200
+
+    Fix: risolto problema reindirizzamento dopo login e migliorata gestione modalità offline
+
+[33mcommit 169b38d7952e793d6a88dbeddea3842cadcfb136[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:21:17 2025 +0200
+
+    Aggiornate traduzioni in hindi per la pagina di autenticazione
+
+[33mcommit a63044aa90e649e2f16db770f32da64a299fa69d[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:04:59 2025 +0200
+
+    Fix: Ricreato file i18n/index.js senza caratteri non validi
+
+[33mcommit 0281c606a5f97b8b8f5651845ccb952bb429cfcd[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Apr 3 00:00:29 2025 +0200
+
+    Fix: Risolto problema con caratteri non validi nel file i18n/index.js
+
+[33mcommit 5a76408b2f49ddb1246235d8859cd9ea48c809c7[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:55:16 2025 +0200
+
+    Aggiornati package.json e package-lock.json
+
+[33mcommit 563c39b2198ff7ca5b24b06de88b0366717fc897[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:51:11 2025 +0200
+
+    Migliorato il sistema di traduzione con file i18n aggiornati
+
+[33mcommit a23eda14b02e2a508e65d7d6410ce5c73f0bd702[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:42:18 2025 +0200
+
+    Rimosso tutte le icone Font Awesome dai form e sostituite con caratteri Unicode
+
+[33mcommit 14d1f86825362f3d42e2fb4309ed29ec1ba4c932[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:35:36 2025 +0200
+
+    Migliorata UI del login: rimosso icone dai campi form, corretto testi in inglese, migliorato layout
+
+[33mcommit 11c57aa4c5670ef3e80a9f745db801e2f753a887[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:28:26 2025 +0200
+
+    Risolti problemi UI nella pagina di login: sfondo nero, sovrapposizione elementi e 404 logo
+
+[33mcommit 8e7cf308c8a28262e82ce40d51ed07099b537e2b[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:21:45 2025 +0200
+
+    Aggiornate le traduzioni italiane per il nuovo sistema di autenticazione
+
+[33mcommit a01deb2188c5172c040b8d26ade0c25126ef8a02[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:20:56 2025 +0200
+
+    Implementato sistema completo di autenticazione con MongoDB, verifica email e recupero password
+
+[33mcommit 8c3ad1bf15c8640bb8bb04ef0616ca07dd9c7834[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:12:59 2025 +0200
+
+    Risolto problema di doppio BrowserRouter cambiando a HashRouter in App.js e rimuovendo router da index.js
+
+[33mcommit 76355bee8ac4c8cf9489ae31f4f7dd1877a02ee6[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:09:43 2025 +0200
+
+    Risolto problema di routing con configurazione corretta per SPA su Vercel
+
+[33mcommit 60d601d8a7ea772dccb00d480bbf5a746a3ef47d[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 23:05:21 2025 +0200
+
+    Ristrutturato completamente App.js per risolvere problemi di rendering dopo login
+
+[33mcommit a331015f79dce0cc7aee335ef9b4abb032a5c9b0[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 22:59:16 2025 +0200
+
+    Risolto problema di navigazione implementando sistema di rotte pubbliche e protette
+
+[33mcommit b8a46744fc6995cf5fac56b07616697ca7c7302e[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Apr 2 22:53:38 2025 +0200
+
+    Risolto loop di ricaricamento implementando una verifica del percorso corrente prima del reindirizzamento
+
+[33mcommit b88b38873de8977fa7f9aef4831e3b690fe92248[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 31 00:57:39 2025 +0200
+
+    Implementato reindirizzamento forzato con window.location.href invece di useNavigate per risolvere definitivamente il problema di navigazione alla dashboard
+
+[33mcommit cd93db0d38e422cc23f90e2f5d29d0e992a9f582[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 31 00:45:35 2025 +0200
+
+    Corretto percorso di importazione di UserContext in App.js
+
+[33mcommit b758811f80f3b3aca4d500a0345aab8bf2c3fde8[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 31 00:37:41 2025 +0200
+
+    Aggiunto sistema di rotte protette e reindirizzamento a App.js
+
+[33mcommit 7ca2e9cc115c5a6a1837bf7fc12c45ffd537dc45[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 31 00:35:32 2025 +0200
+
+    Risolto problema reindirizzamento alla dashboard dopo login aggiungendo navigazione forzata
+
+[33mcommit 696508c6b0eafb2e4519efc40c773f600e2a4781[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 31 00:28:08 2025 +0200
+
+    Risolto problema di reindirizzamento dopo login e migliorato gestione modalità offline
+
+[33mcommit 966d9065a89ea71b1ce667d25756b9205b2a3465[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 31 00:17:20 2025 +0200
+
+    Migliorato sistema di autenticazione con verifica delle credenziali in modalità offline
+
+[33mcommit a58c18efc95dca2259fc7588bffe09136eb21a73[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 20:23:03 2025 +0100
+
+    Fix sistema autenticazione: migliorato UX campi password e corretto problema loop reindirizzamento
+
+[33mcommit 6a1965e78e24e09edcfe44e253a9800c2cd28738[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 14:06:55 2025 +0100
+
+    Fix errori autenticazione 405: implementata modalità offline automatica
+
+[33mcommit 4f5468fa5644b32dd7c0418a952dab9e5df6aef6[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 13:49:04 2025 +0100
+
+    Migliorata gestione autenticazione e persistenza dati utente
+
+[33mcommit 68bcb8be7f532c2bdd39312a897d426b8aa702fe[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 13:37:59 2025 +0100
+
+    Rimossi indicatore forza password e funzionalità di reset account
+
+[33mcommit a060840547a5e0c900201e8a5283629b8715df0c[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 13:14:45 2025 +0100
+
+    Migliorata gestione degli errori nel form di autenticazione con messaggi specifici e indicatore forza password
+
+[33mcommit cb8d293a475ae34834ff54218f6381e110d5a440[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 12:17:44 2025 +0100
+
+    Fix: Aggiunto index.css e corretto percorso di importazione
+
+[33mcommit 647b3b2942069d6d885166e1d800504c907b4a33[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 12:10:56 2025 +0100
+
+    Rimozione completa supporto multilingua e riprogettazione della pagina di autenticazione solo in italiano
+
+[33mcommit 1376e04fe691307df5a342318ad82a5ec2915d1c[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 11:57:32 2025 +0100
+
+    Riprogettazione completa della pagina di autenticazione con stile professionale per app medicale
+
+[33mcommit 4d132b1c95831a17116c2ad3824c975fc58f039e[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 11:36:16 2025 +0100
+
+    Fix errore navigazione nella pagina Auth con gestione sicura degli hook
+
+[33mcommit fff6a988d8511b35be07f9e0700283f03125e3b9[m
+Author: Utente Salus <user@example.com>
+Date:   Sat Mar 29 11:25:54 2025 +0100
+
+    Aggiunto pattern SVG dinamico con import React e useEffect per risolvere errore build
+
+[33mcommit 9d04f5114f454d96dba4ed6bf66cfd845a1facb0[m
+Author: Utente Salus <user@example.com>
+Date:   Fri Mar 28 18:19:05 2025 +0100
+
+    Sposto pattern.svg nella directory public e aggiorno i percorsi nel CSS
+
+[33mcommit 819e93aa16bb6e5f2b94e00cbbaa347403e5347a[m
+Author: Utente Salus <user@example.com>
+Date:   Fri Mar 28 15:12:27 2025 +0100
+
+    Correggo i percorsi del pattern.svg nel CSS
+
+[33mcommit 68087c56e501b03a22b1feaf69af43e8cec82b50[m
+Author: Utente Salus <user@example.com>
+Date:   Fri Mar 28 14:44:43 2025 +0100
+
+    Correggo il percorso di importazione del pattern.svg
+
+[33mcommit 8f4727a297cb6866b7c927b9e3fa2a5d360d33b5[m
+Author: Utente Salus <user@example.com>
+Date:   Fri Mar 28 14:32:16 2025 +0100
+
+    Fix: esportata variabile apiUrl per l'utilizzo nei componenti
+
+[33mcommit 90868bd0b1510b163506b47b9b8750b34628987b[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Mar 27 15:58:19 2025 +0100
+
+    Fix percorso importazione index.css
+
+[33mcommit d068f4d679c136a08b50c5a66deaca9723f061b9[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Mar 27 12:09:22 2025 +0100
+
+    Aggiunto UserContext per gestire i dati utente in tutta l'app
+
+[33mcommit bfb5b660a3e97c771d585a85caee29a02f767967[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Mar 27 11:57:29 2025 +0100
+
+    Riprogettazione completa UI/UX pagina di login con stile moderno e professionale
+
+[33mcommit 5c04242dd10f57e80e388a94fde4f2c08556523c[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Mar 27 11:46:16 2025 +0100
+
+    Fix build: spostata funzione changeLanguage direttamente in Auth.js
+
+[33mcommit 8ab2a31914f1c2335c712fa36940e706ecc4aae7[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Mar 27 11:36:19 2025 +0100
+
+    Fix: correzione esportazione funzione changeLanguage in i18n/index.js
+
+[33mcommit 3877e3968dc6bbd0cf11d0533056bd9bd68b8c6e[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Mar 27 11:26:36 2025 +0100
+
+    Fix: rimozione di Font Awesome e sostituzione con emoji per risolvere errore di build su Vercel
+
+[33mcommit 4961a2edfaae8159001a54bfb8eadc0bbb61a7a6[m
+Author: Utente Salus <user@example.com>
+Date:   Thu Mar 27 11:17:40 2025 +0100
+
+    Ricostruita login e registrazione con supporto multilingua, UI/UX migliorati e persistenza della lingua
+
+[33mcommit 96ddecdb8b6f01c52970f0a76f541d80b3231d4c[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Mar 26 11:20:28 2025 +0100
+
+    Fix: integrato Dashboard nell'app e aggiunto supporto per il tema
+
+[33mcommit d9e7f94750e0c6f6fe22c2b4b9381eb473beddbf[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Mar 26 11:02:45 2025 +0100
+
+    Fix: aggiornati file di traduzione e stili della dashboard
+
+[33mcommit 213700c44d0b80bbb51afbefe8202fd28d1f4521[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Mar 26 10:38:54 2025 +0100
+
+    Miglioramenti UI/UX: rimossi dati di esempio, aggiunti stati vuoti e traduzioni per la dashboard
+
+[33mcommit a92be8255a5bb574cdf22e3a3eef76942d553f30[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Mar 26 10:08:34 2025 +0100
+
+    Fix: corretto il sistema di chat con l'AI Assistant
+
+[33mcommit 710f2e5b39711d6c98d2bac48201455aaba8369b[m
+Author: Utente Salus <user@example.com>
+Date:   Wed Mar 26 09:56:13 2025 +0100
+
+    Fix: corretto l'accesso alle traduzioni nel componente Auth
+
+[33mcommit addd2270c99d2ad08f81c76bc46179406b4149ef[m
+Author: Utente Salus <user@example.com>
+Date:   Tue Mar 25 14:44:33 2025 +0100
+
+    Migliorato il supporto multilingua: aggiunto hindi e persistenza della lingua durante login/registrazione
+
+[33mcommit 656b00739824504870cb1b21b4db252e8a362fe2[m
+Author: Utente Salus <user@example.com>
+Date:   Tue Mar 25 14:28:35 2025 +0100
+
+    Implementato sistema di persistenza della lingua selezionata
+
+[33mcommit ebc9b058307c5c2a7728d250ab076599d2eb217b[m
+Author: Utente Salus <user@example.com>
+Date:   Tue Mar 25 14:18:07 2025 +0100
+
+    Implementata integrazione reale con OpenAI per l'AI Assistant
+
+[33mcommit 45ef0a97a1c1f09cf60946f3de94397111a50efd[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 19:47:41 2025 +0100
+
+    Implementato sistema di invio email per feedback utenti
+
+[33mcommit a432a2013179ae15ae99594fc67a93ac892c989d[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 19:33:28 2025 +0100
+
+    Completato sistema di autenticazione con gestione errori e miglioramenti CSS
+
+[33mcommit 002b43cf7ae988772fcc1ce86c15f133ddad7f4d[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 19:15:11 2025 +0100
+
+    Fix autenticazione: corretti problemi con login e registrazione, migliorati messaggi di errore
+
+[33mcommit c97c05a4738b6794db17916113c08341a988774b[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 18:48:54 2025 +0100
+
+    Implementato sistema di login e registrazione evoluto con supporto multilingua (italiano, inglese, hindi)
+
+[33mcommit 6445cd94b11044ed4e616c113120a4d461ae30fa[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 17:14:03 2025 +0100
+
+    Aggiunta funzionalità di cambio lingua (inglese e indiano) nella sezione profilo
+
+[33mcommit eb7c8cd490bc35031a0d732657d29e6260d45e37[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 16:44:45 2025 +0100
+
+    Aggiunto widget di feedback non invasivo per la raccolta delle opinioni degli utenti
+
+[33mcommit 92d4b5d61fb77bc362fcc3d811d99924b630c738[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 16:20:05 2025 +0100
+
+    Risolto problema AIAssistant: implementata integrazione diretta senza richiedere API key all'utente
+
+[33mcommit 217430f2361549bd826eaef70d868e2d6d289f99[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 15:06:59 2025 +0100
+
+    Soluzione login: ricreato Auth.js e Auth.css con processi di login e registrazione corretti
+
+[33mcommit 5069620be8acbedc0d76d7762fad7b579633679c[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 14:51:14 2025 +0100
+
+    Soluzione encoding: ricreato CSS di Profile senza sintassi problematiche
+
+[33mcommit 93dea3880c4404627dea10904a284abcfca7912a[m
+Author: Utente Salus <user@example.com>
+Date:   Mon Mar 24 13:55:29 2025 +0100
+
+    Soluzione encoding: ricreato completamente Profile.js senza BOM o caratteri speciali

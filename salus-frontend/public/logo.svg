@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sfondo circolare primario -->
+  <circle cx="100" cy="100" r="90" fill="#1976d2" />
+  
+  <!-- Cerchio interno per un effetto sofisticato -->
+  <circle cx="100" cy="100" r="80" fill="#2196f3" />
+  
+  <!-- Simbolo della salute: croce e cuore stilizzati -->
+  <g fill="#ffffff">
+    <!-- Cuore stilizzato -->
+    <path d="M100,140 C85,120 55,100 55,80 C55,65 65,55 80,55 C90,55 95,65 100,70 C105,65 110,55 120,55 C135,55 145,65 145,80 C145,100 115,120 100,140 Z" />
+    
+    <!-- Linea centrale (battito cardiaco) -->
+    <path d="M40,100 L70,100 L80,80 L90,120 L110,80 L120,120 L130,100 L160,100" stroke="white" stroke-width="6" fill="none" />
+  </g>
+  
+  <!-- Anello esterno per dare profondità -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#0d47a1" stroke-width="4" />
+</svg> 
