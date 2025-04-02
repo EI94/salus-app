@@ -91,36 +91,43 @@ const getMockResponse = (url, method, data) => {
     setTimeout(() => {
       // Possiamo definire mock data per diversi endpoint
       if (url.includes('/auth/login')) {
-        // Verifichiamo se le credenziali sono quelle consentite per la demo
-        if ((data?.email === 'admin@salus.com' && data?.password === 'password123') || 
-            (data?.email === 'test@example.com' && data?.password === 'test1234')) {
+        // In modalità offline, accettiamo qualsiasi credenziale valida
+        // Verifichiamo solo che email e password siano presenti
+        if (data?.email && data?.password) {
           resolve({
             data: {
-              token: 'mock-jwt-token-for-demo-purposes',
+              token: 'mock-jwt-token-for-demo-purposes-' + Math.random().toString(36).substring(2, 15),
               user: {
-                id: 'demo-user-123',
-                email: data?.email,
-                name: data?.email === 'admin@salus.com' ? 'Admin Demo' : 'Test User'
+                id: 'user-' + Math.random().toString(36).substring(2, 9),
+                email: data.email,
+                name: data.email.split('@')[0]
               }
             }
           });
         } else {
-          // Credenziali non valide
-          const error = new Error('Email o password non valide');
-          error.response = { status: 401, data: { message: 'Email o password non valide' } };
+          // Credenziali mancanti
+          const error = new Error('Email o password mancanti');
+          error.response = { status: 401, data: { message: 'Email o password mancanti' } };
           throw error;
         }
       } else if (url.includes('/auth/register')) {
-        resolve({
-          data: {
-            token: 'mock-jwt-token-for-demo-purposes',
-            user: {
-              id: 'new-user-' + Math.random().toString(36).substring(2, 9),
-              email: data?.email || 'nuovo@utente.com',
-              name: data?.name || 'Nuovo Utente'
+        // Permettiamo la registrazione con qualsiasi email e password
+        if (data?.email && data?.password) {
+          resolve({
+            data: {
+              token: 'mock-jwt-token-for-demo-purposes-' + Math.random().toString(36).substring(2, 15),
+              user: {
+                id: 'new-user-' + Math.random().toString(36).substring(2, 9),
+                email: data?.email,
+                name: data?.name || data.email.split('@')[0]
+              }
             }
-          }
-        });
+          });
+        } else {
+          const error = new Error('Dati di registrazione incompleti');
+          error.response = { status: 400, data: { message: 'Email e password sono obbligatorie' } };
+          throw error;
+        }
       } else if (url.includes('/symptoms')) {
         resolve({
           data: [] // Array vuoto invece di dati di esempio

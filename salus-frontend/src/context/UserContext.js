@@ -14,13 +14,6 @@ export const UserProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   
-  // Lista di utenti autorizzati per test
-  const authorizedUsers = [
-    { email: "admin@salus.com", password: "password123" },
-    { email: "test@example.com", password: "test1234" }
-    // Puoi aggiungere altri utenti autorizzati per test
-  ];
-
   // Carica i dati utente dal localStorage al mount del componente
   useEffect(() => {
     const loadUser = () => {
@@ -127,69 +120,71 @@ export const UserProvider = ({ children }) => {
   
   // Simula un login in modalità offline
   const simulatedLogin = async (email, password, rememberMe = true) => {
-    // Lista di utenti autorizzati per il login simulato
-    const authorizedUsers = [
-      { email: 'admin@salus.com', password: 'password123' },
-      { email: 'test@example.com', password: 'test1234' }
-    ];
-    
-    // Verifica credenziali
-    const matchedUser = authorizedUsers.find(
-      user => user.email === email && user.password === password
-    );
-    
-    if (!matchedUser) {
-      console.log('Login simulato: credenziali non valide');
-      return { 
-        success: false, 
-        error: 'Email o password non valide' 
-      };
+    try {
+      // Usa l'API simulata invece della lista di utenti autorizzati
+      const response = await axios.post(`${apiUrl}/api/auth/login`, {
+        email,
+        password
+      });
+      
+      if (response.data && response.data.token) {
+        const { token, user: userData } = response.data;
+        
+        // Salva token a seconda della scelta "remember me"
+        if (rememberMe) {
+          localStorage.setItem('token', token);
+        } else {
+          sessionStorage.setItem('token', token);
+        }
+        
+        // Salva i dati utente nel localStorage
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        
+        // Aggiorna lo stato
+        setUser(userData);
+        
+        console.log('Login simulato completato con successo');
+        return { success: true };
+      } else {
+        return { success: false, error: 'Errore durante il login' };
+      }
+    } catch (error) {
+      console.log('Errore login simulato:', error.message);
+      return { success: false, error: error.response?.data?.message || 'Email o password non valide' };
     }
-    
-    // Crea un token fittizio per simulazione
-    const token = 'simulated-jwt-token-' + Math.random().toString(36).substring(2, 15);
-    
-    // Crea dati utente di esempio
-    const userData = {
-      id: 'user-' + Math.random().toString(36).substring(2, 9),
-      email: email,
-      name: email.split('@')[0],
-      role: email.includes('admin') ? 'admin' : 'user'
-    };
-    
-    // Salva token a seconda della scelta "remember me"
-    if (rememberMe) {
-      localStorage.setItem('token', token);
-    } else {
-      sessionStorage.setItem('token', token);
-    }
-    
-    // Salva i dati utente nel localStorage
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    
-    // Aggiorna lo stato
-    setUser(userData);
-    
-    console.log('Login simulato completato con successo');
-    
-    // Non reindirizzo più qui - lasciamo che sia il routing di React a gestire questo
-    return { success: true };
   };
   
   // Funzione per la registrazione
-  const register = async (email, password) => {
+  const register = async (email, password, name = '') => {
     try {
       if (isInOfflineMode()) {
         console.log("Usando registrazione simulata per modalità offline/sviluppo");
-        // Aggiungi alla lista di utenti autorizzati
-        authorizedUsers.push({ email, password });
-        return await simulatedLogin(email, password);
+        
+        // Usiamo l'API simulata per la registrazione
+        const response = await axios.post(`${apiUrl}/api/auth/register`, {
+          email,
+          password,
+          name
+        });
+        
+        if (response.data && response.data.token) {
+          const { token, user: userData } = response.data;
+          
+          localStorage.setItem('token', token);
+          localStorage.setItem('currentUser', JSON.stringify(userData));
+          setUser(userData);
+          
+          return { success: true };
+        } else {
+          return { success: false, error: 'Errore durante la registrazione' };
+        }
       }
       
       // Tentativo di registrazione con il server reale
       const response = await axios.post(`${apiUrl}/api/auth/register`, {
         email,
-        password
+        password,
+        name
       });
       
       if (response.data && response.data.token) {
@@ -213,9 +208,8 @@ export const UserProvider = ({ children }) => {
         // Attiva modalità offline automaticamente
         toggleOfflineMode(true);
         
-        // Aggiungi utente alla lista autorizzati e completa registrazione simulata
-        authorizedUsers.push({ email, password });
-        return await simulatedLogin(email, password);
+        // Prova di nuovo con la registrazione simulata
+        return await register(email, password, name);
       }
       
       return { 

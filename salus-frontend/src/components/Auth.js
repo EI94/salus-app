@@ -212,47 +212,17 @@ const Auth = () => {
     setAuthError(null);
     
     try {
-      const response = await fetch(`${apiUrl}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          language
-        }),
-      });
+      // Utilizziamo il metodo register dal context utente
+      const response = await userContext.register(email, password, name);
       
-      const data = await response.json();
-      
-      if (response.ok) {
+      if (response.success) {
         setRegistrationSuccess(true);
         setMessage({
           type: 'success',
           text: t('registrationSuccess')
         });
-        
-        // Salviamo il token ricevuto
-        if (data.token) {
-          if (rememberMe) {
-            localStorage.setItem('token', data.token);
-          } else {
-            sessionStorage.setItem('token', data.token);
-          }
-          
-          // Salviamo i dati utente ricevuti
-          if (data.user) {
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            
-            // Aggiorniamo il contesto utente
-            // Questo non è necessario se l'utente deve verificare l'email prima
-            // userContext.updateUserData(data.user);
-          }
-        }
       } else {
-        setAuthError(new Error(data.message || t('registrationError')));
+        setAuthError(new Error(response.error || t('registrationError')));
       }
     } catch (error) {
       setAuthError(error);
@@ -368,12 +338,6 @@ const Auth = () => {
   // Form di login
   const renderLoginForm = () => (
     <form onSubmit={handleLogin} className="auth-form">
-      {/* Credenziali di test per modalità demo */}
-      <div className="demo-credentials">
-        <p>Credenziali di test:</p>
-        <code>admin@salus.com / password123</code>
-      </div>
-
       <div className="form-group">
         <label htmlFor="email">{t('email')}</label>
         <div className="input-field">
