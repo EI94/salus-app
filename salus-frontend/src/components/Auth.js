@@ -119,19 +119,23 @@ const Auth = () => {
   const [errors, setErrors] = useState({});
   const [authInProgress, setAuthInProgress] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [verificationEmailSent, setVerificationEmailSent] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   
   // Stati per il form
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true); // Default a true per migliore UX
+  const [name, setName] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  
-  // Controllo token esistente al caricamento
+
+  // Componente Auth caricato
   useEffect(() => {
     console.log("Componente Auth caricato");
-    // La verifica di autenticazione ora è gestita dal PublicRoute
     return () => {};
   }, [userContext]);
 
@@ -141,24 +145,28 @@ const Auth = () => {
     
     // Validazione email
     if (!email) {
-      newErrors.email = 'L\'email è obbligatoria';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Inserisci un indirizzo email valido';
+      newErrors.email = t('emailRequired');
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
+      newErrors.email = t('invalidEmail');
     }
     
     // Validazione password
     if (!password) {
-      newErrors.password = 'La password è obbligatoria';
-    } else if (password.length < 6) {
-      newErrors.password = 'La password deve contenere almeno 6 caratteri';
+      newErrors.password = t('passwordRequired');
+    } else if (!isLogin && password.length < 8) {
+      newErrors.password = t('passwordMinLength');
     }
     
-    // Validazione conferma password (solo per registrazione)
+    // Validazione aggiuntiva per registrazione
     if (!isLogin) {
+      if (!name) {
+        newErrors.name = t('nameRequired');
+      }
+      
       if (!confirmPassword) {
-        newErrors.confirmPassword = 'Conferma la tua password';
-      } else if (password !== confirmPassword) {
-        newErrors.confirmPassword = 'Le password non corrispondono';
+        newErrors.confirmPassword = t('confirmPasswordRequired');
+      } else if (confirmPassword !== password) {
+        newErrors.confirmPassword = t('passwordsDoNotMatch');
       }
     }
     
@@ -166,155 +174,48 @@ const Auth = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Gestione invio form
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (authInProgress) {
-      console.log('Autenticazione già in corso, ignoro invio form');
-      return;
-    }
-    
-    if (!validateForm()) return;
-    
-    setLoading(true);
-    setMessage({ type: '', text: '' });
-    setAuthInProgress(true);
-    
-    try {
-      let result;
-      
-      if (isLogin) {
-        // Login tramite context
-        if (userContext && userContext.login) {
-          console.log('Tentativo login tramite UserContext');
-          result = await userContext.login(email, password, rememberMe);
-        } else {
-          console.log('UserContext non disponibile, fallback a chiamata diretta');
-          // Fallback se il context non è disponibile
-          const response = await axios.post(`${apiUrl}/api/auth/login`, {
-            email,
-            password
-          });
-          
-          const { token, user } = response.data;
-          
-          // Salva token e dati utente
-          if (rememberMe) {
-            localStorage.setItem('token', token);
-          } else {
-            sessionStorage.setItem('token', token);
-          }
-          
-          // Salva i dati utente nel localStorage per persistenza
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          
-          result = { success: true };
-        }
-      } else {
-        // Registrazione tramite context
-        if (userContext && userContext.register) {
-          console.log('Tentativo registrazione tramite UserContext');
-          result = await userContext.register(email, password);
-        } else {
-          console.log('UserContext non disponibile, fallback a chiamata diretta');
-          // Fallback se il context non è disponibile
-          const response = await axios.post(`${apiUrl}/api/auth/register`, {
-            email,
-            password
-          });
-          
-          const { token, user } = response.data;
-          
-          // Salva token e dati utente
-          localStorage.setItem('token', token);
-          
-          // Salva i dati utente nel localStorage per persistenza
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          
-          result = { success: true };
-        }
-      }
-      
-      if (result && result.success) {
-        console.log('Autenticazione completata con successo');
-        
-        setMessage({
-          type: 'success',
-          text: isLogin ? 'Accesso effettuato con successo!' : 'Registrazione completata con successo!'
-        });
-        
-        // Reindirizza direttamente se l'utente è autenticato
-        navigate('/dashboard', { replace: true });
-      } else if (result && result.error) {
-        throw new Error(result.error);
-      }
-      
-    } catch (error) {
-      console.error('Auth error:', error);
-      
-      // Ottieni un messaggio di errore user-friendly
-      const errorMessage = getErrorMessage(error);
-      
-      // Solo se abbiamo un messaggio di errore lo mostriamo all'utente
-      if (errorMessage) {
-        setMessage({
-          type: 'error',
-          text: errorMessage
-        });
-      }
-      
-      // Gestione speciale per alcuni errori
-      if (error.response?.status === 401) {
-        setErrors({ password: 'Password errata' });
-      } else if (error.response?.status === 404) {
-        setErrors({ email: 'Email non trovata' });
-      } else if (error.response?.status === 409) {
-        setErrors({ email: 'Email già registrata' });
-        // Suggerisci di effettuare il login
-        setMessage({
-          type: 'error',
-          text: 'Questo indirizzo email è già registrato. Vuoi accedere?'
-        });
-        // Aggiungi un pulsante di switch al login
-        setTimeout(() => {
-          if (!isLogin) setIsLogin(true);
-        }, 2000);
-      }
-      
-    } finally {
-      setLoading(false);
-      setAuthInProgress(false);
-    }
+  // Gestione cambio lingua
+  const handleLanguageChange = (e) => {
+    const selectedLanguage = e.target.value;
+    setLanguage(selectedLanguage);
+    i18n.changeLanguage(selectedLanguage);
+    localStorage.setItem('userLanguage', selectedLanguage);
   };
 
-  // Login con Google
-  const handleGoogleLogin = () => {
-    alert('Funzionalità in fase di sviluppo');
-  };
-
-  // Toggle tra login e registrazione
-  const toggleAuthMode = () => {
+  // Cambio tra login e registrazione
+  const toggleForm = () => {
     setIsLogin(!isLogin);
-    setMessage({ type: '', text: '' });
     setErrors({});
+    setAuthError(null);
+    setShowForgotPassword(false);
+    setResetEmailSent(false);
+    setVerificationEmailSent(false);
+    setRegistrationSuccess(false);
   };
 
   // Gestione login
-  const onSubmit = async (data) => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    
     setIsSubmitting(true);
     setAuthError(null);
     
     try {
       console.log('Tentativo login tramite UserContext');
-      const response = await userContext.login(data.email, data.password, data.rememberMe);
+      const response = await userContext.login(email, password, rememberMe);
       
       if (response.success) {
         console.log('Autenticazione completata con successo');
-        // Il reindirizzamento alla dashboard è ora gestito dal router e dal PublicRoute
-        // Non facciamo nulla qui, sarà React Router a gestire il reindirizzamento
+        // Il reindirizzamento alla dashboard è gestito dal router
+      } else if (response.needsVerification) {
+        setMessage({
+          type: 'warning',
+          text: t('emailNotVerified')
+        });
+        setVerificationEmailSent(false);
       } else {
-        const errorMessage = response.error || 'Errore durante il login';
+        const errorMessage = response.error || t('loginError');
         setAuthError(new Error(errorMessage));
         console.log('Auth error:', new Error(errorMessage));
       }
@@ -326,176 +227,599 @@ const Auth = () => {
     }
   };
 
+  // Gestione registrazione
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    
+    setIsSubmitting(true);
+    setAuthError(null);
+    
+    try {
+      const response = await fetch(`${apiUrl}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          language
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setRegistrationSuccess(true);
+        setMessage({
+          type: 'success',
+          text: t('registrationSuccess')
+        });
+        
+        // Salviamo il token ricevuto
+        if (data.token) {
+          if (rememberMe) {
+            localStorage.setItem('token', data.token);
+          } else {
+            sessionStorage.setItem('token', data.token);
+          }
+          
+          // Salviamo i dati utente ricevuti
+          if (data.user) {
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
+            
+            // Aggiorniamo il contesto utente
+            // Questo non è necessario se l'utente deve verificare l'email prima
+            // userContext.updateUserData(data.user);
+          }
+        }
+      } else {
+        setAuthError(new Error(data.message || t('registrationError')));
+      }
+    } catch (error) {
+      setAuthError(error);
+      console.log('Registration error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Gestione richiesta reset password
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    
+    // Validazione email
+    if (!email) {
+      setErrors({ email: t('emailRequired') });
+      return;
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
+      setErrors({ email: t('invalidEmail') });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setAuthError(null);
+    
+    try {
+      const response = await fetch(`${apiUrl}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setResetEmailSent(true);
+        setMessage({
+          type: 'success',
+          text: t('resetEmailSent')
+        });
+      } else {
+        setAuthError(new Error(data.message || t('resetRequestError')));
+      }
+    } catch (error) {
+      setAuthError(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Gestione richiesta nuovo link di verifica
+  const handleResendVerification = async (e) => {
+    e.preventDefault();
+    
+    // Validazione email
+    if (!email) {
+      setErrors({ email: t('emailRequired') });
+      return;
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
+      setErrors({ email: t('invalidEmail') });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setAuthError(null);
+    
+    try {
+      const response = await fetch(`${apiUrl}/api/auth/resend-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setVerificationEmailSent(true);
+        setMessage({
+          type: 'success',
+          text: t('verificationEmailSent')
+        });
+      } else {
+        setAuthError(new Error(data.message || t('verificationRequestError')));
+      }
+    } catch (error) {
+      setAuthError(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Rendering del form specifico in base allo stato
+  const renderForm = () => {
+    if (showForgotPassword) {
+      return renderForgotPasswordForm();
+    } else if (verificationEmailSent) {
+      return renderVerificationSentMessage();
+    } else if (resetEmailSent) {
+      return renderResetEmailSentMessage();
+    } else if (registrationSuccess) {
+      return renderRegistrationSuccessMessage();
+    } else if (isLogin) {
+      return renderLoginForm();
+    } else {
+      return renderRegisterForm();
+    }
+  };
+
+  // Form di login
+  const renderLoginForm = () => (
+    <form onSubmit={handleLogin} className="auth-form">
+      <div className="form-group">
+        <label htmlFor="email">{t('email')}</label>
+        <div className="input-with-icon">
+          <i className="fas fa-envelope"></i>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={errors.email ? 'error' : ''}
+            placeholder={t('enterEmail')}
+          />
+        </div>
+        {errors.email && <div className="error-message">{errors.email}</div>}
+      </div>
+      
+      <div className="form-group">
+        <label htmlFor="password">{t('password')}</label>
+        <div className="input-with-icon">
+          <i className="fas fa-lock"></i>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={errors.password ? 'error' : ''}
+            placeholder={t('enterPassword')}
+          />
+          <button
+            type="button"
+            className="toggle-password"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            <i className={`fas fa-${showPassword ? 'eye-slash' : 'eye'}`}></i>
+          </button>
+        </div>
+        {errors.password && <div className="error-message">{errors.password}</div>}
+      </div>
+      
+      <div className="form-group form-inline">
+        <div className="checkbox-container">
+          <input
+            type="checkbox"
+            id="rememberMe"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          <label htmlFor="rememberMe" className="checkbox-label">{t('rememberMe')}</label>
+        </div>
+        
+        <button
+          type="button"
+          className="forgot-password-link"
+          onClick={() => {
+            setShowForgotPassword(true);
+            setAuthError(null);
+          }}
+        >
+          {t('forgotPassword')}
+        </button>
+      </div>
+      
+      {authError && (
+        <div className="error-box">
+          <i className="fas fa-exclamation-circle"></i>
+          <p>
+            {authError.message === 'Email o password non valide' 
+              ? t('invalidCredentials') 
+              : authError.message}
+          </p>
+          {authError.message.includes('Email non verificata') && (
+            <button
+              type="button"
+              className="resend-verification-link"
+              onClick={handleResendVerification}
+            >
+              {t('resendVerificationEmail')}
+            </button>
+          )}
+        </div>
+      )}
+      
+      <button
+        type="submit"
+        className="auth-button"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <span><i className="fas fa-spinner fa-spin"></i> {t('loggingIn')}</span>
+        ) : (
+          t('login')
+        )}
+      </button>
+      
+      <div className="auth-footer">
+        <p>{t('noAccount')}</p>
+        <button
+          type="button"
+          className="auth-toggle-button"
+          onClick={toggleForm}
+        >
+          {t('createAccount')}
+        </button>
+      </div>
+    </form>
+  );
+
+  // Form di registrazione
+  const renderRegisterForm = () => (
+    <form onSubmit={handleRegister} className="auth-form">
+      <div className="form-group">
+        <label htmlFor="name">{t('name')}</label>
+        <div className="input-with-icon">
+          <i className="fas fa-user"></i>
+          <input
+            type="text"
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={errors.name ? 'error' : ''}
+            placeholder={t('enterName')}
+          />
+        </div>
+        {errors.name && <div className="error-message">{errors.name}</div>}
+      </div>
+      
+      <div className="form-group">
+        <label htmlFor="email">{t('email')}</label>
+        <div className="input-with-icon">
+          <i className="fas fa-envelope"></i>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={errors.email ? 'error' : ''}
+            placeholder={t('enterEmail')}
+          />
+        </div>
+        {errors.email && <div className="error-message">{errors.email}</div>}
+      </div>
+      
+      <div className="form-group">
+        <label htmlFor="password">{t('password')}</label>
+        <div className="input-with-icon">
+          <i className="fas fa-lock"></i>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={errors.password ? 'error' : ''}
+            placeholder={t('enterPassword')}
+          />
+          <button
+            type="button"
+            className="toggle-password"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            <i className={`fas fa-${showPassword ? 'eye-slash' : 'eye'}`}></i>
+          </button>
+        </div>
+        {errors.password && <div className="error-message">{errors.password}</div>}
+      </div>
+      
+      <div className="form-group">
+        <label htmlFor="confirmPassword">{t('confirmPassword')}</label>
+        <div className="input-with-icon">
+          <i className="fas fa-lock"></i>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            id="confirmPassword"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className={errors.confirmPassword ? 'error' : ''}
+            placeholder={t('confirmPassword')}
+          />
+        </div>
+        {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
+      </div>
+      
+      <div className="form-group">
+        <label htmlFor="language">{t('language')}</label>
+        <div className="input-with-icon">
+          <i className="fas fa-globe"></i>
+          <select
+            id="language"
+            value={language}
+            onChange={handleLanguageChange}
+          >
+            <option value="italian">Italiano</option>
+            <option value="english">English</option>
+            <option value="spanish">Español</option>
+            <option value="french">Français</option>
+            <option value="german">Deutsch</option>
+          </select>
+        </div>
+      </div>
+      
+      {authError && (
+        <div className="error-box">
+          <i className="fas fa-exclamation-circle"></i>
+          <p>{authError.message}</p>
+        </div>
+      )}
+      
+      <button
+        type="submit"
+        className="auth-button"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <span><i className="fas fa-spinner fa-spin"></i> {t('registering')}</span>
+        ) : (
+          t('register')
+        )}
+      </button>
+      
+      <div className="auth-footer">
+        <p>{t('alreadyAccount')}</p>
+        <button
+          type="button"
+          className="auth-toggle-button"
+          onClick={toggleForm}
+        >
+          {t('login')}
+        </button>
+      </div>
+    </form>
+  );
+
+  // Form di recupero password
+  const renderForgotPasswordForm = () => (
+    <div className="auth-form">
+      <div className="auth-form-header">
+        <h2>{t('forgotPassword')}</h2>
+        <p>{t('forgotPasswordInstructions')}</p>
+      </div>
+      
+      <form onSubmit={handleForgotPassword}>
+        <div className="form-group">
+          <label htmlFor="email">{t('email')}</label>
+          <div className="input-with-icon">
+            <i className="fas fa-envelope"></i>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={errors.email ? 'error' : ''}
+              placeholder={t('enterEmail')}
+            />
+          </div>
+          {errors.email && <div className="error-message">{errors.email}</div>}
+        </div>
+        
+        {authError && (
+          <div className="error-box">
+            <i className="fas fa-exclamation-circle"></i>
+            <p>{authError.message}</p>
+          </div>
+        )}
+        
+        <button
+          type="submit"
+          className="auth-button"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <span><i className="fas fa-spinner fa-spin"></i> {t('sending')}</span>
+          ) : (
+            t('sendResetLink')
+          )}
+        </button>
+        
+        <div className="auth-footer">
+          <button
+            type="button"
+            className="back-to-login-link"
+            onClick={() => {
+              setShowForgotPassword(false);
+              setAuthError(null);
+            }}
+          >
+            <i className="fas fa-arrow-left"></i> {t('backToLogin')}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+
+  // Messaggio di email inviata per recupero password
+  const renderResetEmailSentMessage = () => (
+    <div className="auth-form">
+      <div className="success-message">
+        <i className="fas fa-check-circle"></i>
+        <h2>{t('resetLinkSent')}</h2>
+        <p>{t('resetLinkInstructions')}</p>
+        <button
+          type="button"
+          className="auth-button"
+          onClick={() => {
+            setShowForgotPassword(false);
+            setResetEmailSent(false);
+            setAuthError(null);
+          }}
+        >
+          {t('backToLogin')}
+        </button>
+      </div>
+    </div>
+  );
+
+  // Messaggio di email di verifica inviata
+  const renderVerificationSentMessage = () => (
+    <div className="auth-form">
+      <div className="success-message">
+        <i className="fas fa-check-circle"></i>
+        <h2>{t('verificationLinkSent')}</h2>
+        <p>{t('verificationLinkInstructions')}</p>
+        <button
+          type="button"
+          className="auth-button"
+          onClick={() => {
+            setVerificationEmailSent(false);
+            setAuthError(null);
+          }}
+        >
+          {t('backToLogin')}
+        </button>
+      </div>
+    </div>
+  );
+
+  // Messaggio di registrazione completata
+  const renderRegistrationSuccessMessage = () => (
+    <div className="auth-form">
+      <div className="success-message">
+        <i className="fas fa-check-circle"></i>
+        <h2>{t('registrationSuccess')}</h2>
+        <p>{t('registrationSuccessInstructions')}</p>
+        <button
+          type="button"
+          className="auth-button"
+          onClick={() => {
+            setIsLogin(true);
+            setRegistrationSuccess(false);
+          }}
+        >
+          {t('continueToLogin')}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="auth-container">
-      <div className="auth-card">
-        {/* Sezione sinistra - Brand e features */}
+      <div className="auth-left">
         <div className="auth-brand">
-          <div className="brand-header">
-            <div className="brand-logo">
-              <img src="/logo.svg" alt="Salus Logo" />
-              <h1>Salus</h1>
+          <img src="/assets/images/logo.svg" alt="Salus" className="auth-logo" />
+          <h1>Salus</h1>
+        </div>
+        
+        <div className="auth-features">
+          <h2>{t('appFeatures')}</h2>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
+              <i className="fas fa-heartbeat"></i>
             </div>
-            
-            <p className="brand-description">
-              La piattaforma che rivoluziona il modo di prendersi cura di sé, con strumenti avanzati per monitorare la tua salute in modo semplice ed efficace.
-            </p>
+            <div className="feature-text">
+              <h3>{t('symptomTracking')}</h3>
+              <p>{t('symptomTrackingDesc')}</p>
+            </div>
           </div>
           
-          <div className="brand-features">
-            <h2>Funzionalità principali</h2>
-            
-            <div className="features-grid">
-              <div className="feature-item">
-                <div className="feature-title">
-                  <HeartPulseIcon />
-                  <span>Traccia i tuoi sintomi</span>
-                </div>
-                <p className="feature-description">Monitora facilmente i tuoi sintomi nel tempo e ottieni analisi dettagliate sul tuo stato di salute.</p>
-              </div>
-              
-              <div className="feature-item">
-                <div className="feature-title">
-                  <MedicationIcon />
-                  <span>Gestisci i farmaci</span>
-                </div>
-                <p className="feature-description">Tieni traccia dei tuoi farmaci, inclusi dosaggi e orari di assunzione, con promemoria intelligenti.</p>
-              </div>
-              
-              <div className="feature-item">
-                <div className="feature-title">
-                  <AIIcon />
-                  <span>Analisi intelligente</span>
-                </div>
-                <p className="feature-description">Algoritmi avanzati che analizzano i tuoi dati per fornirti informazioni personalizzate e utili.</p>
-              </div>
+          <div className="feature-item">
+            <div className="feature-icon">
+              <i className="fas fa-pills"></i>
+            </div>
+            <div className="feature-text">
+              <h3>{t('medicationManagement')}</h3>
+              <p>{t('medicationManagementDesc')}</p>
+            </div>
+          </div>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
+              <i className="fas fa-brain"></i>
+            </div>
+            <div className="feature-text">
+              <h3>{t('aiAssistant')}</h3>
+              <p>{t('aiAssistantDesc')}</p>
             </div>
           </div>
         </div>
         
-        {/* Sezione destra - Form di autenticazione */}
-        <div className="auth-form-section">
+        <div className="language-selector">
+          <label htmlFor="language-select">{t('language')}: </label>
+          <select 
+            id="language-select" 
+            value={language} 
+            onChange={handleLanguageChange}
+          >
+            <option value="italian">Italiano</option>
+            <option value="english">English</option>
+            <option value="spanish">Español</option>
+            <option value="french">Français</option>
+            <option value="german">Deutsch</option>
+          </select>
+        </div>
+      </div>
+      
+      <div className="auth-right">
+        <div className="auth-box">
           <div className="auth-header">
-            <h2 className="auth-title">{isLogin ? 'Accedi' : 'Registrati'}</h2>
+            <h2>{isLogin ? t('login') : t('createAccount')}</h2>
+            <p>{isLogin ? t('loginToAccount') : t('fillDetails')}</p>
           </div>
           
-          {/* Messaggi di errore/successo */}
           {message.text && (
-            <div className={`auth-message ${message.type}`}>
-              {message.type === 'success' ? <SuccessIcon /> : <ErrorIcon />}
-              <span>{message.text}</span>
+            <div className={`message-box ${message.type}`}>
+              <i className={`fas fa-${message.type === 'success' ? 'check-circle' : 'exclamation-circle'}`}></i>
+              <p>{message.text}</p>
             </div>
           )}
           
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <div className="form-control">
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Inserisci la tua email"
-                  className={errors.email ? 'error' : ''}
-                />
-              </div>
-              {errors.email && <span className="error-text">{errors.email}</span>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <div className="form-control">
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Inserisci la tua password"
-                  className={errors.password ? 'error' : ''}
-                />
-              </div>
-              {errors.password && <span className="error-text">{errors.password}</span>}
-              {!isLogin && (
-                <span className="password-hint">
-                  Usa almeno 8 caratteri con lettere maiuscole, numeri e simboli
-                </span>
-              )}
-            </div>
-            
-            {!isLogin && (
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Conferma password</label>
-                <div className="form-control">
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Conferma la tua password"
-                    className={errors.confirmPassword ? 'error' : ''}
-                  />
-                </div>
-                {errors.confirmPassword && (
-                  <span className="error-text">{errors.confirmPassword}</span>
-                )}
-              </div>
-            )}
-            
-            {isLogin && (
-              <div className="form-options">
-                <div className="remember-me">
-                  <input
-                    type="checkbox"
-                    id="rememberMe"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                  />
-                  <label htmlFor="rememberMe">Ricordami</label>
-                </div>
-                <a href="#recupero" className="forgot-password">
-                  Password dimenticata?
-                </a>
-              </div>
-            )}
-            
-            <button type="submit" className="submit-button" disabled={loading || authInProgress}>
-              {loading ? (
-                <div className="loading-spinner"></div>
-              ) : (
-                isLogin ? 'Accedi' : 'Registrati'
-              )}
-            </button>
-          </form>
-          
-          <div className="divider">
-            <span>oppure</span>
-          </div>
-          
-          <div className="social-buttons">
-            <button className="social-button" onClick={handleGoogleLogin}>
-              <GoogleIcon />
-              <span>Continua con Google</span>
-            </button>
-          </div>
-          
-          <div className="auth-toggle">
-            {isLogin ? 'Non hai un account?' : 'Hai già un account?'}
-            <button type="button" onClick={toggleAuthMode}>
-              {isLogin ? 'Registrati' : 'Accedi'}
-            </button>
-          </div>
-          
-          <div className="auth-footer">
-            <div className="footer-links">
-              <a href="#privacy">Privacy</a>
-              <a href="#termini">Termini di servizio</a>
-              <a href="#supporto">Supporto</a>
-            </div>
-            <div className="copyright">
-              © {new Date().getFullYear()} Salus Health Technologies
-            </div>
-          </div>
+          {renderForm()}
         </div>
       </div>
     </div>

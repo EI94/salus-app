@@ -18,6 +18,15 @@ const UserSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  profilePicture: {
+    type: String,
+    default: '/assets/images/default-profile.png'
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
   age: {
     type: Number,
     min: 0,
@@ -26,6 +35,23 @@ const UserSchema = new mongoose.Schema({
   gender: {
     type: String,
     enum: ['male', 'female', 'other', 'prefer not to say']
+  },
+  language: {
+    type: String,
+    enum: ['italian', 'english', 'spanish', 'french', 'german'],
+    default: 'italian'
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: String,
+  emailVerificationExpires: Date,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+  lastLogin: {
+    type: Date,
+    default: null
   },
   medicalConditions: [{
     type: String,
@@ -57,6 +83,22 @@ UserSchema.pre('save', async function(next) {
 // Method to compare passwords
 UserSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Genera token di verifica email
+UserSchema.methods.generateVerificationToken = function() {
+  const verificationToken = require('crypto').randomBytes(32).toString('hex');
+  this.emailVerificationToken = verificationToken;
+  this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 ore
+  return verificationToken;
+};
+
+// Genera token di reset password
+UserSchema.methods.generatePasswordResetToken = function() {
+  const resetToken = require('crypto').randomBytes(32).toString('hex');
+  this.resetPasswordToken = resetToken;
+  this.resetPasswordExpires = Date.now() + 1 * 60 * 60 * 1000; // 1 ora
+  return resetToken;
 };
 
 module.exports = mongoose.model('User', UserSchema); 
