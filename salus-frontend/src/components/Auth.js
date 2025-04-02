@@ -115,6 +115,20 @@ const Auth = () => {
     }
   }, [userContext?.user, navigate]);
 
+  // Effetto per reindirizzare dopo registrazione
+  useEffect(() => {
+    if (registrationSuccess && userContext?.user) {
+      console.log('Registrazione completata con successo, reindirizzamento al dashboard');
+      
+      // Piccolo ritardo per assicurarsi che l'utente veda il messaggio di successo
+      const redirectTimer = setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 1500);
+      
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [registrationSuccess, userContext?.user, navigate]);
+
   // Validazione form avanzata
   const validateForm = () => {
     const newErrors = {};
@@ -221,6 +235,13 @@ const Auth = () => {
           type: 'success',
           text: t('registrationSuccess')
         });
+        
+        // Verifichiamo subito se l'utente è stato impostato
+        if (userContext.user) {
+          console.log("Utente registrato con successo:", userContext.user);
+        } else {
+          console.log("Utente non disponibile dopo registrazione");
+        }
       } else {
         setAuthError(new Error(response.error || t('registrationError')));
       }

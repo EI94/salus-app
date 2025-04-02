@@ -42,9 +42,14 @@ const api = axios.create({
 // Interceptor per aggiungere il token alle richieste
 api.interceptors.request.use(
   (config) => {
-    // Se siamo in modalità offline, rifiuta la richiesta
+    // Se siamo in modalità offline e non è una richiesta speciale con bypass, evita di fare chiamate al server
     if (isInOfflineMode() && !config.headers['bypass-offline-check']) {
-      return Promise.reject(new Error('Offline mode enabled'));
+      console.log('Richiesta bloccata: modalità offline attiva');
+      // Creiamo un errore speciale che verrà intercettato più tardi
+      return Promise.reject({ 
+        isOfflineError: true,
+        request: config
+      });
     }
     
     // Aggiungi token di autenticazione
@@ -70,11 +75,38 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Gestiamo l'errore speciale di offline
+    if (error.isOfflineError) {
+      console.log('Intercettata richiesta in modalità offline, reindirizzata a mock data');
+      
+      // Estraiamo i dati della richiesta per passarli a getMockResponse
+      const { method, url, data } = error.request;
+      
+      // Restituiamo i dati simulati invece di propagare l'errore
+      return getMockResponse(url, method, data ? JSON.parse(data) : {});
+    }
+    
     // Se il server non è raggiungibile o l'API restituisce un errore 405 o errore di rete
     if (!error.response || error.response.status === 405 || error.response.status >= 500 || error.code === 'ECONNABORTED') {
       // Attiva modalità offline
       console.log('Errore di connessione rilevato:', error.message || error.code);
       toggleOfflineMode(true);
+      
+      // Se abbiamo i dati della richiesta, possiamo provare a fornire una risposta simulata
+      if (error.config) {
+        const { method, url, data } = error.config;
+        console.log('Tentativo di fornire dati simulati per:', url);
+        
+        try {
+          // Proviamo a parsificare i dati se sono in formato stringa
+          const parsedData = data && typeof data === 'string' ? JSON.parse(data) : data;
+          
+          // Restituiamo i dati simulati invece di propagare l'errore
+          return getMockResponse(url, method, parsedData || {});
+        } catch (e) {
+          console.error('Errore nel fornire dati simulati:', e);
+        }
+      }
     }
     
     return Promise.reject(error);

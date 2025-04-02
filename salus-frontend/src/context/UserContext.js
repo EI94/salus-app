@@ -157,10 +157,30 @@ export const UserProvider = ({ children }) => {
   // Funzione per la registrazione
   const register = async (email, password, name = '') => {
     try {
+      // Verifichiamo prima se siamo già in modalità offline
       if (isInOfflineMode()) {
         console.log("Usando registrazione simulata per modalità offline/sviluppo");
         
-        // Usiamo l'API simulata per la registrazione
+        // Se siamo già in modalità offline, evitiamo di fare la chiamata API reale
+        // e creiamo direttamente un utente simulato
+        const userData = {
+          id: 'new-user-' + Math.random().toString(36).substring(2, 9),
+          email: email,
+          name: name || email.split('@')[0]
+        };
+        
+        const token = 'mock-jwt-token-for-demo-purposes-' + Math.random().toString(36).substring(2, 15);
+        
+        // Salviamo i dati dell'utente
+        localStorage.setItem('token', token);
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        setUser(userData);
+        
+        return { success: true };
+      }
+      
+      // Tentativo di registrazione con il server reale
+      try {
         const response = await axios.post(`${apiUrl}/api/auth/register`, {
           email,
           password,
@@ -178,43 +198,42 @@ export const UserProvider = ({ children }) => {
         } else {
           return { success: false, error: 'Errore durante la registrazione' };
         }
-      }
-      
-      // Tentativo di registrazione con il server reale
-      const response = await axios.post(`${apiUrl}/api/auth/register`, {
-        email,
-        password,
-        name
-      });
-      
-      if (response.data && response.data.token) {
-        const { token, user: userData } = response.data;
+      } catch (error) {
+        console.log('Errore registrazione:', error.message);
         
-        localStorage.setItem('token', token);
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        setUser(userData);
+        // Verifica se l'errore è dovuto a un 405 Method Not Allowed (API non disponibile)
+        if (error.response && error.response.status === 405) {
+          console.log('API non disponibile (405), usando modalità simulata per registrazione');
+          // Attiva modalità offline automaticamente
+          toggleOfflineMode(true);
+          
+          // Ora che siamo in modalità offline, creiamo un utente simulato
+          const userData = {
+            id: 'new-user-' + Math.random().toString(36).substring(2, 9),
+            email: email,
+            name: name || email.split('@')[0]
+          };
+          
+          const token = 'mock-jwt-token-for-demo-purposes-' + Math.random().toString(36).substring(2, 15);
+          
+          // Salviamo i dati dell'utente
+          localStorage.setItem('token', token);
+          localStorage.setItem('currentUser', JSON.stringify(userData));
+          setUser(userData);
+          
+          return { success: true };
+        }
         
-        return { success: true };
-      } else {
-        return { success: false, error: 'Errore durante la registrazione' };
+        return { 
+          success: false, 
+          error: error.response?.data?.message || 'Errore durante la registrazione'
+        };
       }
-      
     } catch (error) {
-      console.log('Errore registrazione:', error.message);
-      
-      // Verifica se l'errore è dovuto a un 405 Method Not Allowed (API non disponibile)
-      if (error.response && error.response.status === 405) {
-        console.log('API non disponibile (405), usando modalità simulata per registrazione');
-        // Attiva modalità offline automaticamente
-        toggleOfflineMode(true);
-        
-        // Prova di nuovo con la registrazione simulata
-        return await register(email, password, name);
-      }
-      
+      console.log('Errore critico nella registrazione:', error.message);
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Errore durante la registrazione'
+        error: 'Si è verificato un errore imprevisto durante la registrazione'
       };
     }
   };
