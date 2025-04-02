@@ -737,9 +737,9 @@ const Auth = () => {
         </div>
         
         <div className="language-selector">
-          <label htmlFor="language">{t('language')}:</label>
+          <label htmlFor="language-selector">{t('language')}:</label>
           <select
-            id="language"
+            id="language-selector"
             value={language}
             onChange={handleLanguageChange}
           >
