@@ -130,28 +130,10 @@ const Auth = () => {
   
   // Controllo token esistente al caricamento
   useEffect(() => {
-    try {
-      // Previene loop infiniti di autenticazione
-      const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register' || window.location.pathname === '/';
-      
-      if (userContext && userContext.isAuthenticated()) {
-        console.log('Utente già autenticato, reindirizzamento alla dashboard');
-        if (isAuthPage) {
-          navigate('/dashboard', { replace: true });
-        }
-      } else {
-        const token = localStorage.getItem('token');
-        if (token) {
-          console.log('Token trovato, verifica autenticazione');
-          if (isAuthPage) {
-            navigate('/dashboard', { replace: true });
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Errore durante verifica autenticazione:', error);
-    }
-  }, [navigate, userContext, userContext?.user]);
+    console.log("Componente Auth caricato");
+    // La verifica di autenticazione ora è gestita dal PublicRoute
+    return () => {};
+  }, [userContext]);
 
   // Validazione form avanzata
   const validateForm = () => {
@@ -329,17 +311,8 @@ const Auth = () => {
       
       if (response.success) {
         console.log('Autenticazione completata con successo');
-        
-        // Verifica se siamo già nella dashboard per evitare loop infiniti
-        const currentPath = window.location.pathname;
-        
-        // Reindirizza solo se NON siamo già nella dashboard
-        if (currentPath !== '/dashboard') {
-          setTimeout(() => {
-            console.log("Auth: reindirizzamento dopo login riuscito");
-            window.location.href = '/dashboard';
-          }, 200);
-        }
+        // Il reindirizzamento alla dashboard è ora gestito dal router e dal PublicRoute
+        // Non facciamo nulla qui, sarà React Router a gestire il reindirizzamento
       } else {
         const errorMessage = response.error || 'Errore durante il login';
         setAuthError(new Error(errorMessage));
@@ -352,25 +325,6 @@ const Auth = () => {
       setIsSubmitting(false);
     }
   };
-
-  // Verifica se l'utente è già autenticato e reindirizza in modo sicuro
-  useEffect(() => {
-    if (userContext && userContext.isAuthenticated()) {
-      // Verifica se siamo già nella dashboard per evitare loop infiniti
-      const currentPath = window.location.pathname;
-      console.log("Auth: percorso attuale:", currentPath);
-      
-      // Reindirizza solo se NON siamo già nella dashboard
-      if (currentPath !== '/dashboard') {
-        console.log("Auth: reindirizzamento sicuro alla dashboard...");
-        window.location.href = '/dashboard';
-      } else {
-        console.log("Auth: già nella dashboard, nessun reindirizzamento necessario");
-      }
-    }
-    // Cleanup on unmount
-    return () => {};
-  }, [userContext]);
 
   return (
     <div className="auth-container">

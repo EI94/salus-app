@@ -74,21 +74,6 @@ export const UserProvider = ({ children }) => {
     }
   };
   
-  // Reindirizzamento sicuro alla dashboard
-  const redirectToDashboard = () => {
-    // Verifica se siamo già nella dashboard per evitare loop infiniti
-    const currentPath = window.location.pathname;
-    console.log("Percorso attuale:", currentPath);
-    
-    // Reindirizza solo se NON siamo già nella dashboard
-    if (currentPath !== '/dashboard') {
-      console.log("Reindirizzamento alla dashboard...");
-      window.location.href = '/dashboard';
-    } else {
-      console.log("Già nella dashboard, nessun reindirizzamento necessario");
-    }
-  };
-  
   // Funzione per il login
   const login = async (email, password, rememberMe = true) => {
     console.log('Tentativo di login per:', email);
@@ -121,12 +106,9 @@ export const UserProvider = ({ children }) => {
       
       // Aggiorna lo stato
       setUser(userData);
+      console.log('Login completato con successo, aggiornato stato utente');
       
-      // Forza la navigazione alla dashboard
-      setTimeout(() => {
-        redirectToDashboard();
-      }, 100);
-      
+      // Non reindirizzo più qui - lasciamo che sia il routing di React a gestire questo
       return { success: true };
     } catch (error) {
       console.log('Errore login:', error.message);
@@ -190,11 +172,7 @@ export const UserProvider = ({ children }) => {
     
     console.log('Login simulato completato con successo');
     
-    // Forza il reindirizzamento alla dashboard
-    setTimeout(() => {
-      redirectToDashboard();
-    }, 100);
-    
+    // Non reindirizzo più qui - lasciamo che sia il routing di React a gestire questo
     return { success: true };
   };
   

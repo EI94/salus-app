@@ -388,13 +388,27 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
   );
 }
 
-// Componente per reindirizzamento protetto
+// Componente per rotte protette (solo per utenti autenticati)
 const ProtectedRoute = ({ children }) => {
   const userContext = useContext(UserContext);
   
   // Se l'utente non è autenticato, reindirizza al login
   if (!userContext || !userContext.isAuthenticated()) {
+    console.log("Utente non autenticato, reindirizzamento al login");
     return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
+
+// Componente per rotte pubbliche (non accessibili se autenticati)
+const PublicRoute = ({ children }) => {
+  const userContext = useContext(UserContext);
+  
+  // Se l'utente è già autenticato, reindirizza alla dashboard
+  if (userContext && userContext.isAuthenticated()) {
+    console.log("Utente già autenticato, reindirizzamento alla dashboard da PublicRoute");
+    return <Navigate to="/dashboard" replace />;
   }
   
   return children;
@@ -517,23 +531,29 @@ function App() {
             {/* Reindirizzamento dalla root */}
             <Route path="/" element={<RootRedirect />} />
             
-            {/* Pagina di autenticazione */}
-            <Route path="/login" element={<Auth />} />
-            <Route path="/register" element={<Auth />} />
+            {/* Pagine pubbliche */}
+            <Route path="/login" element={
+              <PublicRoute>
+                <Auth />
+              </PublicRoute>
+            } />
+            <Route path="/register" element={
+              <PublicRoute>
+                <Auth />
+              </PublicRoute>
+            } />
             
             {/* Rotte protette */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <Layout userId={userData.id} userName={userData.name} onLogout={handleLogout} hasNotifications={hasNotifications}>
-                  <Dashboard />
-                </Layout>
+                <Dashboard />
               </ProtectedRoute>
             } />
             
             {/* Altre rotte protette */}
             <Route path="/profile" element={
               <ProtectedRoute>
-                <Profile userId={userData.id} userName={userData.name} userData={userData} />
+                <Profile />
               </ProtectedRoute>
             } />
             
