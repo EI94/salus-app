@@ -1,0 +1,85 @@
+﻿import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+// Importa i file di traduzione
+import en from './locales/en.json';
+import it from './locales/it.json';
+import hi from './locales/hi.json';
+
+// Aggiungi traduzioni mancanti per l'autenticazione
+const addErrorMessages = (translations) => {
+  return {
+    ...translations,
+    // Messaggi di errore per la validazione del form
+    errorEmailRequired: translations.emailRequired || 'Email required',
+    errorEmailInvalid: translations.invalidEmail || 'Invalid email',
+    errorPasswordRequired: translations.passwordRequired || 'Password required',
+    errorPasswordLength: translations.passwordTooShort || 'Password must be at least 6 characters',
+    errorPasswordMatch: translations.passwordsDoNotMatch || 'Passwords do not match',
+    errorGeneric: 'An error occurred. Please try again.',
+    
+    // Funzionalità in sviluppo
+    featureInDevelopment: 'This feature is currently in development'
+  };
+};
+
+// Inizializza i18next
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: {
+        translation: addErrorMessages(en)
+      },
+      it: {
+        translation: addErrorMessages(it)
+      },
+      hi: {
+        translation: addErrorMessages(hi)
+      }
+    },
+    fallbackLng: 'it', // Lingua predefinita
+    debug: false,
+    
+    interpolation: {
+      escapeValue: false // Non è necessario per React
+    },
+    
+    detection: {
+      order: ['localStorage', 'navigator'],
+      lookupLocalStorage: 'userLanguage',
+      caches: ['localStorage']
+    }
+  });
+
+// Funzione esportata per cambiare lingua
+export const changeLanguage = (lng) => {
+  i18n.changeLanguage(lng);
+  localStorage.setItem('preferredLanguage', lng);
+  
+  // Salviamo la lingua anche nell'utente corrente se esiste
+  try {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      const user = JSON.parse(currentUser);
+      user.language = lng;
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      
+      // Aggiorniamo anche nell'elenco degli utenti registrati
+      const users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+      const updatedUsers = users.map(u => {
+        if (u.id === user.id) {
+          return { ...u, language: lng };
+        }
+        return u;
+      });
+      localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
+    }
+  } catch (error) {
+    console.error('Errore nel salvataggio della lingua:', error);
+  }
+};
+
+export default i18n;
