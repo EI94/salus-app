@@ -74,11 +74,19 @@ export const UserProvider = ({ children }) => {
     }
   };
   
-  // Forza il reindirizzamento alla dashboard
+  // Reindirizzamento sicuro alla dashboard
   const redirectToDashboard = () => {
-    console.log("REINDIRIZZAMENTO FORZATO ALLA DASHBOARD");
-    // Forza il reindirizzamento con window.location invece di useNavigate
-    window.location.href = '/dashboard';
+    // Verifica se siamo già nella dashboard per evitare loop infiniti
+    const currentPath = window.location.pathname;
+    console.log("Percorso attuale:", currentPath);
+    
+    // Reindirizza solo se NON siamo già nella dashboard
+    if (currentPath !== '/dashboard') {
+      console.log("Reindirizzamento alla dashboard...");
+      window.location.href = '/dashboard';
+    } else {
+      console.log("Già nella dashboard, nessun reindirizzamento necessario");
+    }
   };
   
   // Funzione per il login

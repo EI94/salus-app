@@ -330,12 +330,16 @@ const Auth = () => {
       if (response.success) {
         console.log('Autenticazione completata con successo');
         
-        // Forza il reindirizzamento diretto alla dashboard
-        setTimeout(() => {
-          console.log("REINDIRIZZAMENTO FORZATO DA AUTH.JS");
-          window.location.href = '/dashboard';
-        }, 200);
+        // Verifica se siamo già nella dashboard per evitare loop infiniti
+        const currentPath = window.location.pathname;
         
+        // Reindirizza solo se NON siamo già nella dashboard
+        if (currentPath !== '/dashboard') {
+          setTimeout(() => {
+            console.log("Auth: reindirizzamento dopo login riuscito");
+            window.location.href = '/dashboard';
+          }, 200);
+        }
       } else {
         const errorMessage = response.error || 'Errore durante il login';
         setAuthError(new Error(errorMessage));
@@ -349,16 +353,20 @@ const Auth = () => {
     }
   };
 
-  // Verifica se l'utente è già autenticato
+  // Verifica se l'utente è già autenticato e reindirizza in modo sicuro
   useEffect(() => {
     if (userContext && userContext.isAuthenticated()) {
-      console.log('Utente già autenticato, reindirizzamento alla dashboard');
+      // Verifica se siamo già nella dashboard per evitare loop infiniti
+      const currentPath = window.location.pathname;
+      console.log("Auth: percorso attuale:", currentPath);
       
-      // Forza il reindirizzamento diretto alla dashboard
-      setTimeout(() => {
-        console.log("REINDIRIZZAMENTO FORZATO DA AUTH.JS (USEEFFECT)");
+      // Reindirizza solo se NON siamo già nella dashboard
+      if (currentPath !== '/dashboard') {
+        console.log("Auth: reindirizzamento sicuro alla dashboard...");
         window.location.href = '/dashboard';
-      }, 100);
+      } else {
+        console.log("Auth: già nella dashboard, nessun reindirizzamento necessario");
+      }
     }
     // Cleanup on unmount
     return () => {};
