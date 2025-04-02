@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Auth from './components/Auth';
 import SymptomTracker from './components/SymptomTracker';
@@ -433,88 +433,97 @@ function Layout({ children }) {
   );
 }
 
+// Componente principale dell'applicazione
+function AppContent() {
+  // Funzionalità interne che richiedono hook di routing
+  return (
+    <Routes>
+      {/* Reindirizzamento dalla root */}
+      <Route path="/" element={<RootRedirect />} />
+      
+      {/* Pagine pubbliche */}
+      <Route path="/login" element={
+        <PublicRoute>
+          <Auth />
+        </PublicRoute>
+      } />
+      <Route path="/register" element={
+        <PublicRoute>
+          <Auth />
+        </PublicRoute>
+      } />
+      
+      {/* Rotte protette */}
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Layout>
+            <Dashboard />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/sintomi" element={
+        <ProtectedRoute>
+          <Layout>
+            <SymptomTracker />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/farmaci" element={
+        <ProtectedRoute>
+          <Layout>
+            <MedicationTracker />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/benessere" element={
+        <ProtectedRoute>
+          <Layout>
+            <WellnessTracker />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <Layout>
+            <Profile />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <Layout>
+            <Settings />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/assistente" element={
+        <ProtectedRoute>
+          <Layout>
+            <AIAssistant />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Fallback per rotte inesistenti */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+// Applicazione principale
 function App() {
   return (
-    <Router>
+    <BrowserRouter basename="/">
       <UserProvider>
-        <Routes>
-          {/* Reindirizzamento dalla root */}
-          <Route path="/" element={<RootRedirect />} />
-          
-          {/* Pagine pubbliche */}
-          <Route path="/login" element={
-            <PublicRoute>
-              <Auth />
-            </PublicRoute>
-          } />
-          <Route path="/register" element={
-            <PublicRoute>
-              <Auth />
-            </PublicRoute>
-          } />
-          
-          {/* Rotte protette */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/sintomi" element={
-            <ProtectedRoute>
-              <Layout>
-                <SymptomTracker />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/farmaci" element={
-            <ProtectedRoute>
-              <Layout>
-                <MedicationTracker />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/benessere" element={
-            <ProtectedRoute>
-              <Layout>
-                <WellnessTracker />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Layout>
-                <Profile />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <Layout>
-                <Settings />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/assistente" element={
-            <ProtectedRoute>
-              <Layout>
-                <AIAssistant />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          {/* Fallback per rotte inesistenti */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <AppContent />
       </UserProvider>
-    </Router>
+    </BrowserRouter>
   );
 }
 
