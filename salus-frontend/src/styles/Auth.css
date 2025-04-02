@@ -1,77 +1,80 @@
-/* Auth.css - Design per pagina di accesso e registrazione */
+/* Auth.css - Design moderno per la pagina di autenticazione */
 
 :root {
   /* Variabili colori base */
-  --primary: #1976d2;
-  --primary-light: #4791db;
-  --primary-dark: #115293;
-  --secondary: #6c757d;
-  --secondary-light: #868e96;
-  --secondary-dark: #343a40;
-  --success: #28a745;
-  --danger: #dc3545;
-  --warning: #ffc107;
-  --info: #17a2b8;
+  --primary: #6366f1; /* Nuovo colore primario - indigo moderno */
+  --primary-light: #818cf8;
+  --primary-dark: #4f46e5;
+  
+  /* Nuova palette armoniosa */
+  --secondary: #f59e0b; /* Arancione/ambra per accenti */
+  --secondary-light: #fcd34d;
+  --secondary-dark: #d97706;
+  
+  /* Gradienti preimpostati */
+  --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
   
   /* Variabili tema colori */
   --bg-primary: #f8f9fa;
   --card-bg: #ffffff;
-  --input-bg: #ffffff;
-  --text-primary: #212529;
-  --text-secondary: #6c757d;
-  --text-dark: #000000;
-  --text-light: #adb5bd;
-  --border: #dee2e6;
+  --input-bg: rgba(255, 255, 255, 0.95);
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-dark: #111827;
+  --text-light: #d1d5db;
+  --text-white: #ffffff;
+  --border: #e5e7eb;
+  
+  /* Colori feedback */
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
   
   /* Variabili dimensioni e spacing */
   --border-radius: 8px;
+  --border-radius-lg: 12px;
   --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --transition: all 0.25s ease-in-out;
   
-  /* Palette colori medicale professionale */
-  --accent: #ff5722;
-  --text-white: #ffffff;
-  --background: #f5f5f5;
-  --error: #d32f2f;
+  /* Palette accessori */
+  --accent: #f59e0b;
+  --background: #f9fafb;
+  --error: #ef4444;
   --shadow-light: 0 2px 5px rgba(0, 0, 0, 0.08);
   --shadow-medium: 0 4px 10px rgba(0, 0, 0, 0.12);
   
   /* Tipografia */
-  --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
 
-  /* Variabili colori */
-  --primary-color: #4361ee;
-  --primary-light: #e0e8ff;
-  --secondary-color: #7209b7;
-  --accent-color: #4cc9f0;
-  --success-color: #06d6a0;
-  --warning-color: #ffb703;
-  --error-color: #ef476f;
-  --background-light: #f8f9fa;
-  --background-dark: #212529;
-  --text-dark: #2b2d42;
-  --text-light: #f8f9fa;
-  --text-muted: #6c757d;
-  --border-color: #ced4da;
-  --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  --input-bg: rgba(255, 255, 255, 0.9);
+  /* Variabili per i campi di input */
+  --input-text: #1f2937;
+  --input-placeholder: #9ca3af;
   --input-bg-focus: #ffffff;
-  --input-text: #333;
-  --input-placeholder: #999;
 }
 
 /* Tema scuro */
 @media (prefers-color-scheme: dark) {
   :root {
-    --primary: #42a5f5;
-    --primary-dark: #1976d2;
-    --primary-light: #0d47a1;
-    --text-primary: #f5f5f5;
-    --text-secondary: #bdbdbd;
-    --background: #121212;
-    --card-bg: #1e1e1e;
-    --border: #333333;
-    --input-bg: #2d2d2d;
+    --primary: #818cf8;
+    --primary-dark: #6366f1;
+    --primary-light: #a5b4fc;
+    
+    --secondary: #fbbf24;
+    --secondary-dark: #f59e0b;
+    --secondary-light: #fcd34d;
+    
+    --text-primary: #f9fafb;
+    --text-secondary: #e5e7eb;
+    --text-dark: #f3f4f6;
+    --background: #111827;
+    --card-bg: #1f2937;
+    --border: #374151;
+    --input-bg: rgba(31, 41, 55, 0.8);
+    --input-text: #e5e7eb;
+    --input-placeholder: #6b7280;
   }
 }
 
@@ -91,15 +94,15 @@ body {
 .auth-container {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
 }
 
 /* Layout a due colonne */
 .auth-left {
   width: 45%;
   padding: 3rem;
-  background: linear-gradient(135deg, #7f53ac 0%, #647dee 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-white);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -126,7 +129,8 @@ body {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background-color: var(--background);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
 }
 
 /* Sezione marchio e logo */
@@ -145,6 +149,10 @@ body {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0.85));
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-weight: 700;
 }
 
 .auth-brand p {
@@ -171,7 +179,7 @@ body {
   bottom: -8px;
   width: 40px;
   height: 4px;
-  background-color: var(--accent-color);
+  background-color: var(--secondary);
   border-radius: 2px;
 }
 
@@ -180,7 +188,7 @@ body {
   margin-bottom: 1.5rem;
   background: rgba(255, 255, 255, 0.1);
   padding: 1rem;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   backdrop-filter: blur(5px);
   transition: transform 0.2s, box-shadow 0.2s;
 }
@@ -197,7 +205,7 @@ body {
   width: 48px;
   height: 48px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   margin-right: 1rem;
   color: white;
 }
@@ -220,7 +228,7 @@ body {
   margin-top: 1rem;
   padding: 0.5rem;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: var(--border-radius);
 }
 
 .language-selector label {
@@ -233,7 +241,7 @@ body {
   border: none;
   color: white;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: var(--border-radius);
   font-size: 0.9rem;
 }
 
@@ -243,8 +251,8 @@ body {
   max-width: 450px;
   padding: 2.5rem;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-lg);
   animation: fadeIn 0.5s ease-out;
 }
 
@@ -265,32 +273,32 @@ body {
 }
 
 .auth-header p {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
 /* Messaggi di stato */
 .message-box {
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
 }
 
 .message-box.success {
-  background-color: rgba(6, 214, 160, 0.1);
-  border-left: 4px solid var(--success-color);
+  background-color: rgba(16, 185, 129, 0.1);
+  border-left: 4px solid var(--success);
 }
 
 .message-box.warning {
-  background-color: rgba(255, 183, 3, 0.1);
-  border-left: 4px solid var(--warning-color);
+  background-color: rgba(245, 158, 11, 0.1);
+  border-left: 4px solid var(--warning);
 }
 
 .message-box.error {
-  background-color: rgba(239, 71, 111, 0.1);
-  border-left: 4px solid var(--error-color);
+  background-color: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid var(--danger);
 }
 
 .message-box span {
@@ -299,15 +307,15 @@ body {
 }
 
 .message-box.success span {
-  color: var(--success-color);
+  color: var(--success);
 }
 
 .message-box.warning span {
-  color: var(--warning-color);
+  color: var(--warning);
 }
 
 .message-box.error span {
-  color: var(--error-color);
+  color: var(--danger);
 }
 
 .message-box div {
@@ -340,8 +348,8 @@ body {
   width: 100%;
   padding: 0.8rem 1rem;
   font-size: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
   background-color: var(--input-bg);
   color: var(--input-text);
   transition: all 0.2s;
@@ -354,17 +362,17 @@ body {
 .input-field input:focus,
 .input-field select:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: var(--primary);
   background-color: var(--input-bg-focus);
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .input-field input.error {
-  border-color: var(--error-color);
+  border-color: var(--danger);
 }
 
 .error-message {
-  color: var(--error-color);
+  color: var(--danger);
   font-size: 0.85rem;
   margin-top: 0.5rem;
 }
@@ -376,7 +384,7 @@ body {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 1rem;
   padding: 0.25rem;
@@ -396,18 +404,18 @@ body {
 
 .checkbox-container input[type="checkbox"] {
   margin-right: 0.5rem;
-  accent-color: var(--primary-color);
+  accent-color: var(--primary);
 }
 
 .checkbox-label {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .forgot-password-link {
   background: none;
   border: none;
-  color: var(--primary-color);
+  color: var(--primary);
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0;
@@ -416,17 +424,17 @@ body {
 
 /* Box di errore */
 .error-box {
-  background-color: rgba(239, 71, 111, 0.1);
-  border-left: 4px solid var(--error-color);
+  background-color: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid var(--danger);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   margin: 1rem 0;
   display: flex;
   align-items: flex-start;
 }
 
 .error-box span {
-  color: var(--error-color);
+  color: var(--danger);
   font-size: 1.2rem;
   margin-right: 0.75rem;
 }
@@ -440,7 +448,7 @@ body {
 .resend-verification-link {
   background: none;
   border: none;
-  color: var(--primary-color);
+  color: var(--primary);
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
@@ -453,12 +461,12 @@ body {
 .auth-button {
   width: 100%;
   padding: 0.9rem;
-  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
   margin-top: 1rem;
@@ -495,7 +503,7 @@ body {
 }
 
 .auth-button:disabled {
-  background: var(--text-muted);
+  background: var(--text-secondary);
   cursor: not-allowed;
   transform: none;
 }
@@ -508,14 +516,14 @@ body {
 }
 
 .auth-footer p {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
 }
 
 .auth-toggle-button {
   background: none;
   border: none;
-  color: var(--primary-color);
+  color: var(--primary);
   font-weight: 600;
   cursor: pointer;
   padding: 0;
@@ -531,14 +539,14 @@ body {
 .success-icon {
   width: 60px;
   height: 60px;
-  background-color: rgba(6, 214, 160, 0.1);
+  background-color: rgba(16, 185, 129, 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 1.5rem;
   font-size: 1.8rem;
-  color: var(--success-color);
+  color: var(--success);
 }
 
 .success-message h2 {
@@ -547,7 +555,7 @@ body {
 }
 
 .success-message p {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
@@ -563,14 +571,14 @@ body {
 }
 
 .auth-form-header p {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .back-to-login-link {
   background: none;
   border: none;
-  color: var(--primary-color);
+  color: var(--primary);
   cursor: pointer;
   padding: 0;
   font-size: 0.9rem;
@@ -586,6 +594,31 @@ body {
 
 .back-to-login-link:hover {
   text-decoration: underline;
+}
+
+/* Stile per box credenziali demo */
+.demo-credentials {
+  background-color: rgba(99, 102, 241, 0.05);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  margin-bottom: 20px;
+  text-align: center;
+  border-left: 4px solid var(--primary);
+}
+
+.demo-credentials p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.demo-credentials code {
+  background-color: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--text-dark);
 }
 
 /* Responsive */
@@ -624,29 +657,4 @@ body {
   .auth-brand h1 {
     font-size: 2rem;
   }
-}
-
-/* Stile per box credenziali demo */
-.demo-credentials {
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 20px;
-  text-align: center;
-  border-left: 4px solid #6c63ff;
-}
-
-.demo-credentials p {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  color: #666;
-}
-
-.demo-credentials code {
-  background-color: #f5f5f5;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 14px;
-  color: #333;
 } 
