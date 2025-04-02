@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Auth from './components/Auth';
 import SymptomTracker from './components/SymptomTracker';
@@ -214,20 +214,54 @@ const mockAuth = {
   }
 };
 
+// Componente per rotte protette (solo per utenti autenticati)
+const ProtectedRoute = ({ children }) => {
+  const userContext = useContext(UserContext);
+  
+  // Verifica se il contesto utente è disponibile e se l'utente è autenticato
+  if (!userContext || !userContext.isAuthenticated()) {
+    console.log("Utente non autenticato, reindirizzamento al login");
+    return <Navigate to="/login" replace />;
+  }
+  
+  console.log("Utente autenticato, accesso consentito alla rotta protetta:", children.type?.name);
+  return children;
+};
+
+// Componente per rotte pubbliche (non accessibili se autenticati)
+const PublicRoute = ({ children }) => {
+  const userContext = useContext(UserContext);
+  
+  // Se l'utente è già autenticato, reindirizza alla dashboard
+  if (userContext && userContext.isAuthenticated()) {
+    console.log("Utente già autenticato, reindirizzamento alla dashboard da PublicRoute");
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
+// Componente per reindirizzamento dalla root
+const RootRedirect = () => {
+  const userContext = useContext(UserContext);
+  
+  if (userContext && userContext.isAuthenticated()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <Navigate to="/login" replace />;
+};
+
 // Layout che include la barra di navigazione e il layout comune
-function Layout({ userId, userName, onLogout, hasNotifications, children }) {
+function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const userContext = useContext(UserContext);
   const [showAIWidget, setShowAIWidget] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const profileMenuRef = React.useRef(null);
-
-  // Determina quale pagina è attiva in base all'URL
-  const getActivePageClass = (path) => {
-    return location.pathname === path ? 'active' : '';
-  };
-
+  
   // Gestisce i click fuori dal menu profilo per chiuderlo
   useEffect(() => {
     function handleClickOutside(event) {
@@ -240,7 +274,22 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
+  
+  // Determina quale pagina è attiva in base all'URL
+  const getActivePageClass = (path) => {
+    return location.pathname === path ? 'active' : '';
+  };
+  
+  // Logout handler
+  const handleLogout = () => {
+    userContext.logout();
+    navigate('/login', { replace: true });
+  };
+  
+  const userName = userContext?.user?.name || 'Utente';
+  const userId = userContext?.user?.id || 'ID';
+  const hasNotifications = false; // Sostituire con logica notifiche reale
+  
   return (
     <div className="app-container">
       <header className="app-header">
@@ -285,20 +334,16 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
                   </div>
                 </div>
                 <ul className="profile-menu-items">
-                  <li onClick={() => navigate('/profilo')}>
+                  <li onClick={() => navigate('/profile')}>
                     <i className="fas fa-id-card"></i>
                     <span>Il mio profilo</span>
                   </li>
-                  <li onClick={() => navigate('/impostazioni')}>
+                  <li onClick={() => navigate('/settings')}>
                     <i className="fas fa-cog"></i>
                     <span>Impostazioni</span>
                   </li>
-                  <li onClick={() => navigate('/privacy')}>
-                    <i className="fas fa-shield-alt"></i>
-                    <span>Privacy e sicurezza</span>
-                  </li>
                   <li className="divider"></li>
-                  <li className="logout-item" onClick={onLogout}>
+                  <li className="logout-item" onClick={handleLogout}>
                     <i className="fas fa-sign-out-alt"></i>
                     <span>Esci</span>
                   </li>
@@ -311,41 +356,41 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
       
       <div className="main-container">
         <nav className="sidebar">
-          <a 
-            href="/dashboard" 
+          <Link 
+            to="/dashboard" 
             className={getActivePageClass('/dashboard')}
           >
             <i className="fas fa-home"></i>
             <span>Dashboard</span>
-          </a>
-          <a 
-            href="/sintomi" 
+          </Link>
+          <Link 
+            to="/sintomi" 
             className={getActivePageClass('/sintomi')}
           >
             <i className="fas fa-heartbeat"></i>
             <span>Sintomi</span>
-          </a>
-          <a 
-            href="/farmaci" 
+          </Link>
+          <Link 
+            to="/farmaci" 
             className={getActivePageClass('/farmaci')}
           >
             <i className="fas fa-pills"></i>
             <span>Farmaci</span>
-          </a>
-          <a 
-            href="/benessere" 
+          </Link>
+          <Link 
+            to="/benessere" 
             className={getActivePageClass('/benessere')}
           >
             <i className="fas fa-spa"></i>
             <span>Benessere</span>
-          </a>
-          <a 
-            href="/assistente" 
+          </Link>
+          <Link 
+            to="/assistente" 
             className={getActivePageClass('/assistente')}
           >
             <i className="fas fa-robot"></i>
             <span>Assistente</span>
-          </a>
+          </Link>
           
           <div className="sidebar-bottom">
             <button 
@@ -358,7 +403,7 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
             
             <button 
               className="logout-button"
-              onClick={onLogout}
+              onClick={handleLogout}
               title="Esci dall'applicazione"
             >
               <i className="fas fa-sign-out-alt"></i>
@@ -388,179 +433,86 @@ function Layout({ userId, userName, onLogout, hasNotifications, children }) {
   );
 }
 
-// Componente per rotte protette (solo per utenti autenticati)
-const ProtectedRoute = ({ children }) => {
-  const userContext = useContext(UserContext);
-  
-  // Se l'utente non è autenticato, reindirizza al login
-  if (!userContext || !userContext.isAuthenticated()) {
-    console.log("Utente non autenticato, reindirizzamento al login");
-    return <Navigate to="/login" replace />;
-  }
-  
-  return children;
-};
-
-// Componente per rotte pubbliche (non accessibili se autenticati)
-const PublicRoute = ({ children }) => {
-  const userContext = useContext(UserContext);
-  
-  // Se l'utente è già autenticato, reindirizza alla dashboard
-  if (userContext && userContext.isAuthenticated()) {
-    console.log("Utente già autenticato, reindirizzamento alla dashboard da PublicRoute");
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return children;
-};
-
-// Componente per reindirizzamento dalla root
-const RootRedirect = () => {
-  const userContext = useContext(UserContext);
-  
-  if (userContext && userContext.isAuthenticated()) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return <Navigate to="/login" replace />;
-};
-
-// Funzione principale dell'app
 function App() {
-  const { t } = useTranslation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userData, setUserData] = useState(null);
-  const [userToken, setUserToken] = useState(null);
-  const [hasNotifications, setHasNotifications] = useState(false);
-
-  // Verifica se l'utente è già autenticato all'avvio dell'app
-  useEffect(() => {
-    const verifyAuthentication = () => {
-      const storedToken = localStorage.getItem('authToken');
-      const currentUser = localStorage.getItem('currentUser');
-      
-      if (storedToken && currentUser) {
-        try {
-          const token = JSON.parse(storedToken);
-          const user = JSON.parse(currentUser);
-          const now = new Date();
-          const expiryDate = new Date(token.expires);
-          
-          if (now < expiryDate && user.authenticated) {
-            setUserData(user);
-            setUserToken(token.token);
-            setIsAuthenticated(true);
-          } else {
-            // Token scaduto, cancella dati autenticazione
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('authToken');
-            setIsAuthenticated(false);
-          }
-        } catch (error) {
-          console.error('Errore durante la verifica dell\'autenticazione:', error);
-          setIsAuthenticated(false);
-        }
-      } else {
-        setIsAuthenticated(false);
-      }
-      
-      setIsLoading(false);
-    };
-    
-    verifyAuthentication();
-  }, []);
-
-  // Gestione del login
-  const handleLogin = (userData, token) => {
-    console.log('Login completato:', { userData, token });
-    setUserData(userData);
-    setUserToken(token);
-    setIsAuthenticated(true);
-  };
-
-  // Gestione del logout
-  const handleLogout = () => {
-    // Rimuovi i dati di autenticazione
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('authToken');
-    setUserData(null);
-    setUserToken(null);
-    setIsAuthenticated(false);
-  };
-
-  // Aggiunge il token alle richieste autenticate
-  axios.interceptors.request.use(
-    config => {
-      if (userToken) {
-        config.headers['Authorization'] = `Bearer ${userToken}`;
-      }
-      return config;
-    },
-    error => {
-      return Promise.reject(error);
-    }
-  );
-
-  // Visualizza un loader durante il caricamento iniziale
-  if (isLoading) {
-    return (
-      <div className="app-loader">
-        <div className="loader-spinner"></div>
-        <p>Caricamento in corso...</p>
-      </div>
-    );
-  }
-
-  // Mostra il componente Auth se l'utente non è autenticato
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Auth onLogin={handleLogin} mockAuth={mockAuth} />
-        <FeedbackWidget />
-      </>
-    );
-  }
-
-  // Visualizza l'applicazione per utenti autenticati
   return (
     <Router>
       <UserProvider>
-        <div className="app-container">
-          <Routes>
-            {/* Reindirizzamento dalla root */}
-            <Route path="/" element={<RootRedirect />} />
-            
-            {/* Pagine pubbliche */}
-            <Route path="/login" element={
-              <PublicRoute>
-                <Auth />
-              </PublicRoute>
-            } />
-            <Route path="/register" element={
-              <PublicRoute>
-                <Auth />
-              </PublicRoute>
-            } />
-            
-            {/* Rotte protette */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
+        <Routes>
+          {/* Reindirizzamento dalla root */}
+          <Route path="/" element={<RootRedirect />} />
+          
+          {/* Pagine pubbliche */}
+          <Route path="/login" element={
+            <PublicRoute>
+              <Auth />
+            </PublicRoute>
+          } />
+          <Route path="/register" element={
+            <PublicRoute>
+              <Auth />
+            </PublicRoute>
+          } />
+          
+          {/* Rotte protette */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Layout>
                 <Dashboard />
-              </ProtectedRoute>
-            } />
-            
-            {/* Altre rotte protette */}
-            <Route path="/profile" element={
-              <ProtectedRoute>
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/sintomi" element={
+            <ProtectedRoute>
+              <Layout>
+                <SymptomTracker />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/farmaci" element={
+            <ProtectedRoute>
+              <Layout>
+                <MedicationTracker />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/benessere" element={
+            <ProtectedRoute>
+              <Layout>
+                <WellnessTracker />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Layout>
                 <Profile />
-              </ProtectedRoute>
-            } />
-            
-            {/* Fallback per rotte inesistenti */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Layout>
+                <Settings />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/assistente" element={
+            <ProtectedRoute>
+              <Layout>
+                <AIAssistant />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Fallback per rotte inesistenti */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </UserProvider>
     </Router>
   );
