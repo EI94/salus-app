@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { apiUrl, isInOfflineMode, toggleOfflineMode } from '../api';
 import { useNavigate } from 'react-router-dom';
+import i18n from '../i18n'; // Importiamo i18n direttamente
 
 // Creazione del contesto utente
 export const UserContext = createContext(null);
@@ -26,7 +27,17 @@ export const UserProvider = ({ children }) => {
           const token = localStorage.getItem('token');
           
           if (token) {
-            setUser(JSON.parse(savedUser));
+            const userData = JSON.parse(savedUser);
+            setUser(userData);
+            
+            // Impostiamo la lingua dell'utente quando carichiamo il profilo
+            if (userData.language) {
+              i18n.changeLanguage(userData.language);
+              localStorage.setItem('userLanguage', userData.language);
+              localStorage.setItem('preferredLanguage', userData.language);
+              console.log('Lingua impostata da profilo utente:', userData.language);
+            }
+            
             console.log(`Modalità offline: ${isInOfflineMode() ? 'usando dati locali' : 'connesso al server'}`);
           } else {
             // Se non c'è token, pulisci i dati utente
@@ -254,6 +265,50 @@ export const UserProvider = ({ children }) => {
     return !!user && (!!localStorage.getItem('token') || !!sessionStorage.getItem('token'));
   };
   
+  // Funzione per aggiornare la lingua dell'utente
+  const updateLanguage = async (language) => {
+    try {
+      if (!user) {
+        console.log('Nessun utente loggato per aggiornare la lingua');
+        return { success: false, error: 'Utente non autenticato' };
+      }
+      
+      // Aggiorna l'oggetto utente
+      const updatedUser = { ...user, language };
+      setUser(updatedUser);
+      
+      // Aggiorna i18n
+      i18n.changeLanguage(language);
+      
+      // Salva in localStorage
+      localStorage.setItem('userLanguage', language);
+      localStorage.setItem('preferredLanguage', language);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      
+      console.log('Lingua utente aggiornata a:', language);
+      
+      // Se non siamo in modalità offline, aggiorna anche sul server
+      if (!isInOfflineMode()) {
+        try {
+          await axios.put(`${apiUrl}/api/users/language`, { language }, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          console.log('Lingua utente aggiornata sul server');
+        } catch (error) {
+          console.error('Errore aggiornamento lingua sul server:', error);
+          // Non consideriamo questo un errore fatale, continuiamo con la lingua aggiornata localmente
+        }
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Errore aggiornamento lingua:', error);
+      return { success: false, error: 'Errore durante l\'aggiornamento della lingua' };
+    }
+  };
+  
   return (
     <UserContext.Provider 
       value={{ 
@@ -265,7 +320,8 @@ export const UserProvider = ({ children }) => {
         logout,
         isAuthenticated,
         loading,
-        error
+        error,
+        updateLanguage
       }}
     >
       {children}

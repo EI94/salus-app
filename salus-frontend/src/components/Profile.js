@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { loadUserData, saveUserData } from '../utils/dataManager';
 import '../styles/Profile.css';
+import { useTranslation } from 'react-i18next';
+import { UserContext } from '../context/UserContext';
 
 function Profile({ userId, userName, userData: propUserData, activeTab = 'profile' }) {
   const [activeSection, setActiveSection] = useState(activeTab);
@@ -43,7 +45,13 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
   });
 
   // Impostazioni della lingua
-  const [language, setLanguage] = useState(userData?.language || 'italian');
+  const [language, setLanguage] = useState(userData?.language || 'it');
+
+  // Ottieni funzioni per supporto i18n
+  const { i18n } = useTranslation();
+
+  // Ottieni il contesto utente
+  const userContext = useContext(UserContext);
 
   // Carica i dati dell'utente
   useEffect(() => {
@@ -124,7 +132,23 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
 
   // Gestisce il cambiamento della lingua
   const handleLanguageChange = (e) => {
-    setLanguage(e.target.value);
+    const newLang = e.target.value;
+    setLanguage(newLang);
+    
+    // Usa la funzione dal contesto utente per aggiornare la lingua in tutta l'app
+    if (userContext && userContext.updateLanguage) {
+      userContext.updateLanguage(newLang)
+        .then(result => {
+          if (!result.success) {
+            console.error('Errore nel cambio lingua:', result.error);
+          }
+        });
+    } else {
+      // Fallback se il contesto non è disponibile
+      i18n.changeLanguage(newLang);
+      localStorage.setItem('userLanguage', newLang);
+      localStorage.setItem('preferredLanguage', newLang);
+    }
   };
 
   // Salva le modifiche al profilo
@@ -141,6 +165,16 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
     saveUserData(userId, updatedUserData);
     setUserData(updatedUserData);
     setIsEditing(false);
+    
+    // Assicurati che la lingua sia aggiornata in tutta l'app
+    if (userContext && userContext.updateLanguage) {
+      userContext.updateLanguage(language)
+        .then(result => {
+          if (!result.success) {
+            console.error('Errore nel cambio lingua:', result.error);
+          }
+        });
+    }
     
     // Mostra messaggio di conferma
     alert('Profilo aggiornato con successo!');
@@ -652,9 +686,9 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
                 onChange={handleLanguageChange}
                 className="language-select"
               >
-                <option value="italian">Italiano</option>
-                <option value="english">English (Inglese)</option>
-                <option value="hindi">हिन्दी (Hindi)</option>
+                <option value="it">Italiano</option>
+                <option value="en">English (Inglese)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
               </select>
             </div>
           </div>

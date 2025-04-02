@@ -88,20 +88,47 @@ export const saveUserData = (userId, userData) => {
   // Qui in futuro possiamo fare una chiamata API per salvare i dati reali dell'utente
   // Per ora utilizziamo localStorage
   
-  // Assicurati che l'impostazione della lingua venga salvata
-  if (userData.language) {
-    // Salva le preferenze di lingua nel localStorage
-    const userProfile = JSON.parse(localStorage.getItem('userProfile')) || {};
-    userProfile.language = userData.language;
-    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+  try {
+    // Salva le preferenze di lingua nell'app
+    if (userData.language) {
+      // Salva la lingua nelle impostazioni generali dell'app
+      localStorage.setItem('userLanguage', userData.language);
+      localStorage.setItem('preferredLanguage', userData.language);
+      
+      // Se disponibile, importa e utilizza il modulo i18n per aggiornare la lingua in tempo reale
+      try {
+        // Utilizziamo import dinamico per evitare dipendenze circolari
+        import('../i18n').then(({ changeLanguage }) => {
+          changeLanguage(userData.language);
+        }).catch(err => {
+          console.error('Impossibile importare il modulo i18n:', err);
+        });
+      } catch (e) {
+        console.warn('Modulo i18n non disponibile per il cambio lingua:', e);
+      }
+    }
     
-    // Aggiorna eventuali altre impostazioni dell'utente
+    // Salva tutti i dati dell'utente nel localStorage
     localStorage.setItem('userData_' + userId, JSON.stringify(userData));
+    
+    // Aggiorna anche l'utente corrente se l'ID corrisponde
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (currentUser && currentUser.id === userId) {
+      currentUser.language = userData.language || currentUser.language;
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    }
+    
+    return {
+      success: true,
+      message: 'Dati utente salvati con successo',
+      lastUpdate: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Errore nel salvare i dati utente:', error);
+    return {
+      success: false,
+      message: 'Errore nel salvare i dati: ' + error.message,
+      lastUpdate: null
+    };
   }
-  
-  return {
-    success: true,
-    message: 'Dati utente salvati con successo',
-    lastUpdate: new Date().toISOString()
-  };
 }; 
