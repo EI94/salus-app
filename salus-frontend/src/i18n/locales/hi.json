@@ -24,17 +24,17 @@
   "noAccount": "खाता नहीं है?",
   "hasAccount": "पहले से खाता है?",
   
-  "featuresTitle": "आपको जो चाहिए वह सब",
+  "featuresTitle": "मुख्य सुविधाएँ",
   "featuresDescription": "सलुस आपको अपने स्वास्थ्य को सरल और सुरक्षित तरीके से प्रबंधित करने के लिए सभी उपकरण प्रदान करता है",
   
   "featureSymptoms": "लक्षण निगरानी",
-  "featureSymptomsDesc": "समय के साथ अपने लक्षणों का ट्रैक रखें और महत्वपूर्ण पैटर्न का पता लगाएं",
+  "featureSymptomsDesc": "आसानी से अपने लक्षणों को समय के साथ ट्रैक करें और विस्तृत विश्लेषण प्राप्त करें",
   
   "featureMedications": "दवा प्रबंधन",
-  "featureMedicationsDesc": "व्यक्तिगत अनुस्मारकों के साथ अपनी दवाएं लेना कभी न भूलें",
+  "featureMedicationsDesc": "अपनी दवाओं, खुराक और समय को ट्रैक करें",
   
   "featureAI": "AI सहायक",
-  "featureAIDesc": "अपने स्वास्थ्य डेटा के आधार पर व्यक्तिगत सलाह प्राप्त करें",
+  "featureAIDesc": "अपने स्वास्थ्य डेटा के आधार पर व्यक्तिगत सुझाव प्राप्त करें",
   
   "resetPassword": "पासवर्ड रीसेट",
   "sendResetLink": "रीसेट लिंक भेजें",
@@ -79,5 +79,25 @@
   "privacyPolicy": "गोपनीयता नीति",
   "termsAndConditions": "नियम और शर्तें",
   "cookiePolicy": "कुकी नीति",
-  "copyright": "© 2023 सलुस हेल्थ. सर्वाधिकार सुरक्षित."
+  "copyright": "© 2023 सलुस हेल्थ. सर्वाधिकार सुरक्षित.",
+  
+  "language": "भाषा",
+  "loginToAccount": "अपने अकाउंट में लॉग इन करें",
+  "enterEmail": "अपना ईमेल दर्ज करें",
+  "enterPassword": "अपना पासवर्ड दर्ज करें",
+  "createAccount": "अकाउंट बनाएं",
+  "alreadyAccount": "पहले से ही अकाउंट है?",
+  
+  "loggingIn": "लॉग इन हो रहा है...",
+  "registering": "पंजीकरण हो रहा है...",
+  "sending": "भेज रहा है...",
+  
+  "forgotPasswordInstructions": "अपना ईमेल दर्ज करें और हम आपको पासवर्ड रीसेट करने के लिए एक लिंक भेजेंगे",
+  "resetLinkSent": "रीसेट लिंक भेजा गया",
+  "resetLinkInstructions": "कृपया अपने ईमेल की जांच करें और पासवर्ड रीसेट करने के लिए भेजे गए लिंक पर क्लिक करें",
+  
+  "invalidCredentials": "अमान्य ईमेल या पासवर्ड",
+  "resendVerificationEmail": "सत्यापन ईमेल पुनः भेजें",
+  "enterName": "अपना नाम दर्ज करें",
+  "confirmPasswordPlaceholder": "अपने पासवर्ड की पुष्टि करें"
 } 
