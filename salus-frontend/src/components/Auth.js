@@ -107,6 +107,14 @@ const Auth = () => {
     return () => {};
   }, [userContext]);
 
+  // Reindirizzamento automatico se utente già autenticato
+  useEffect(() => {
+    if (userContext && userContext.user) {
+      console.log('Utente già autenticato, reindirizzamento al dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [userContext?.user, navigate]);
+
   // Validazione form avanzata
   const validateForm = () => {
     const newErrors = {};
@@ -360,6 +368,12 @@ const Auth = () => {
   // Form di login
   const renderLoginForm = () => (
     <form onSubmit={handleLogin} className="auth-form">
+      {/* Credenziali di test per modalità demo */}
+      <div className="demo-credentials">
+        <p>Credenziali di test:</p>
+        <code>admin@salus.com / password123</code>
+      </div>
+
       <div className="form-group">
         <label htmlFor="email">{t('email')}</label>
         <div className="input-field">
