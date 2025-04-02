@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/AIAssistant.css';
-import axios from 'axios';
+import { sendMessageToAI } from '../api';
 
 function AIAssistant() {
   const [messages, setMessages] = useState([
@@ -17,15 +17,14 @@ function AIAssistant() {
   // Ottiene una risposta dall'API di OpenAI
   const getAIResponse = async (query) => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      const response = await axios.post(`${apiUrl}/api/ai/chat`, {
-        message: query
-      });
-
-      if (response.data.success) {
-        return response.data.response;
+      // Utilizziamo la funzione sendMessageToAI dal nostro file api.js
+      // che gestisce sia le richieste online che la modalità offline
+      const response = await sendMessageToAI(query);
+      
+      if (response && response.reply) {
+        return response.reply;
       } else {
-        throw new Error(response.data.error || 'Errore nella risposta del server');
+        throw new Error('Risposta non valida dal servizio AI');
       }
     } catch (error) {
       console.error('Errore nella chiamata API:', error);
