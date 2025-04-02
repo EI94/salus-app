@@ -258,18 +258,14 @@ body {
   position: relative;
 }
 
-.input-with-icon i {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-secondary);
+.input-field {
+  position: relative;
 }
 
-.input-with-icon input,
-.input-with-icon select {
+.input-field input,
+.input-field select {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
   background-color: var(--input-bg);
@@ -278,18 +274,18 @@ body {
   transition: var(--transition);
 }
 
-.input-with-icon input:focus,
-.input-with-icon select:focus {
+.input-field input:focus,
+.input-field select:focus {
   border-color: var(--primary);
   outline: none;
   box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
 }
 
-.input-with-icon input::placeholder {
+.input-field input::placeholder {
   color: var(--text-light);
 }
 
-.input-with-icon input.error {
+.input-field input.error {
   border-color: var(--error);
   box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2);
 }

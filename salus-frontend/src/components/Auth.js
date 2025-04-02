@@ -6,27 +6,7 @@ import { UserContext } from '../context/UserContext';
 import { apiUrl } from '../api';
 import { useTranslation } from 'react-i18next';
 
-// Icone in formato SVG
-const EmailIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-  </svg>
-);
-
-const LockIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z" />
-  </svg>
-);
-
-const GoogleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-    <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032 s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2 C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" fill="#4285F4" />
-    <path d="M7.545,9.909v3.434H4.111v-3.434H7.545z" fill="#34A853" />
-    <path d="M12.545,22c2.661,0,4.892-0.874,6.526-2.364l-3.184-2.466 c-0.885,0.617-2.024,0.98-3.342,0.98c-2.575,0-4.755-1.742-5.531-4.08l-3.292,2.655C5.201,19.999,8.629,22,12.545,22z" fill="#FBBC05" />
-  </svg>
-);
-
+// Icone SVG solo per la sezione delle feature
 const HeartPulseIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
     <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
@@ -42,18 +22,6 @@ const MedicationIcon = () => (
 const AIIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
     <path d="M21,15.61L19.59,17L14.58,12L19.59,7L21,8.39L17.44,12L21,15.61M3,6H16V8H3V6M3,13V11H16V13H3M3,18V16H16V18H3Z" />
-  </svg>
-);
-
-const SuccessIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-  </svg>
-);
-
-const ErrorIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
   </svg>
 );
 
@@ -582,11 +550,9 @@ const Auth = () => {
             value={language}
             onChange={handleLanguageChange}
           >
-            <option value="italian">Italiano</option>
-            <option value="english">English</option>
-            <option value="spanish">Español</option>
-            <option value="french">Français</option>
-            <option value="german">Deutsch</option>
+            <option value="it">{t('italian')}</option>
+            <option value="en">{t('english')}</option>
+            <option value="hi">{t('hindi')}</option>
           </select>
         </div>
       </div>
@@ -751,8 +717,9 @@ const Auth = () => {
     <div className="auth-container">
       <div className="auth-left">
         <div className="auth-brand">
-          <img src="/assets/images/logo.svg" alt="Salus" className="auth-logo" />
-          <h1>Salus</h1>
+          <img src="/assets/images/logo.svg" alt="Salus Logo" className="auth-logo" />
+          <h1>{t('appTitle')}</h1>
+          <p>{t('appDescription')}</p>
         </div>
         
         <div className="auth-features">
@@ -760,7 +727,7 @@ const Auth = () => {
           
           <div className="feature-item">
             <div className="feature-icon">
-              <i className="fas fa-heartbeat"></i>
+              <HeartPulseIcon />
             </div>
             <div className="feature-text">
               <h3>{t('symptomTracking')}</h3>
@@ -770,7 +737,7 @@ const Auth = () => {
           
           <div className="feature-item">
             <div className="feature-icon">
-              <i className="fas fa-pills"></i>
+              <MedicationIcon />
             </div>
             <div className="feature-text">
               <h3>{t('medicationManagement')}</h3>
@@ -780,7 +747,7 @@ const Auth = () => {
           
           <div className="feature-item">
             <div className="feature-icon">
-              <i className="fas fa-brain"></i>
+              <AIIcon />
             </div>
             <div className="feature-text">
               <h3>{t('aiAssistant')}</h3>
@@ -790,17 +757,15 @@ const Auth = () => {
         </div>
         
         <div className="language-selector">
-          <label htmlFor="language-select">{t('language')}: </label>
-          <select 
-            id="language-select" 
-            value={language} 
+          <label htmlFor="language">{t('language')}:</label>
+          <select
+            id="language"
+            value={language}
             onChange={handleLanguageChange}
           >
-            <option value="italian">Italiano</option>
-            <option value="english">English</option>
-            <option value="spanish">Español</option>
-            <option value="french">Français</option>
-            <option value="german">Deutsch</option>
+            <option value="it">{t('italian')}</option>
+            <option value="en">{t('english')}</option>
+            <option value="hi">{t('hindi')}</option>
           </select>
         </div>
       </div>
@@ -814,8 +779,8 @@ const Auth = () => {
           
           {message.text && (
             <div className={`message-box ${message.type}`}>
-              <i className={`fas fa-${message.type === 'success' ? 'check-circle' : 'exclamation-circle'}`}></i>
-              <p>{message.text}</p>
+              <span>{message.type === 'success' ? '✓' : message.type === 'warning' ? '⚠' : '⚠'}</span>
+              <div>{message.text}</div>
             </div>
           )}
           
