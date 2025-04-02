@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Auth from './components/Auth';
@@ -254,163 +254,125 @@ const RootRedirect = () => {
 
 // Layout che include la barra di navigazione e il layout comune
 function Layout({ children }) {
+  const { t } = useTranslation();
+  const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showAIWidget, setShowAIWidget] = useState(false);
+  const { user, logout } = useContext(UserContext);
+  const sidebarRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const userContext = useContext(UserContext);
-  const [showAIWidget, setShowAIWidget] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const profileMenuRef = React.useRef(null);
-  
-  // Gestisce i click fuori dal menu profilo per chiuderlo
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-        setShowProfileMenu(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
   
   // Determina quale pagina è attiva in base all'URL
   const getActivePageClass = (path) => {
     return location.pathname === path ? 'active' : '';
   };
   
-  // Logout handler
   const handleLogout = () => {
-    userContext.logout();
-    navigate('/login', { replace: true });
+    logout();
+    navigate('/login');
   };
   
-  const userName = userContext?.user?.name || 'Utente';
-  const userId = userContext?.user?.id || 'ID';
-  const hasNotifications = false; // Sostituire con logica notifiche reale
-  
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <div className="header-left">
-          <img src="/assets/icons/logo.svg" alt="Salus" className="logo" />
-          <h1>Salus</h1>
-        </div>
-        <div className="header-right">
-          <button 
-            className="header-button" 
-            onClick={() => setShowNotifications(!showNotifications)}
-            title="Notifiche"
-          >
-            <i className="fas fa-bell"></i>
-            {hasNotifications && <span className="notification-badge"></span>}
-          </button>
-          <button 
-            className="header-button" 
-            onClick={() => setShowAIWidget(!showAIWidget)}
-            title="Assistente IA"
-          >
-            <i className="fas fa-robot"></i>
-          </button>
-          <div className="profile-menu-container" ref={profileMenuRef}>
+    <div className="app-layout">
+      <div className="sidebar-wrapper">
+        <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`} ref={sidebarRef}>
+          <div className="sidebar-header">
+            <div className="app-logo">
+              <img src="/logo-light.png" alt="Salus Logo" />
+              <h1>Salus</h1>
+            </div>
+            <button className="sidebar-toggle" onClick={() => setSidebarOpen(!isSidebarOpen)}>
+              <i className={`fas fa-${isSidebarOpen ? 'times' : 'bars'}`}></i>
+            </button>
+          </div>
+          
+          <div className="user-info">
+            <div className="user-avatar">
+              <i className="fas fa-user-circle"></i>
+            </div>
+            <div className="user-details">
+              <h3>{user?.name || t('guest', 'Ospite')}</h3>
+              <p>{user?.email || ''}</p>
+            </div>
+          </div>
+          
+          <nav className="sidebar-nav">
+            <ul>
+              <li>
+                <Link to="/dashboard" className={getActivePageClass('/dashboard')}>
+                  <i className="fas fa-home"></i>
+                  <span>{t('dashboard', 'Dashboard')}</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/sintomi" className={getActivePageClass('/sintomi')}>
+                  <i className="fas fa-heartbeat"></i>
+                  <span>{t('symptoms', 'Sintomi')}</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/farmaci" className={getActivePageClass('/farmaci')}>
+                  <i className="fas fa-pills"></i>
+                  <span>{t('medications', 'Farmaci')}</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/benessere" className={getActivePageClass('/benessere')}>
+                  <i className="fas fa-heart"></i>
+                  <span>{t('wellness', 'Benessere')}</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/profile" className={getActivePageClass('/profile')}>
+                  <i className="fas fa-user"></i>
+                  <span>{t('profile', 'Profilo')}</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/settings" className={getActivePageClass('/settings')}>
+                  <i className="fas fa-cog"></i>
+                  <span>{t('settings', 'Impostazioni')}</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/assistente" className={getActivePageClass('/assistente')}>
+                  <i className="fas fa-robot"></i>
+                  <span>{t('aiAssistant', 'Assistente IA')}</span>
+                </Link>
+              </li>
+            </ul>
+          </nav>
+          
+          <div className="sidebar-footer">
             <button 
-              className="header-button" 
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              title="Il tuo profilo"
+              className="notification-button"
+              onClick={() => setShowNotifications(!showNotifications)}
+              title={t('notifications', 'Notifiche')}
             >
-              <i className="fas fa-user"></i>
+              <i className="fas fa-bell"></i>
+              <span>{t('notifications', 'Notifiche')}</span>
             </button>
             
-            {showProfileMenu && (
-              <div className="profile-dropdown">
-                <div className="profile-header">
-                  <div className="profile-avatar">
-                    <i className="fas fa-user-circle"></i>
-                  </div>
-                  <div className="profile-info">
-                    <h4>{userName}</h4>
-                    <p>ID: {userId}</p>
-                  </div>
-                </div>
-                <ul className="profile-menu-items">
-                  <li onClick={() => navigate('/profile')}>
-                    <i className="fas fa-id-card"></i>
-                    <span>Il mio profilo</span>
-                  </li>
-                  <li onClick={() => navigate('/settings')}>
-                    <i className="fas fa-cog"></i>
-                    <span>Impostazioni</span>
-                  </li>
-                  <li className="divider"></li>
-                  <li className="logout-item" onClick={handleLogout}>
-                    <i className="fas fa-sign-out-alt"></i>
-                    <span>Esci</span>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-      
-      <div className="main-container">
-        <nav className="sidebar">
-          <Link 
-            to="/dashboard" 
-            className={getActivePageClass('/dashboard')}
-          >
-            <i className="fas fa-home"></i>
-            <span>Dashboard</span>
-          </Link>
-          <Link 
-            to="/sintomi" 
-            className={getActivePageClass('/sintomi')}
-          >
-            <i className="fas fa-heartbeat"></i>
-            <span>Sintomi</span>
-          </Link>
-          <Link 
-            to="/farmaci" 
-            className={getActivePageClass('/farmaci')}
-          >
-            <i className="fas fa-pills"></i>
-            <span>Farmaci</span>
-          </Link>
-          <Link 
-            to="/benessere" 
-            className={getActivePageClass('/benessere')}
-          >
-            <i className="fas fa-spa"></i>
-            <span>Benessere</span>
-          </Link>
-          <Link 
-            to="/assistente" 
-            className={getActivePageClass('/assistente')}
-          >
-            <i className="fas fa-robot"></i>
-            <span>Assistente</span>
-          </Link>
-          
-          <div className="sidebar-bottom">
             <button 
-              className="ai-toggle-button"
+              className="assistant-button"
               onClick={() => setShowAIWidget(!showAIWidget)}
+              title={t('quickAssistant', 'Assistente Rapido')}
             >
               <i className="fas fa-robot"></i>
-              <span>Assistente Rapido</span>
+              <span>{t('quickAssistant', 'Assistente Rapido')}</span>
             </button>
             
             <button 
               className="logout-button"
               onClick={handleLogout}
-              title="Esci dall'applicazione"
+              title={t('logout', 'Esci d\'applicazione')}
             >
               <i className="fas fa-sign-out-alt"></i>
-              <span>Esci</span>
+              <span>{t('logout', 'Esci')}</span>
             </button>
           </div>
-        </nav>
+        </div>
         
         <main className="content">
           {children}

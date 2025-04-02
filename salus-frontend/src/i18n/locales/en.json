@@ -83,5 +83,8 @@
   "privacyPolicy": "Privacy Policy",
   "termsAndConditions": "Terms and Conditions",
   "cookiePolicy": "Cookie Policy",
-  "copyright": "© 2023 Salus Health. All rights reserved."
+  "copyright": "© 2023 Salus Health. All rights reserved.",
+  "quickAssistant": "Quick Assistant",
+  "notifications": "Notifications",
+  "guest": "Guest"
 } 
