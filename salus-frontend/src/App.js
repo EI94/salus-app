@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Auth from './components/Auth';
 import SymptomTracker from './components/SymptomTracker';
@@ -519,11 +519,11 @@ function AppContent() {
 // Applicazione principale
 function App() {
   return (
-    <BrowserRouter basename="/">
+    <HashRouter>
       <UserProvider>
         <AppContent />
       </UserProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
