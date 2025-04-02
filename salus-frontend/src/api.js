@@ -173,9 +173,31 @@ const getMockResponse = (url, method, data) => {
           data: [] // Array vuoto invece di dati di esempio
         });
       } else if (url.includes('/ai/chat')) {
+        // Implementiamo una risposta più intelligente per l'assistente virtuale
+        const userMessage = data?.message || '';
+        let aiReply = "Ciao! Sono Salus, il tuo assistente sanitario. Ti ricordo che non sono un medico e le mie informazioni sono solo educative. Come posso aiutarti oggi?";
+        
+        // Risposte predefinite basate su parole chiave nel messaggio dell'utente
+        if (userMessage.toLowerCase().includes('mal di testa')) {
+          aiReply = "Il mal di testa può essere causato da diversi fattori come stress, disidratazione, problemi di vista o tensione muscolare. Ti consiglio di bere acqua, riposare in una stanza buia e silenziosa, e considerare l'uso di farmaci da banco se necessario. Se il mal di testa è persistente o particolarmente forte, consulta un medico.";
+        } else if (userMessage.toLowerCase().includes('febbre')) {
+          aiReply = "La febbre è spesso un segno che il tuo corpo sta combattendo un'infezione. È importante riposare, bere molti liquidi e monitorare la temperatura. Se supera i 39°C o persiste per più di tre giorni, consulta un medico. Anche sintomi come difficoltà respiratorie o forte mal di testa insieme alla febbre richiedono attenzione medica immediata.";
+        } else if (userMessage.toLowerCase().includes('tosse')) {
+          aiReply = "La tosse può essere causata da allergie, raffreddore, influenza o altre condizioni. Per alleviare i sintomi, prova a bere tè caldo con miele, usa un umidificatore e mantieniti idratato. Se la tosse è accompagnata da febbre alta, difficoltà respiratorie o dura più di due settimane, consulta un medico.";
+        } else if (userMessage.toLowerCase().includes('stanco') || userMessage.toLowerCase().includes('stanchezza') || userMessage.toLowerCase().includes('fatica')) {
+          aiReply = "La stanchezza cronica può essere causata da vari fattori come stress, cattiva alimentazione, mancanza di sonno o condizioni mediche sottostanti. Prova a migliorare la tua routine di sonno, fare esercizio regolarmente e mangiare cibi nutrienti. Se la stanchezza persiste nonostante questi cambiamenti, potrebbe essere utile consultare un medico.";
+        } else if (userMessage.toLowerCase().includes('dormire') || userMessage.toLowerCase().includes('sonno') || userMessage.toLowerCase().includes('insonnia')) {
+          aiReply = "Per migliorare la qualità del sonno, mantieni un programma regolare, crea un ambiente rilassante, evita caffeina e schermi nelle ore prima di coricarti. Tecniche di rilassamento come la meditazione possono essere utili. Se l'insonnia persiste, parla con un professionista sanitario che può valutare se ci sono problemi sottostanti.";
+        } else if (userMessage.toLowerCase().includes('stress') || userMessage.toLowerCase().includes('ansia')) {
+          aiReply = "Lo stress e l'ansia sono risposte naturali, ma quando diventano eccessivi possono influire sulla salute. Tecniche come la respirazione profonda, l'esercizio fisico, la meditazione e attività rilassanti possono aiutare. Mantieni uno stile di vita equilibrato e, se necessario, considera di parlare con un professionista della salute mentale.";
+        } else if (userMessage.length > 10) {
+          // Se il messaggio è abbastanza lungo ma non corrisponde a nessuna parola chiave
+          aiReply = "Grazie per la tua domanda. In modalità offline, le mie risposte sono limitate. Posso fornire consigli generali su sintomi comuni, stili di vita sani e primi soccorsi. Per domande mediche specifiche, ti consiglio di consultare un professionista sanitario quando possibile.";
+        }
+        
         resolve({
           data: {
-            reply: "Ciao! Sono Salus, il tuo assistente sanitario. Ti ricordo che non sono un medico e le mie informazioni sono solo educative. Come posso aiutarti oggi?"
+            reply: aiReply
           }
         });
       } else {
