@@ -1,18 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/AIAssistant.css';
 import { sendMessageToAI } from '../api';
+import { useTranslation } from 'react-i18next';
 
 function AIAssistant() {
+  const { t, i18n } = useTranslation();
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Ciao! Sono il tuo assistente Salus. Come posso aiutarti con la tua salute oggi?'
+      content: t('aiWelcomeMessage', 'Ciao! Sono il tuo assistente Salus. Come posso aiutarti con la tua salute oggi?')
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const messagesEndRef = useRef(null);
+
+  // Aggiorna il messaggio di benvenuto quando cambia la lingua
+  useEffect(() => {
+    setMessages(prev => {
+      // Mantiene tutti i messaggi eccetto il primo
+      const otherMessages = prev.length > 1 ? prev.slice(1) : [];
+      
+      // Aggiorna solo il messaggio di benvenuto (il primo)
+      return [
+        {
+          role: 'assistant',
+          content: t('aiWelcomeMessage', 'Ciao! Sono il tuo assistente Salus. Come posso aiutarti con la tua salute oggi?')
+        },
+        ...otherMessages
+      ];
+    });
+  }, [i18n.language, t]);
 
   // Ottiene una risposta dall'API di OpenAI
   const getAIResponse = async (query) => {
@@ -28,7 +47,7 @@ function AIAssistant() {
       }
     } catch (error) {
       console.error('Errore nella chiamata API:', error);
-      return "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche.";
+      return t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche.");
     }
   };
 
@@ -55,7 +74,7 @@ function AIAssistant() {
       console.error('Errore nel processare il messaggio:', error);
       const errorMessage = { 
         role: 'assistant', 
-        content: "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche."
+        content: t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche.")
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -80,13 +99,13 @@ function AIAssistant() {
       <div className="ai-assistant-header">
         <div className="ai-assistant-title">
           <i className="fas fa-robot"></i>
-          <h3>Assistente Salus</h3>
+          <h3>{t('aiAssistant', 'Assistente Salus')}</h3>
         </div>
         <div className="ai-assistant-controls">
           <button
             className="ai-assistant-toggle"
             onClick={toggleExpansion}
-            title={isExpanded ? 'Comprimi' : 'Espandi'}
+            title={isExpanded ? t('collapse', 'Comprimi') : t('expand', 'Espandi')}
           >
             <i className={`fas fa-${isExpanded ? 'minus' : 'plus'}`}></i>
           </button>
@@ -136,13 +155,13 @@ function AIAssistant() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Scrivi un messaggio..."
+              placeholder={t('writeMessage', 'Scrivi un messaggio...')}
               disabled={isLoading}
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              title="Invia messaggio"
+              title={t('sendMessage', 'Invia messaggio')}
             >
               <i className="fas fa-paper-plane"></i>
             </button>
