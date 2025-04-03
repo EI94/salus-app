@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import '../styles/FeedbackWidget.css';
 import axios from 'axios';
+import { apiUrl, normalizePath } from '../api';
 
 function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -90,9 +91,12 @@ function FeedbackWidget() {
     setIsSubmitting(true);
     
     try {
+      // Normalizziamo il percorso per evitare duplicazioni
+      const normalizedPath = normalizePath('/feedback/send');
+      console.log('Percorso normalizzato per invio feedback:', normalizedPath);
+      
       // Invio reale del feedback tramite API
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      const response = await axios.post(`${apiUrl}/api/feedback/send`, feedback);
+      const response = await axios.post(`${apiUrl}${normalizedPath}`, feedback);
       
       console.log('Feedback inviato:', response.data);
       
