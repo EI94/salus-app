@@ -12,8 +12,7 @@ const connectDB = async () => {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000, // Timeout dopo 5 secondi
       socketTimeoutMS: 45000, // Chiude i socket dopo 45 secondi di inattività
-      family: 4, // Usa IPv4, evita problemi con IPv6
-      directConnection: true // Evita errori di risoluzione DNS SRV
+      family: 4 // Usa IPv4, evita problemi con IPv6
     };
 
     // Controlla se è stata fornita una stringa di connessione valida
