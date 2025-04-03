@@ -12,7 +12,8 @@ const connectDB = async () => {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000, // Timeout dopo 5 secondi
       socketTimeoutMS: 45000, // Chiude i socket dopo 45 secondi di inattività
-      family: 4 // Usa IPv4, evita problemi con IPv6
+      family: 4, // Usa IPv4, evita problemi con IPv6
+      directConnection: true // Per connessioni dirette al server locale
     };
 
     // Controlla se è stata fornita una stringa di connessione valida
@@ -29,7 +30,11 @@ const connectDB = async () => {
     // Gestione speciale per URL locali o di test
     if (uri.includes('127.0.0.1') || uri.includes('localhost')) {
       console.log('Utilizzando database locale o modalità in-memory');
-      // Nessuna opzione speciale necessaria per connessioni locali
+      
+      // Rimuovi l'opzione directConnection per connessioni SRV
+      if (uri.includes('mongodb+srv')) {
+        delete options.directConnection;
+      }
     }
 
     // Stabilisce la connessione a MongoDB
