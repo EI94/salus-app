@@ -8,7 +8,7 @@ if (typeof window !== 'undefined' && window.location.hostname === 'www.wearesalu
   console.log('OVERRIDE EMERGENZA - Forzato URL API a:', forcedApiUrl);
 }
 
-// Imposta l'URL di base dell'API
+// Imposta l'URL di base dell'API SENZA /api alla fine
 export const apiUrl = forcedApiUrl || process.env.REACT_APP_API_URL || 'https://salus-backend.onrender.com';
 
 // Logging per debug
@@ -18,9 +18,34 @@ console.log('API URL configurato:', apiUrl);
 export const normalizePath = (path) => {
   console.log('Normalizzando percorso:', path, 'con baseURL:', apiUrl);
   
+  // BYPASS COMPLETO - Forziamo direttamente URL hardcoded per questi endpoint specifici
+  if (path === '/auth/login' || path === '/auth/register' || 
+      path === 'auth/login' || path === 'auth/register' ||
+      path === '/api/auth/login' || path === '/api/auth/register') {
+    const directPath = path.replace('/api/', '/');
+    if (directPath.startsWith('/')) {
+      console.log('PERCORSO DI AUTENTICAZIONE - usando direttamente:', directPath);
+      return directPath;
+    } else {
+      console.log('PERCORSO DI AUTENTICAZIONE - usando direttamente con slash:', '/' + directPath);
+      return '/' + directPath;
+    }
+  }
+  
   // BYPASS PER DOMINIO DI PRODUZIONE CON FORZATURA DELL'URL
   if (forcedApiUrl) {
     console.log('Usando percorso semplice per ambiente di produzione forzato');
+    // Rimozione di /api se presente all'inizio del percorso
+    if (path.startsWith('/api/')) {
+      const cleanPath = path.substring(4);
+      console.log('Percorso ripulito da /api/:', cleanPath);
+      return cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath;
+    } else if (path.startsWith('api/')) {
+      const cleanPath = path.substring(3);
+      console.log('Percorso ripulito da api/:', cleanPath);
+      return cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath;
+    }
+    
     return path.startsWith('/') ? path : '/' + path;
   }
   
