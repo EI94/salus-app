@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
@@ -12,6 +12,56 @@
     />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- PATCH DI EMERGENZA PER FISSARE LE CHIAMATE API -->
+    <script type="text/javascript">
+      (function() {
+        // Sovrascrive XMLHttpRequest per intercettare e correggere gli URL prima delle richieste
+        const originalXHROpen = window.XMLHttpRequest.prototype.open;
+        window.XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+          // Controllo se è una chiamata API con un percorso duplicato
+          if (typeof url === 'string' && url.includes('/api/api/')) {
+            console.log('CORREZIONE AUTOMATICA: URL duplicato rilevato:', url);
+            // Correggi l'URL sostituendo '/api/api/' con '/api/'
+            url = url.replace('/api/api/', '/api/');
+            console.log('CORREZIONE AUTOMATICA: URL corretto:', url);
+          }
+          
+          // Gestione speciale per gli URL di autenticazione su wearesalusapp.com
+          if (typeof url === 'string' && 
+              window.location.hostname === 'www.wearesalusapp.com' && 
+              (url.includes('/auth/register') || url.includes('/auth/login'))) {
+            // Usa direttamente l'URL del backend
+            const directUrl = 'https://salus-backend.onrender.com' + 
+                              (url.includes('/auth/register') ? '/auth/register' : '/auth/login');
+            console.log('CORREZIONE AUTOMATICA: Usando URL diretto per autenticazione:', directUrl);
+            url = directUrl;
+          }
+          
+          // Chiama il metodo originale con l'URL corretto
+          return originalXHROpen.call(this, method, url, async, user, password);
+        };
+        
+        // Registra un avviso quando il sito è caricato
+        window.addEventListener('load', function() {
+          console.log('PATCH DI EMERGENZA: Intercettazione delle chiamate API attivata');
+        });
+        
+        // CORREZIONE AXIOS (se utilizzato)
+        if (window.axios) {
+          const originalAxiosRequest = window.axios.request;
+          window.axios.request = function(config) {
+            if (config.url && config.url.includes('/api/api/')) {
+              console.log('CORREZIONE AUTOMATICA AXIOS: URL duplicato rilevato:', config.url);
+              config.url = config.url.replace('/api/api/', '/api/');
+              console.log('CORREZIONE AUTOMATICA AXIOS: URL corretto:', config.url);
+            }
+            return originalAxiosRequest.call(this, config);
+          };
+        }
+      })();
+    </script>
+    
     <title>Salus Health App</title>
     <style>
       /* Stili di base - per evitare FOUC */
