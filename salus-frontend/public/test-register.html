@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 500px;
+      max-width: 600px;
       margin: 0 auto;
       padding: 20px;
     }
@@ -35,8 +35,9 @@
       padding: 10px 15px;
       border-radius: 4px;
       cursor: pointer;
+      margin-right: 10px;
     }
-    #status {
+    #status, #debug-status {
       margin-top: 20px;
       padding: 10px;
       border-radius: 4px;
@@ -57,31 +58,130 @@
       border-radius: 4px;
       overflow-x: auto;
     }
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .tab {
+      padding: 10px 15px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .tab.active {
+      border: 1px solid #ddd;
+      border-bottom: 1px solid white;
+      border-radius: 5px 5px 0 0;
+      margin-bottom: -1px;
+      background-color: #f8f9fa;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <h1>Registrazione Salus - Test diretto</h1>
-  <p>Questa è una pagina separata per testare la registrazione direttamente senza React o altre dipendenze.</p>
+  <h1>Registrazione Salus - Debug e Test</h1>
+  <p>Questa pagina consente di testare direttamente le API di registrazione con diversi metodi.</p>
   
-  <form id="register-form">
-    <div class="form-group">
-      <label for="name">Nome (opzionale)</label>
-      <input type="text" id="name" placeholder="Il tuo nome">
-    </div>
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="La tua email" required>
-    </div>
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="La tua password" required>
-    </div>
-    <button type="submit">Registrati</button>
-  </form>
+  <div class="tabs">
+    <div class="tab active" data-tab="backend-direct">Backend diretto</div>
+    <div class="tab" data-tab="debug-route">Route debug</div>
+    <div class="tab" data-tab="local-api">API locale</div>
+  </div>
   
-  <div id="status" style="display: none;"></div>
+  <div id="backend-direct" class="tab-content active">
+    <h2>Test Backend diretto</h2>
+    <p>Invia direttamente una richiesta al backend (https://salus-backend.onrender.com)</p>
+    
+    <form id="register-form">
+      <div class="form-group">
+        <label for="name">Nome (opzionale)</label>
+        <input type="text" id="name" placeholder="Il tuo nome">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="La tua email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="La tua password" required>
+      </div>
+      <button type="submit">Registrati</button>
+    </form>
+    
+    <div id="status" style="display: none;"></div>
+  </div>
+  
+  <div id="debug-route" class="tab-content">
+    <h2>Test Route Debug</h2>
+    <p>Utilizza la route di debug per verificare che il server riceva i dati correttamente</p>
+    
+    <form id="debug-form">
+      <div class="form-group">
+        <label for="debug-name">Nome (opzionale)</label>
+        <input type="text" id="debug-name" placeholder="Il tuo nome">
+      </div>
+      <div class="form-group">
+        <label for="debug-email">Email</label>
+        <input type="email" id="debug-email" placeholder="La tua email" required>
+      </div>
+      <div class="form-group">
+        <label for="debug-password">Password</label>
+        <input type="password" id="debug-password" placeholder="La tua password" required>
+      </div>
+      <button type="submit">Invia debug</button>
+    </form>
+    
+    <div id="debug-status" style="display: none;"></div>
+  </div>
+  
+  <div id="local-api" class="tab-content">
+    <h2>Test API locale</h2>
+    <p>Utilizza l'API locale (richiede che il server backend sia in esecuzione localmente)</p>
+    
+    <form id="local-form">
+      <div class="form-group">
+        <label for="local-name">Nome (opzionale)</label>
+        <input type="text" id="local-name" placeholder="Il tuo nome">
+      </div>
+      <div class="form-group">
+        <label for="local-email">Email</label>
+        <input type="email" id="local-email" placeholder="La tua email" required>
+      </div>
+      <div class="form-group">
+        <label for="local-password">Password</label>
+        <input type="password" id="local-password" placeholder="La tua password" required>
+      </div>
+      <button type="submit">Registrati (locale)</button>
+    </form>
+    
+    <div id="local-status" style="display: none;"></div>
+  </div>
   
   <script>
+    // Gestione delle tab
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabId = tab.getAttribute('data-tab');
+        
+        // Rimuovi la classe active da tutte le tab
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        
+        // Aggiungi la classe active alla tab cliccata
+        tab.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+  
+    // Form Backend Diretto
     document.getElementById('register-form').addEventListener('submit', function(event) {
       event.preventDefault();
       
@@ -164,6 +264,155 @@
         console.error('Errore:', error);
         statusElement.className = 'error';
         statusElement.innerHTML = `<p>Errore di rete: ${error.message}</p>`;
+      });
+    });
+    
+    // Form Debug
+    document.getElementById('debug-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById('debug-name').value;
+      const email = document.getElementById('debug-email').value;
+      const password = document.getElementById('debug-password').value;
+      const statusElement = document.getElementById('debug-status');
+      
+      // Resetta status
+      statusElement.className = '';
+      statusElement.innerHTML = 'Invio dati di debug in corso...';
+      statusElement.style.display = 'block';
+      
+      // Log pre-richiesta
+      console.log('Invio debug con:', { email, name });
+      console.log('URL debug utilizzato:', '/debug-register');
+
+      // Determina l'URL di base
+      const baseUrl = window.location.hostname === 'localhost' ? 
+                      'http://localhost:3001' : 
+                      'https://salus-backend.onrender.com';
+      
+      fetch(`${baseUrl}/debug-register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          name: name || ''
+        })
+      })
+      .then(response => {
+        console.log('Risposta debug ricevuta:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          return response.text().then(text => {
+            try {
+              return { error: true, data: JSON.parse(text), status: response.status };
+            } catch (e) {
+              return { error: true, text: text, status: response.status };
+            }
+          });
+        }
+        return response.json().then(data => ({ error: false, data, status: response.status }));
+      })
+      .then(result => {
+        console.log('Dati risposta debug:', result);
+        
+        if (result.error) {
+          statusElement.className = 'error';
+          if (result.data && result.data.message) {
+            statusElement.innerHTML = `<p>Errore debug (${result.status}): ${result.data.message}</p>`;
+          } else if (result.text) {
+            statusElement.innerHTML = `<p>Errore debug (${result.status}):</p><pre>${result.text}</pre>`;
+          } else {
+            statusElement.innerHTML = `<p>Errore debug (${result.status}): Si è verificato un errore durante l'invio.</p>`;
+          }
+          return;
+        }
+        
+        // Successo
+        statusElement.className = 'success';
+        statusElement.innerHTML = '<p>Debug inviato con successo!</p>';
+        statusElement.innerHTML += `<pre>${JSON.stringify(result.data, null, 2)}</pre>`;
+      })
+      .catch(error => {
+        console.error('Errore debug:', error);
+        statusElement.className = 'error';
+        statusElement.innerHTML = `<p>Errore di rete: ${error.message}</p>`;
+      });
+    });
+    
+    // Form API Locale
+    document.getElementById('local-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById('local-name').value;
+      const email = document.getElementById('local-email').value;
+      const password = document.getElementById('local-password').value;
+      const statusElement = document.getElementById('local-status');
+      
+      // Resetta status
+      statusElement.className = '';
+      statusElement.innerHTML = 'Registrazione locale in corso...';
+      statusElement.style.display = 'block';
+      
+      // URL API locale
+      const localApiUrl = 'http://localhost:3001/api/auth/register';
+      
+      console.log('Tentativo di registrazione locale con:', { email, name });
+      console.log('URL API locale utilizzato:', localApiUrl);
+      
+      fetch(localApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          name: name || ''
+        })
+      })
+      .then(response => {
+        console.log('Risposta locale ricevuta:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          return response.text().then(text => {
+            try {
+              return { error: true, data: JSON.parse(text), status: response.status };
+            } catch (e) {
+              return { error: true, text: text, status: response.status };
+            }
+          });
+        }
+        return response.json().then(data => ({ error: false, data, status: response.status }));
+      })
+      .then(result => {
+        console.log('Dati risposta locale:', result);
+        
+        if (result.error) {
+          statusElement.className = 'error';
+          if (result.data && result.data.message) {
+            statusElement.innerHTML = `<p>Errore locale (${result.status}): ${result.data.message}</p>`;
+          } else if (result.text) {
+            statusElement.innerHTML = `<p>Errore locale (${result.status}):</p><pre>${result.text}</pre>`;
+          } else {
+            statusElement.innerHTML = `<p>Errore locale (${result.status}): Si è verificato un errore durante la registrazione.</p>`;
+          }
+          return;
+        }
+        
+        // Successo
+        statusElement.className = 'success';
+        statusElement.innerHTML = '<p>Registrazione locale completata con successo!</p>';
+        statusElement.innerHTML += `<pre>${JSON.stringify(result.data, null, 2)}</pre>`;
+      })
+      .catch(error => {
+        console.error('Errore locale:', error);
+        statusElement.className = 'error';
+        statusElement.innerHTML = `<p>Errore di rete locale: ${error.message}</p>`;
       });
     });
   </script>

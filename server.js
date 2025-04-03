@@ -38,9 +38,18 @@ app.get('/', (req, res) => {
   });
 });
 
-// Routes
+// CORS preflight per tutte le route
+app.options('*', cors());
+
+// Debug per il problema di registrazione
+app.post('/debug-register', (req, res) => {
+  console.log('Debug registrazione ricevuta:', req.body);
+  res.json({ success: true, message: 'Richiesta di debug ricevuta', body: req.body });
+});
+
+// Routes - CORRETTO
 app.use('/api/auth', authRoutes);
-app.use('/api/auth/users', userRoutes);
+app.use('/api/users', userRoutes);  // Modificato per evitare conflitti
 app.use('/api/symptoms', symptomRoutes);
 app.use('/api/medications', medicationRoutes);
 app.use('/api/wellness', wellnessRoutes);
