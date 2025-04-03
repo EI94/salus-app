@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { apiUrl, normalizePath } from '../api';
+import { apiGet, apiPost, apiPut } from '../utils/apiHelper';
 import i18n from '../i18n';
 
 // Creazione del contesto utente
@@ -99,21 +100,10 @@ export const UserProvider = ({ children }) => {
   // Funzione per il login
   const login = async (email, password, rememberMe = true) => {
     try {
-      // Normalizziamo il percorso per evitare duplicazioni
-      const normalizedPath = normalizePath('/auth/login');
-      console.log('Percorso normalizzato per login:', normalizedPath);
-      
-      const response = await axios({
-        method: 'POST',
-        url: `${apiUrl}${normalizedPath}`,
-        data: {
-          email,
-          password
-        },
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+      // Utilizziamo il nuovo helper API per il login
+      const response = await apiPost('/auth/login', {
+        email,
+        password
       });
       
       if (!response.data || !response.data.token) {
@@ -151,26 +141,11 @@ export const UserProvider = ({ children }) => {
   // Funzione per la registrazione
   const register = async (email, password, name = '') => {
     try {
-      // Normalizziamo il percorso per evitare duplicazioni
-      const normalizedPath = normalizePath('/auth/register');
-      console.log('Percorso normalizzato per registrazione:', normalizedPath);
-      
-      // Creiamo l'URL completo per debug
-      const fullUrl = `${apiUrl}${normalizedPath}`;
-      console.log('URL completo per registrazione:', fullUrl);
-      
-      const response = await axios({
-        method: 'POST',
-        url: fullUrl,
-        data: {
-          email,
-          password,
-          name
-        },
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+      // Utilizziamo il nuovo helper API per la registrazione
+      const response = await apiPost('/auth/register', {
+        email,
+        password,
+        name
       });
       
       if (!response.data || !response.data.token) {
@@ -194,16 +169,6 @@ export const UserProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Errore registrazione:', error);
-      // Aggiungiamo più dettagli sull'errore
-      if (error.response) {
-        console.error('Dettagli errore:', {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
-          headers: error.response.headers,
-          url: error.config.url
-        });
-      }
       return { 
         success: false, 
         error: error.response?.data?.message || 'Errore durante la registrazione' 

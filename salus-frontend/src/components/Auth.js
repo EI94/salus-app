@@ -4,6 +4,7 @@ import axios from 'axios';
 import '../styles/Auth.css';
 import { UserContext } from '../context/UserContext';
 import { apiUrl, normalizePath } from '../api';
+import { apiPost } from '../utils/apiHelper';
 import { useTranslation } from 'react-i18next';
 
 // Icone SVG solo per la sezione delle feature
@@ -270,18 +271,8 @@ const Auth = () => {
     setAuthError(null);
     
     try {
-      // Normalizziamo il percorso
-      const normalizedPath = normalizePath('/auth/forgot-password');
-      console.log('Percorso normalizzato per reset password:', normalizedPath);
-      
-      const response = await axios({
-        method: 'POST',
-        url: `${apiUrl}${normalizedPath}`,
-        data: { email },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      // Utilizziamo il nuovo helper API per la richiesta di reset password
+      const response = await apiPost('/auth/forgot-password', { email });
       
       if (response.status === 200) {
         setResetEmailSent(true);
@@ -316,18 +307,8 @@ const Auth = () => {
     setAuthError(null);
     
     try {
-      // Normalizziamo il percorso
-      const normalizedPath = normalizePath('/auth/resend-verification');
-      console.log('Percorso normalizzato per verifica email:', normalizedPath);
-      
-      const response = await axios({
-        method: 'POST',
-        url: `${apiUrl}${normalizedPath}`,
-        data: { email },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      // Utilizziamo il nuovo helper API per la richiesta di verifica email
+      const response = await apiPost('/auth/resend-verification', { email });
       
       if (response.status === 200) {
         setVerificationEmailSent(true);

@@ -7,40 +7,78 @@ export const apiUrl = process.env.REACT_APP_API_URL || 'https://salus-backend.on
 // Logging per debug
 console.log('API URL configurato:', apiUrl);
 
-// Funzione per normalizzare i percorsi API ed evitare duplicazioni
+// Funzione migliorata per normalizzare i percorsi API ed evitare duplicazioni
 export const normalizePath = (path) => {
-  // Log per debug
   console.log('Normalizzando percorso:', path, 'con baseURL:', apiUrl);
   
-  // Rimuovi 'api' o '/api' se l'URL di base contiene già '/api'
-  if (apiUrl.includes('/api')) {
+  // RISOLUZIONE SPECIFICA per il dominio di produzione
+  // Se stiamo utilizzando il dominio wearesalusapp.com e il path contiene /api,
+  // rimuovi completamente la parte /api dal percorso
+  if (
+    typeof window !== 'undefined' && 
+    window.location.hostname.includes('wearesalusapp.com')
+  ) {
+    console.log('Rilevato dominio di produzione wearesalusapp.com');
+    
+    // Se il percorso inizia con /api/ o api/, rimuovilo
     if (path.startsWith('/api/')) {
-      console.log('Rimozione prefisso /api/ dal percorso');
-      return path.substring(4); // Rimuovi '/api'
+      const cleanPath = '/' + path.substring(5);
+      console.log('Percorso pulito (rimozione /api/):', cleanPath);
+      return cleanPath;
+    } else if (path.startsWith('api/')) {
+      const cleanPath = '/' + path.substring(4);
+      console.log('Percorso pulito (rimozione api/):', cleanPath);
+      return cleanPath;
     }
+  }
+  
+  // REGOLA GENERALE per tutti gli altri casi
+  // Se l'URL di base termina con /api
+  if (apiUrl.endsWith('/api')) {
+    console.log('URL base termina con /api');
+    
+    // Se il path inizia con /api/, rimuovilo
+    if (path.startsWith('/api/')) {
+      const cleanPath = path.substring(4);
+      console.log('Percorso pulito (rimozione /api/ per URL che termina con /api):', cleanPath);
+      return cleanPath;
+    }
+    
+    // Se il path inizia con api/, rimuovilo
     if (path.startsWith('api/')) {
-      console.log('Rimozione prefisso api/ dal percorso');
-      return path.substring(3); // Rimuovi 'api'
+      const cleanPath = path.substring(3);
+      console.log('Percorso pulito (rimozione api/ per URL che termina con /api):', cleanPath);
+      return cleanPath;
     }
   }
   
-  // Verifica se l'URL è quello di produzione con wearesalusapp.com
-  if (apiUrl.includes('wearesalusapp.com')) {
-    console.log('Rilevato URL di produzione wearesalusapp.com');
-    // Per l'URL di produzione, assicuriamoci che non ci siano duplicazioni di /api
+  // Se l'URL di base contiene /api ma non alla fine
+  if (apiUrl.includes('/api') && !apiUrl.endsWith('/api')) {
+    console.log('URL base contiene /api ma non alla fine');
+    
+    // Se il path inizia con /api/, rimuovilo
     if (path.startsWith('/api/')) {
-      console.log('Rimozione prefisso /api/ dal percorso per URL produzione');
-      return path.substring(4); // Rimuovi '/api'
+      const cleanPath = path.substring(4);
+      console.log('Percorso pulito (rimozione /api/ per URL che contiene /api):', cleanPath);
+      return cleanPath;
+    }
+    
+    // Se il path inizia con api/, rimuovilo
+    if (path.startsWith('api/')) {
+      const cleanPath = path.substring(3);
+      console.log('Percorso pulito (rimozione api/ per URL che contiene /api):', cleanPath);
+      return cleanPath;
     }
   }
   
-  // Assicurati che il percorso inizi con / se necessario
+  // REGOLA BASE: assicurati che il percorso abbia uno slash iniziale se necessario
   if (!path.startsWith('/') && !apiUrl.endsWith('/')) {
-    console.log('Aggiunta / iniziale al percorso');
-    return '/' + path;
+    const cleanPath = '/' + path;
+    console.log('Aggiunto slash iniziale al percorso:', cleanPath);
+    return cleanPath;
   }
   
-  console.log('Percorso normalizzato:', path);
+  console.log('Percorso non modificato:', path);
   return path;
 };
 
