@@ -9,7 +9,10 @@
   ],
   "cleanUrls": true,
   "env": {
-    "REACT_APP_API_URL": "https://salus-backend.onrender.com"
+    "REACT_APP_API_URL": "https://salus-backend.onrender.com",
+    "VERCEL_FORCE_BUILD": "true",
+    "DEPLOYMENT_TIME": "2025-04-04T14:30:00Z",
+    "FORCE_NEW_DEPLOYMENT": "true"
   },
   "headers": [
     {
@@ -44,7 +47,6 @@
     }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" },
     {
       "source": "/api/auth/register",
       "destination": "https://salus-backend.onrender.com/auth/register"
@@ -84,11 +86,21 @@
     {
       "source": "/api/:path*",
       "destination": "https://salus-backend.onrender.com/:path*"
-    }
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "build": {
     "env": {
-      "REACT_APP_API_URL": "https://salus-backend.onrender.com"
+      "REACT_APP_API_URL": "https://salus-backend.onrender.com",
+      "VERCEL_FORCE_BUILD": "true",
+      "BUILD_ID": "2025-04-04-v5",
+      "FORCE_NEW_DEPLOYMENT": "true"
     }
-  }
+  },
+  "github": {
+    "enabled": true,
+    "silent": false,
+    "autoJobCancelation": true
+  },
+  "ignoreCommand": "if [ -d \"node_modules\" ]; then echo \"Skipping package installation\"; else npm install; fi"
 } 
