@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Definisci l'URL dell'API - correzione URL per evitare errori 405
-export const apiUrl = process.env.REACT_APP_API_URL || 'https://www.wearesalusapp.com';
+// Imposta l'URL di base dell'API senza il suffisso /api per evitare duplicazioni
+// L'API backend è ospitata su Render come indicato nel file vercel.json
+export const apiUrl = process.env.REACT_APP_API_URL || 'https://salus-backend.onrender.com';
 
 // Configurazione istanza Axios
 const api = axios.create({
@@ -13,9 +14,12 @@ const api = axios.create({
   timeout: 10000, // 10 secondi di timeout per le richieste
 });
 
-// Interceptor per aggiungere il token alle richieste
+// Aggiungi un interceptor per il debug delle richieste API
 api.interceptors.request.use(
   (config) => {
+    // Stampa l'URL completo della richiesta per debug
+    console.log('API Request URL:', config.baseURL + config.url);
+    
     // Aggiungi token di autenticazione
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {

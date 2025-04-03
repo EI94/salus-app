@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
 import Auth from './components/Auth';
 import SymptomTracker from './components/SymptomTracker';
 import MedicationTracker from './components/MedicationTracker';
@@ -12,51 +11,11 @@ import Profile from './components/Profile';
 import FeedbackWidget from './components/FeedbackWidget';
 import './styles/complete-app.css'; /* Tutti gli stili dell'app */
 import './App.css';  /* File minimo solo per compatibilità */
-import API from './api';
+import api from './api';
 import { useTranslation } from 'react-i18next';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import { UserProvider, UserContext } from './context/UserContext';
-
-// Configurazione di base per axios
-const API_BASE = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'https://www.wearesalusapp.com/api',
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
-});
-
-// Interceptor per aggiungere il token di autenticazione alle richieste
-API_BASE.interceptors.request.use(
-  config => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  error => {
-    return Promise.reject(error);
-  }
-);
-
-// Interceptor per gestire le risposte
-API_BASE.interceptors.response.use(
-  response => {
-    return response;
-  },
-  error => {
-    // Se il token è scaduto (status 401), logout automatico
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      sessionStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 // Componente per rotte protette (solo per utenti autenticati)
 const ProtectedRoute = ({ children }) => {
