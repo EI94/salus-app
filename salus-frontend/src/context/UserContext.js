@@ -103,7 +103,7 @@ export const UserProvider = ({ children }) => {
       console.log('USANDO VERSIONE HARDCODED PER IL LOGIN');
       console.log('Dati login:', { email, rememberMe });
       
-      // URL DEFINITIVO HARDCODED
+      // URL DEFINITIVO HARDCODED - Modificato per evitare il doppio /api
       const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/login';
       console.log('URL diretto:', DIRECT_BACKEND_URL);
       
@@ -171,7 +171,7 @@ export const UserProvider = ({ children }) => {
       console.log('USANDO VERSIONE HARDCODED PER LA REGISTRAZIONE');
       console.log('Dati registrazione:', { email, name });
       
-      // URL DEFINITIVO HARDCODED
+      // URL DEFINITIVO HARDCODED - Modificato per evitare il doppio /api
       const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/register';
       console.log('URL diretto:', DIRECT_BACKEND_URL);
       
