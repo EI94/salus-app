@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { apiUrl } from '../api';
+import { apiUrl, normalizePath } from '../api';
 import i18n from '../i18n';
 
 // Creazione del contesto utente
@@ -91,9 +91,13 @@ export const UserProvider = ({ children }) => {
   // Funzione per il login
   const login = async (email, password, rememberMe = true) => {
     try {
+      // Normalizziamo il percorso per evitare duplicazioni
+      const normalizedPath = normalizePath('/auth/login');
+      console.log('Percorso normalizzato per login:', normalizedPath);
+      
       const response = await axios({
         method: 'POST',
-        url: `${apiUrl}/auth/login`,
+        url: `${apiUrl}${normalizedPath}`,
         data: {
           email,
           password
@@ -139,9 +143,13 @@ export const UserProvider = ({ children }) => {
   // Funzione per la registrazione
   const register = async (email, password, name = '') => {
     try {
+      // Normalizziamo il percorso per evitare duplicazioni
+      const normalizedPath = normalizePath('/auth/register');
+      console.log('Percorso normalizzato per registrazione:', normalizedPath);
+      
       const response = await axios({
         method: 'POST',
-        url: `${apiUrl}/auth/register`,
+        url: `${apiUrl}${normalizedPath}`,
         data: {
           email,
           password,
@@ -205,8 +213,11 @@ export const UserProvider = ({ children }) => {
       
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
+      // Normalizziamo il percorso
+      const normalizedPath = normalizePath('/users/language');
+      
       // Aggiorna la lingua sul server
-      await axios.put(`${apiUrl}/users/language`, { language }, {
+      await axios.put(`${apiUrl}${normalizedPath}`, { language }, {
         headers: {
           Authorization: `Bearer ${token}`
         }

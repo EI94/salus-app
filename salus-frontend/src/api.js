@@ -1,10 +1,30 @@
 import axios from 'axios';
 
-// Imposta l'URL di base dell'API senza il suffisso /api per evitare duplicazioni
-// L'API backend è ospitata su Render come indicato nel file vercel.json
+// Imposta l'URL di base dell'API
 export const apiUrl = process.env.REACT_APP_API_URL || 'https://salus-backend.onrender.com';
 
-// Configurazione istanza Axios
+// Funzione per normalizzare i percorsi API ed evitare duplicazioni
+export const normalizePath = (path) => {
+  // Se il percorso inizia con /api e l'URL di base termina con /api,
+  // rimuoviamo /api dal percorso
+  if (path.startsWith('/api/') && apiUrl.endsWith('/api')) {
+    return path.substring(4); // Rimuovi '/api' all'inizio
+  }
+  
+  // Se il percorso inizia con api/ (senza slash iniziale)
+  if (path.startsWith('api/') && apiUrl.endsWith('/api')) {
+    return path.substring(3); // Rimuovi 'api' all'inizio
+  }
+  
+  // Se il percorso non inizia con / ma deve essere aggiunto
+  if (!path.startsWith('/') && !apiUrl.endsWith('/')) {
+    return '/' + path;
+  }
+  
+  return path;
+};
+
+// Configurazione istanza Axios con intercettore per normalizzare i percorsi
 const api = axios.create({
   baseURL: apiUrl,
   headers: {
@@ -14,9 +34,12 @@ const api = axios.create({
   timeout: 10000, // 10 secondi di timeout per le richieste
 });
 
-// Aggiungi un interceptor per il debug delle richieste API
+// Aggiungi un interceptor per il debug delle richieste API e normalizzazione dei percorsi
 api.interceptors.request.use(
   (config) => {
+    // Normalizza il percorso per evitare duplicazioni
+    config.url = normalizePath(config.url);
+    
     // Stampa l'URL completo della richiesta per debug
     console.log('API Request URL:', config.baseURL + config.url);
     
@@ -60,8 +83,11 @@ export const sendMessageToAI = async (message) => {
     if (!token) {
       throw new Error('Utente non autenticato');
     }
+    
+    // Utilizziamo il percorso normalizzato
+    const normalizedPath = normalizePath('/ai/chat');
 
-    const response = await fetch(`${apiUrl}/ai/chat`, {
+    const response = await fetch(`${apiUrl}${normalizedPath}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

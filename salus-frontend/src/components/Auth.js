@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Auth.css';
 import { UserContext } from '../context/UserContext';
-import { apiUrl } from '../api';
+import { apiUrl, normalizePath } from '../api';
 import { useTranslation } from 'react-i18next';
 
 // Icone SVG solo per la sezione delle feature
@@ -270,9 +270,13 @@ const Auth = () => {
     setAuthError(null);
     
     try {
+      // Normalizziamo il percorso
+      const normalizedPath = normalizePath('/auth/forgot-password');
+      console.log('Percorso normalizzato per reset password:', normalizedPath);
+      
       const response = await axios({
         method: 'POST',
-        url: `${apiUrl}/auth/forgot-password`,
+        url: `${apiUrl}${normalizedPath}`,
         data: { email },
         headers: {
           'Content-Type': 'application/json'
@@ -312,9 +316,13 @@ const Auth = () => {
     setAuthError(null);
     
     try {
+      // Normalizziamo il percorso
+      const normalizedPath = normalizePath('/auth/resend-verification');
+      console.log('Percorso normalizzato per verifica email:', normalizedPath);
+      
       const response = await axios({
         method: 'POST',
-        url: `${apiUrl}/auth/resend-verification`,
+        url: `${apiUrl}${normalizedPath}`,
         data: { email },
         headers: {
           'Content-Type': 'application/json'
