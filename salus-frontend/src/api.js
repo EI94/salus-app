@@ -57,7 +57,7 @@ export const sendMessageToAI = async (message) => {
       throw new Error('Utente non autenticato');
     }
 
-    const response = await fetch(`${apiUrl}/api/ai/chat`, {
+    const response = await fetch(`${apiUrl}/ai/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

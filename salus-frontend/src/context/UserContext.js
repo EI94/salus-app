@@ -93,7 +93,7 @@ export const UserProvider = ({ children }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: `${apiUrl}/api/auth/login`,
+        url: `${apiUrl}/auth/login`,
         data: {
           email,
           password
@@ -141,7 +141,7 @@ export const UserProvider = ({ children }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: `${apiUrl}/api/auth/register`,
+        url: `${apiUrl}/auth/register`,
         data: {
           email,
           password,
@@ -206,7 +206,7 @@ export const UserProvider = ({ children }) => {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
       // Aggiorna la lingua sul server
-      await axios.put(`${apiUrl}/api/users/language`, { language }, {
+      await axios.put(`${apiUrl}/users/language`, { language }, {
         headers: {
           Authorization: `Bearer ${token}`
         }

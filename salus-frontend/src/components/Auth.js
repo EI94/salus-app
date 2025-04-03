@@ -272,7 +272,7 @@ const Auth = () => {
     try {
       const response = await axios({
         method: 'POST',
-        url: `${apiUrl}/api/auth/forgot-password`,
+        url: `${apiUrl}/auth/forgot-password`,
         data: { email },
         headers: {
           'Content-Type': 'application/json'
@@ -314,7 +314,7 @@ const Auth = () => {
     try {
       const response = await axios({
         method: 'POST',
-        url: `${apiUrl}/api/auth/resend-verification`,
+        url: `${apiUrl}/auth/resend-verification`,
         data: { email },
         headers: {
           'Content-Type': 'application/json'
