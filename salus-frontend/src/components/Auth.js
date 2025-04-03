@@ -107,9 +107,17 @@ const DebugInfo = () => {
   // Ottengo alcune informazioni utili per il debug
   const hostname = window.location.hostname;
   const fullUrl = window.location.href;
+  
+  // URL DIRETTO CORRETTO (dovrebbe essere usato per registrazione/login)
+  const directLoginUrl = 'https://salus-backend.onrender.com/auth/login';
+  const directRegisterUrl = 'https://salus-backend.onrender.com/auth/register';
+  
+  // URL tramite normalizePath
   const normalizedPath = normalizePath('/auth/register');
   const fullApiPath = `${apiUrl}${normalizedPath}`;
-  const correctedPath = fullApiPath.replace('/api/api/', '/api/');
+  
+  // URL che causa errore 405
+  const problemUrl = '/api/api/auth/register';
   
   return (
     <div style={debugStyle} onClick={toggleDebug}>
@@ -119,12 +127,21 @@ const DebugInfo = () => {
           <p style={{ margin: '2px 0' }}><strong>Hostname:</strong> {hostname}</p>
           <p style={{ margin: '2px 0' }}><strong>URL Completo:</strong> {fullUrl}</p>
           <p style={{ margin: '2px 0' }}><strong>API URL:</strong> {apiUrl}</p>
-          <p style={{ margin: '2px 0' }}><strong>Percorso Normalizzato:</strong> {normalizedPath}</p>
+          
+          <p style={{ margin: '8px 0 2px 0', color: '#ff6b6b' }}><strong>URL PROBLEMA:</strong> {problemUrl}</p>
+          
+          <p style={{ margin: '8px 0 2px 0', color: '#63E6BE' }}><strong>URL DIRETTI CORRETTI:</strong></p>
+          <p style={{ margin: '2px 0 2px 15px', color: '#63E6BE' }}>Login: {directLoginUrl}</p>
+          <p style={{ margin: '2px 0 2px 15px', color: '#63E6BE' }}>Register: {directRegisterUrl}</p>
+          
+          <p style={{ margin: '8px 0 2px 0' }}><strong>Percorso Normalizzato:</strong> {normalizedPath}</p>
           <p style={{ margin: '2px 0' }}><strong>URL API Completo:</strong> {fullApiPath}</p>
-          <p style={{ margin: '2px 0' }}><strong>URL API Corretto:</strong> {correctedPath}</p>
-          <p style={{ margin: '2px 0' }}><strong>localStorage Token:</strong> {localStorage.getItem('token') ? '✓ Presente' : '❌ Assente'}</p>
-          <p style={{ margin: '2px 0' }}><strong>sessionStorage Token:</strong> {sessionStorage.getItem('token') ? '✓ Presente' : '❌ Assente'}</p>
+          
+          <p style={{ margin: '8px 0 2px 0' }}><strong>Storage:</strong></p>
+          <p style={{ margin: '2px 0 2px 15px' }}><strong>localStorage Token:</strong> {localStorage.getItem('token') ? '✓ Presente' : '❌ Assente'}</p>
+          <p style={{ margin: '2px 0 2px 15px' }}><strong>sessionStorage Token:</strong> {sessionStorage.getItem('token') ? '✓ Presente' : '❌ Assente'}</p>
           <p style={{ margin: '2px 0' }}><strong>React App API URL:</strong> {process.env.REACT_APP_API_URL || 'Non impostato'}</p>
+          <p style={{ margin: '10px 0 2px', fontStyle: 'italic' }}>Per risolvere il problema, utilizza gli URL diretti anziché quelli normalizzati</p>
           <p style={{ margin: '10px 0 2px' }}>Clicca per nascondere</p>
         </>
       ) : (

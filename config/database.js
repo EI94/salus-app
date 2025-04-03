@@ -26,7 +26,13 @@ const connectDB = async () => {
       throw new Error('Sostituisci <db_password> nella stringa di connessione con la password effettiva');
     }
 
-    // Stabilisce la connessione a MongoDB Atlas
+    // Gestione speciale per URL locali o di test
+    if (uri.includes('127.0.0.1') || uri.includes('localhost')) {
+      console.log('Utilizzando database locale o modalità in-memory');
+      // Nessuna opzione speciale necessaria per connessioni locali
+    }
+
+    // Stabilisce la connessione a MongoDB
     await mongoose.connect(uri, options);
 
     console.log('MongoDB connesso');
@@ -54,7 +60,9 @@ const connectDB = async () => {
       console.log('Riprovo la connessione tra 5 secondi...');
       setTimeout(connectDB, 5000);
     } else {
-      process.exit(1);
+      console.log('MODALITÀ SVILUPPO: Continuo senza database. Alcune funzionalità potrebbero non funzionare.');
+      // Non terminiamo l'applicazione in modalità sviluppo
+      // process.exit(1);
     }
   }
 };
