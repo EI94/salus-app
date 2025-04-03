@@ -107,28 +107,39 @@ export const UserProvider = ({ children }) => {
       const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/login';
       console.log('URL diretto:', DIRECT_BACKEND_URL);
       
-      // Usa axios senza alcuna configurazione speciale
-      const response = await axios({
+      // Usa fetch invece di axios per evitare problemi di configurazione
+      const response = await fetch(DIRECT_BACKEND_URL, {
         method: 'POST',
-        url: DIRECT_BACKEND_URL,
-        data: {
-          email,
-          password
-        },
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
       });
       
-      console.log('Risposta login:', response.status);
+      console.log('Risposta login STATUS:', response.status);
+      console.log('Risposta login OK:', response.ok);
       
-      if (!response.data || !response.data.token) {
-        console.error('Risposta senza token:', response.data);
+      // Se abbiamo un errore HTTP, lanciamo un errore
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Risposta errore server:', errorText);
+        throw new Error(`Errore server: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+      
+      // Parsiamo la risposta JSON
+      const data = await response.json();
+      console.log('Risposta JSON:', data);
+      
+      if (!data || !data.token) {
+        console.error('Risposta senza token:', data);
         return { success: false, error: 'Risposta dal server non valida' };
       }
       
-      const { token, user: userData } = response.data;
+      const { token, user: userData } = data;
       
       // Salva token in base alla scelta "remember me"
       if (rememberMe) {
@@ -141,7 +152,7 @@ export const UserProvider = ({ children }) => {
       setUser(userData);
       
       // Imposta la lingua dell'utente se disponibile
-      if (userData.language) {
+      if (userData && userData.language) {
         i18n.changeLanguage(userData.language);
         localStorage.setItem('preferredLanguage', userData.language);
       }
@@ -149,18 +160,9 @@ export const UserProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Errore login:', error);
-      if (error.response) {
-        console.error('Dettagli errore:', {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
-          headers: error.response.headers,
-          url: error.config.url
-        });
-      }
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Email o password non valide' 
+        error: error.message || 'Email o password non valide' 
       };
     }
   };
@@ -175,29 +177,40 @@ export const UserProvider = ({ children }) => {
       const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/register';
       console.log('URL diretto:', DIRECT_BACKEND_URL);
       
-      // Usa axios senza alcuna configurazione speciale
-      const response = await axios({
+      // Usa fetch invece di axios per evitare problemi di configurazione
+      const response = await fetch(DIRECT_BACKEND_URL, {
         method: 'POST',
-        url: DIRECT_BACKEND_URL,
-        data: {
-          email,
-          password,
-          name
-        },
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name
+        })
       });
       
-      console.log('Risposta registrazione:', response.status);
+      console.log('Risposta registrazione STATUS:', response.status);
+      console.log('Risposta registrazione OK:', response.ok);
       
-      if (!response.data || !response.data.token) {
-        console.error('Risposta senza token:', response.data);
+      // Se abbiamo un errore HTTP, lanciamo un errore
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Risposta errore server:', errorText);
+        throw new Error(`Errore server: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+      
+      // Parsiamo la risposta JSON
+      const data = await response.json();
+      console.log('Risposta JSON:', data);
+      
+      if (!data || !data.token) {
+        console.error('Risposta senza token:', data);
         return { success: false, error: 'Risposta dal server non valida' };
       }
       
-      const { token, user: userData } = response.data;
+      const { token, user: userData } = data;
       
       // Salva token
       localStorage.setItem('token', token);
@@ -206,7 +219,7 @@ export const UserProvider = ({ children }) => {
       setUser(userData);
       
       // Imposta la lingua dell'utente se disponibile
-      if (userData.language) {
+      if (userData && userData.language) {
         i18n.changeLanguage(userData.language);
         localStorage.setItem('preferredLanguage', userData.language);
       }
@@ -214,18 +227,9 @@ export const UserProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Errore registrazione:', error);
-      if (error.response) {
-        console.error('Dettagli errore:', {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
-          headers: error.response.headers,
-          url: error.config.url
-        });
-      }
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Errore durante la registrazione' 
+        error: error.message || 'Errore durante la registrazione' 
       };
     }
   };
