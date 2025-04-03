@@ -508,6 +508,78 @@ const Auth = () => {
         {isSubmitting ? t('loggingIn') : t('login')}
       </button>
       
+      {/* Pulsante di login diretto per debug */}
+      <button
+        type="button"
+        className="auth-button debug-button"
+        style={{
+          backgroundColor: '#2a9d8f',
+          marginTop: '10px',
+          fontSize: '0.8rem',
+          padding: '8px 16px'
+        }}
+        onClick={async () => {
+          if (!validateForm()) return;
+          
+          setIsSubmitting(true);
+          setAuthError(null);
+          
+          try {
+            console.log('Tentativo login diretto con fetch');
+            const DIRECT_URL = 'https://salus-backend.onrender.com/auth/login';
+            console.log('URL diretto:', DIRECT_URL);
+            
+            const response = await fetch(DIRECT_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                email,
+                password
+              })
+            });
+            
+            console.log('Risposta login STATUS:', response.status);
+            console.log('Risposta login OK:', response.ok);
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('Risposta errore server:', errorText);
+              throw new Error(`Errore server: ${response.status} ${response.statusText} - ${errorText}`);
+            }
+            
+            const data = await response.json();
+            console.log('Risposta JSON:', data);
+            
+            if (data && data.token) {
+              // Salva token in base alla scelta "remember me"
+              if (rememberMe) {
+                localStorage.setItem('token', data.token);
+              } else {
+                sessionStorage.setItem('token', data.token);
+              }
+              
+              // Aggiorna contesto utente
+              userContext.setUser(data.user);
+              
+              // Redirige alla dashboard
+              navigate('/dashboard', { replace: true });
+            } else {
+              throw new Error('Risposta dal server non valida');
+            }
+          } catch (error) {
+            console.error('Errore login diretto:', error);
+            setAuthError(error);
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
+      >
+        Login Diretto (Debug)
+      </button>
+      
       <div className="auth-footer">
         <p>{t('noAccount')}</p>
         <button
@@ -619,6 +691,77 @@ const Auth = () => {
         disabled={isSubmitting}
       >
         {isSubmitting ? t('registering') : t('register')}
+      </button>
+      
+      {/* Pulsante di registrazione diretta per debug */}
+      <button
+        type="button"
+        className="auth-button debug-button"
+        style={{
+          backgroundColor: '#2a9d8f',
+          marginTop: '10px',
+          fontSize: '0.8rem',
+          padding: '8px 16px'
+        }}
+        onClick={async () => {
+          if (!validateForm()) return;
+          
+          setIsSubmitting(true);
+          setAuthError(null);
+          
+          try {
+            console.log('Tentativo registrazione diretta con fetch');
+            const DIRECT_URL = 'https://salus-backend.onrender.com/auth/register';
+            console.log('URL diretto:', DIRECT_URL);
+            
+            const response = await fetch(DIRECT_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                email,
+                password,
+                name
+              })
+            });
+            
+            console.log('Risposta registrazione STATUS:', response.status);
+            console.log('Risposta registrazione OK:', response.ok);
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('Risposta errore server:', errorText);
+              throw new Error(`Errore server: ${response.status} ${response.statusText} - ${errorText}`);
+            }
+            
+            const data = await response.json();
+            console.log('Risposta JSON:', data);
+            
+            if (data && data.token) {
+              // Salva token
+              localStorage.setItem('token', data.token);
+              // Aggiorna contesto utente
+              userContext.setUser(data.user);
+              
+              setRegistrationSuccess(true);
+              setMessage({
+                type: 'success',
+                text: t('registrationSuccess')
+              });
+            } else {
+              throw new Error('Risposta dal server non valida');
+            }
+          } catch (error) {
+            console.error('Errore registrazione diretta:', error);
+            setAuthError(error);
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
+      >
+        Registrazione Diretta (Debug)
       </button>
       
       <div className="auth-footer">
