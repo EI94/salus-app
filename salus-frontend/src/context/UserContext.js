@@ -97,13 +97,13 @@ export const UserProvider = ({ children }) => {
     }
   };
   
-  // Funzione per il login - VERSIONE COMPLETAMENTE HARDCODED
+  // Funzione per il login - VERSIONE BYPASS DIRETTO SENZA NORMALIZZAZIONE
   const login = async (email, password, rememberMe = true) => {
     try {
       console.log('USANDO VERSIONE HARDCODED PER IL LOGIN');
       console.log('Dati login:', { email, rememberMe });
       
-      // URL DEFINITIVO HARDCODED - Modificato per evitare il doppio /api
+      // URL DEFINITIVO HARDCODED - URL diretto al backend
       const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/login';
       console.log('URL diretto:', DIRECT_BACKEND_URL);
       
@@ -167,13 +167,13 @@ export const UserProvider = ({ children }) => {
     }
   };
   
-  // Funzione per la registrazione - VERSIONE COMPLETAMENTE HARDCODED
+  // Funzione per la registrazione - VERSIONE BYPASS DIRETTO SENZA NORMALIZZAZIONE
   const register = async (email, password, name = '') => {
     try {
       console.log('USANDO VERSIONE HARDCODED PER LA REGISTRAZIONE');
       console.log('Dati registrazione:', { email, name });
       
-      // URL DEFINITIVO HARDCODED - Modificato per evitare il doppio /api
+      // URL DEFINITIVO HARDCODED - URL diretto al backend
       const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/register';
       console.log('URL diretto:', DIRECT_BACKEND_URL);
       

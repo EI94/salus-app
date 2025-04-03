@@ -328,75 +328,104 @@ const Auth = () => {
     }
   };
 
-  // Gestione password dimenticata
+  // Gestione richiesta password dimenticata
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     
-    // Validazione email
+    // Verifica che l'email sia valida
     if (!email) {
       setErrors({ email: t('emailRequired') });
       return;
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
-      setErrors({ email: t('invalidEmail') });
-      return;
     }
     
-    setIsSubmitting(true);
-    setAuthError(null);
-    
     try {
-      // Utilizziamo il nuovo helper API per la richiesta di reset password
-      const response = await apiPost('/auth/forgot-password', { email });
+      setLoading(true);
+      setMessage({ type: '', text: '' });
       
-      if (response.status === 200) {
-        setResetEmailSent(true);
-        setMessage({
-          type: 'success',
-          text: t('resetEmailSent')
-        });
-      } else {
-        setAuthError(new Error(response.data?.message || t('passwordResetError')));
+      console.log('Invio richiesta recupero password per:', email);
+      
+      // URL DIRETTO HARDCODED per reset password
+      const DIRECT_URL = 'https://salus-backend.onrender.com/auth/forgot-password';
+      console.log('URL diretto per reset password:', DIRECT_URL);
+      
+      // Usa fetch invece di axios per evitare problemi
+      const response = await fetch(DIRECT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Errore nella richiesta di recupero password');
       }
+      
+      setResetEmailSent(true);
+      setMessage({
+        type: 'success',
+        text: t('passwordResetEmailSent')
+      });
+      
     } catch (error) {
-      setAuthError(error);
+      console.error('Errore recupero password:', error);
+      setMessage({
+        type: 'error',
+        text: getErrorMessage(error) || t('passwordResetError')
+      });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
-
-  // Gestione richiesta nuovo link di verifica
-  const handleResendVerification = async (e) => {
-    e.preventDefault();
-    
-    // Validazione email
+  
+  // Gestione richiesta nuovo invio email di verifica
+  const handleResendVerification = async () => {
     if (!email) {
       setErrors({ email: t('emailRequired') });
       return;
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
-      setErrors({ email: t('invalidEmail') });
-      return;
     }
     
-    setIsSubmitting(true);
-    setAuthError(null);
-    
     try {
-      // Utilizziamo il nuovo helper API per la richiesta di verifica email
-      const response = await apiPost('/auth/resend-verification', { email });
+      setLoading(true);
+      setMessage({ type: '', text: '' });
       
-      if (response.status === 200) {
-        setVerificationEmailSent(true);
-        setMessage({
-          type: 'success',
-          text: t('verificationEmailSent')
-        });
-      } else {
-        setAuthError(new Error(response.data.message || t('verificationRequestError')));
+      console.log('Richiesta nuovo invio email di verifica per:', email);
+      
+      // URL DIRETTO HARDCODED per invio email di verifica
+      const DIRECT_URL = 'https://salus-backend.onrender.com/auth/resend-verification';
+      console.log('URL diretto per invio email di verifica:', DIRECT_URL);
+      
+      // Usa fetch invece di axios per evitare problemi
+      const response = await fetch(DIRECT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Errore nella richiesta di nuovo invio email');
       }
+      
+      setVerificationEmailSent(true);
+      setMessage({
+        type: 'success',
+        text: t('verificationEmailSent')
+      });
+      
     } catch (error) {
-      setAuthError(error);
+      console.error('Errore invio email verifica:', error);
+      setMessage({
+        type: 'error',
+        text: getErrorMessage(error) || t('verificationEmailError')
+      });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
