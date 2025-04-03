@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrazione Salus - Test diretto</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #4A90E2;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4A90E2;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #status {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    pre {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Registrazione Salus - Test diretto</h1>
+  <p>Questa è una pagina separata per testare la registrazione direttamente senza React o altre dipendenze.</p>
+  
+  <form id="register-form">
+    <div class="form-group">
+      <label for="name">Nome (opzionale)</label>
+      <input type="text" id="name" placeholder="Il tuo nome">
+    </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="La tua email" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="La tua password" required>
+    </div>
+    <button type="submit">Registrati</button>
+  </form>
+  
+  <div id="status" style="display: none;"></div>
+  
+  <script>
+    document.getElementById('register-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const statusElement = document.getElementById('status');
+      
+      // Resetta status
+      statusElement.className = '';
+      statusElement.innerHTML = 'Registrazione in corso...';
+      statusElement.style.display = 'block';
+      
+      // Log pre-richiesta
+      console.log('Tentativo di registrazione con:', { email, name });
+      console.log('URL API utilizzato:', 'https://salus-backend.onrender.com/auth/register');
+      
+      fetch('https://salus-backend.onrender.com/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          name: name || ''
+        })
+      })
+      .then(response => {
+        console.log('Risposta ricevuta:', response.status, response.statusText);
+        
+        // Mostra tutti gli header della risposta
+        const headers = {};
+        response.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+        console.log('Headers risposta:', headers);
+        
+        if (!response.ok) {
+          return response.text().then(text => {
+            try {
+              return { error: true, data: JSON.parse(text), status: response.status };
+            } catch (e) {
+              return { error: true, text: text, status: response.status };
+            }
+          });
+        }
+        return response.json().then(data => ({ error: false, data, status: response.status }));
+      })
+      .then(result => {
+        console.log('Dati risposta:', result);
+        
+        if (result.error) {
+          statusElement.className = 'error';
+          if (result.data && result.data.message) {
+            statusElement.innerHTML = `<p>Errore (${result.status}): ${result.data.message}</p>`;
+          } else if (result.text) {
+            statusElement.innerHTML = `<p>Errore (${result.status}):</p><pre>${result.text}</pre>`;
+          } else {
+            statusElement.innerHTML = `<p>Errore (${result.status}): Si è verificato un errore durante la registrazione.</p>`;
+          }
+          return;
+        }
+        
+        // Successo
+        statusElement.className = 'success';
+        statusElement.innerHTML = '<p>Registrazione completata con successo!</p>';
+        
+        if (result.data && result.data.token) {
+          localStorage.setItem('token', result.data.token);
+          statusElement.innerHTML += '<p>Token salvato. Verrai reindirizzato alla dashboard tra 3 secondi...</p>';
+          
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 3000);
+        }
+      })
+      .catch(error => {
+        console.error('Errore:', error);
+        statusElement.className = 'error';
+        statusElement.innerHTML = `<p>Errore di rete: ${error.message}</p>`;
+      });
+    });
+  </script>
+</body>
+</html> 
