@@ -100,6 +100,53 @@ export const UserProvider = ({ children }) => {
   // Funzione per il login
   const login = async (email, password, rememberMe = true) => {
     try {
+      // OVERRIDE DI EMERGENZA PER IL DOMINIO DI PRODUZIONE
+      if (typeof window !== 'undefined' && window.location.hostname === 'www.wearesalusapp.com') {
+        console.log('OVERRIDE EMERGENZA - Login su www.wearesalusapp.com');
+        
+        // URL hardcoded per il login sul backend
+        const directUrl = 'https://salus-backend.onrender.com/auth/login';
+        console.log('Usando URL diretto:', directUrl);
+        
+        const response = await axios({
+          method: 'POST',
+          url: directUrl,
+          data: {
+            email,
+            password
+          },
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.data || !response.data.token) {
+          return { success: false, error: 'Risposta dal server non valida' };
+        }
+        
+        const { token, user: userData } = response.data;
+        
+        // Salva token in base alla scelta "remember me"
+        if (rememberMe) {
+          localStorage.setItem('token', token);
+        } else {
+          sessionStorage.setItem('token', token);
+        }
+        
+        // Aggiorna lo stato
+        setUser(userData);
+        
+        // Imposta la lingua dell'utente se disponibile
+        if (userData.language) {
+          i18n.changeLanguage(userData.language);
+          localStorage.setItem('preferredLanguage', userData.language);
+        }
+        
+        return { success: true };
+      }
+      
+      // Normale flusso per ambienti non di produzione
       // Utilizziamo il nuovo helper API per il login
       const response = await apiPost('/auth/login', {
         email,
@@ -141,6 +188,45 @@ export const UserProvider = ({ children }) => {
   // Funzione per la registrazione
   const register = async (email, password, name = '') => {
     try {
+      // OVERRIDE DI EMERGENZA PER IL DOMINIO DI PRODUZIONE
+      if (typeof window !== 'undefined' && window.location.hostname === 'www.wearesalusapp.com') {
+        console.log('OVERRIDE EMERGENZA - Registrazione su www.wearesalusapp.com');
+        
+        // URL hardcoded per la registrazione sul backend
+        const directUrl = 'https://salus-backend.onrender.com/auth/register';
+        console.log('Usando URL diretto:', directUrl);
+        
+        const response = await axios({
+          method: 'POST',
+          url: directUrl,
+          data: {
+            email,
+            password,
+            name
+          },
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.data || !response.data.token) {
+          return { success: false, error: 'Risposta dal server non valida' };
+        }
+        
+        const { token, user: userData } = response.data;
+        localStorage.setItem('token', token);
+        setUser(userData);
+        
+        if (userData.language) {
+          i18n.changeLanguage(userData.language);
+          localStorage.setItem('preferredLanguage', userData.language);
+        }
+        
+        return { success: true };
+      }
+      
+      // Normale flusso per ambienti non di produzione
       // Utilizziamo il nuovo helper API per la registrazione
       const response = await apiPost('/auth/register', {
         email,

@@ -12,15 +12,26 @@ import { apiUrl, normalizePath } from '../api';
  */
 export const apiRequest = async (method, path, data = null, options = {}) => {
   const normalizedPath = normalizePath(path);
+  let fullUrl = '';
   
-  // Calcola l'URL completo per la richiesta
-  let fullUrl = `${apiUrl}${normalizedPath}`;
-  
-  // Caso speciale per il dominio in produzione
-  if (typeof window !== 'undefined' && window.location.hostname.includes('wearesalusapp.com')) {
-    // Rimuovi esplicitamente eventuali duplicazioni di /api
+  // OVERRIDE DI EMERGENZA: CONFIGURAZIONE SPECIFICA PER DOMINIO DI PRODUZIONE
+  if (typeof window !== 'undefined' && window.location.hostname === 'www.wearesalusapp.com') {
+    // Sostituiamo completamente l'URL con quello corretto per il sito di produzione
+    // Per i percorsi di autenticazione
+    if (path.includes('/auth/')) {
+      // URL backend diretto per autenticazione, senza prefisso /api
+      fullUrl = `https://salus-backend.onrender.com${path.startsWith('/') ? path : '/' + path}`;
+    } else {
+      // URL backend standard
+      fullUrl = `https://salus-backend.onrender.com${path.startsWith('/') ? path : '/' + path}`;
+    }
+    console.log('OVERRIDE EMERGENZA - URL diretto:', fullUrl);
+  } else {
+    // Per ambienti diversi dalla produzione, usa l'approccio precedente
+    fullUrl = `${apiUrl}${normalizedPath}`;
+    
+    // Rimozione esplicita di potenziali duplicazioni
     fullUrl = fullUrl.replace('/api/api/', '/api/');
-    console.log('URL modificato per wearesalusapp.com:', fullUrl);
   }
   
   console.log(`Richiesta ${method} a:`, fullUrl);

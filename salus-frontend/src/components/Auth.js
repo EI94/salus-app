@@ -77,6 +77,63 @@ const getErrorMessage = (error) => {
   return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES['default'];
 };
 
+// Componente di debug per mostrare informazioni sull'ambiente
+const DebugInfo = () => {
+  const [showDebug, setShowDebug] = useState(false);
+  
+  const debugStyle = {
+    position: 'fixed',
+    bottom: showDebug ? '20px' : '-1px',
+    right: '20px',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    color: 'white',
+    padding: showDebug ? '15px' : '5px',
+    borderRadius: '5px',
+    fontSize: '12px',
+    fontFamily: 'monospace',
+    zIndex: 9999,
+    maxWidth: '400px',
+    maxHeight: showDebug ? '400px' : '20px',
+    overflow: 'auto',
+    transition: 'all 0.3s ease',
+    border: '1px solid #666',
+    cursor: 'pointer'
+  };
+  
+  const toggleDebug = () => {
+    setShowDebug(!showDebug);
+  };
+  
+  // Ottengo alcune informazioni utili per il debug
+  const hostname = window.location.hostname;
+  const fullUrl = window.location.href;
+  const normalizedPath = normalizePath('/auth/register');
+  const fullApiPath = `${apiUrl}${normalizedPath}`;
+  const correctedPath = fullApiPath.replace('/api/api/', '/api/');
+  
+  return (
+    <div style={debugStyle} onClick={toggleDebug}>
+      {showDebug ? (
+        <>
+          <h4 style={{ margin: '0 0 8px 0' }}>Informazioni Debug</h4>
+          <p style={{ margin: '2px 0' }}><strong>Hostname:</strong> {hostname}</p>
+          <p style={{ margin: '2px 0' }}><strong>URL Completo:</strong> {fullUrl}</p>
+          <p style={{ margin: '2px 0' }}><strong>API URL:</strong> {apiUrl}</p>
+          <p style={{ margin: '2px 0' }}><strong>Percorso Normalizzato:</strong> {normalizedPath}</p>
+          <p style={{ margin: '2px 0' }}><strong>URL API Completo:</strong> {fullApiPath}</p>
+          <p style={{ margin: '2px 0' }}><strong>URL API Corretto:</strong> {correctedPath}</p>
+          <p style={{ margin: '2px 0' }}><strong>localStorage Token:</strong> {localStorage.getItem('token') ? '✓ Presente' : '❌ Assente'}</p>
+          <p style={{ margin: '2px 0' }}><strong>sessionStorage Token:</strong> {sessionStorage.getItem('token') ? '✓ Presente' : '❌ Assente'}</p>
+          <p style={{ margin: '2px 0' }}><strong>React App API URL:</strong> {process.env.REACT_APP_API_URL || 'Non impostato'}</p>
+          <p style={{ margin: '10px 0 2px' }}>Clicca per nascondere</p>
+        </>
+      ) : (
+        <p style={{ margin: '2px' }}>Debug Info (clicca per espandere)</p>
+      )}
+    </div>
+  );
+};
+
 const Auth = () => {
   const { t, i18n } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -681,6 +738,7 @@ const Auth = () => {
 
   return (
     <div className="auth-container">
+      <DebugInfo />
       <div className="auth-left">
         <div className="auth-brand">
           <img src="/assets/images/logo.svg" alt="Salus Logo" className="auth-logo" />

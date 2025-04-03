@@ -1,8 +1,15 @@
 import axios from 'axios';
 
+// CONFIGURAZIONE DI EMERGENZA PER DOMINIO DI PRODUZIONE
+// Se siamo sul dominio di produzione, forziamo esplicitamente l'URL del backend
+let forcedApiUrl = null;
+if (typeof window !== 'undefined' && window.location.hostname === 'www.wearesalusapp.com') {
+  forcedApiUrl = 'https://salus-backend.onrender.com';
+  console.log('OVERRIDE EMERGENZA - Forzato URL API a:', forcedApiUrl);
+}
+
 // Imposta l'URL di base dell'API
-// Verifichiamo se l'URL contiene già /api per evitare duplicazioni
-export const apiUrl = process.env.REACT_APP_API_URL || 'https://salus-backend.onrender.com';
+export const apiUrl = forcedApiUrl || process.env.REACT_APP_API_URL || 'https://salus-backend.onrender.com';
 
 // Logging per debug
 console.log('API URL configurato:', apiUrl);
@@ -10,6 +17,12 @@ console.log('API URL configurato:', apiUrl);
 // Funzione migliorata per normalizzare i percorsi API ed evitare duplicazioni
 export const normalizePath = (path) => {
   console.log('Normalizzando percorso:', path, 'con baseURL:', apiUrl);
+  
+  // BYPASS PER DOMINIO DI PRODUZIONE CON FORZATURA DELL'URL
+  if (forcedApiUrl) {
+    console.log('Usando percorso semplice per ambiente di produzione forzato');
+    return path.startsWith('/') ? path : '/' + path;
+  }
   
   // RISOLUZIONE SPECIFICA per il dominio di produzione
   // Se stiamo utilizzando il dominio wearesalusapp.com e il path contiene /api,
