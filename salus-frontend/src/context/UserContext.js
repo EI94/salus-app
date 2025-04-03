@@ -97,63 +97,34 @@ export const UserProvider = ({ children }) => {
     }
   };
   
-  // Funzione per il login
+  // Funzione per il login - VERSIONE COMPLETAMENTE HARDCODED
   const login = async (email, password, rememberMe = true) => {
     try {
-      // OVERRIDE DI EMERGENZA PER IL DOMINIO DI PRODUZIONE
-      if (typeof window !== 'undefined' && window.location.hostname === 'www.wearesalusapp.com') {
-        console.log('OVERRIDE EMERGENZA - Login su www.wearesalusapp.com');
-        
-        // URL hardcoded per il login sul backend
-        const directUrl = 'https://salus-backend.onrender.com/auth/login';
-        console.log('Usando URL diretto:', directUrl);
-        
-        const response = await axios({
-          method: 'POST',
-          url: directUrl,
-          data: {
-            email,
-            password
-          },
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (!response.data || !response.data.token) {
-          return { success: false, error: 'Risposta dal server non valida' };
-        }
-        
-        const { token, user: userData } = response.data;
-        
-        // Salva token in base alla scelta "remember me"
-        if (rememberMe) {
-          localStorage.setItem('token', token);
-        } else {
-          sessionStorage.setItem('token', token);
-        }
-        
-        // Aggiorna lo stato
-        setUser(userData);
-        
-        // Imposta la lingua dell'utente se disponibile
-        if (userData.language) {
-          i18n.changeLanguage(userData.language);
-          localStorage.setItem('preferredLanguage', userData.language);
-        }
-        
-        return { success: true };
-      }
+      console.log('USANDO VERSIONE HARDCODED PER IL LOGIN');
+      console.log('Dati login:', { email, rememberMe });
       
-      // Normale flusso per ambienti non di produzione
-      // Utilizziamo il nuovo helper API per il login
-      const response = await apiPost('/auth/login', {
-        email,
-        password
+      // URL DEFINITIVO HARDCODED
+      const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/login';
+      console.log('URL diretto:', DIRECT_BACKEND_URL);
+      
+      // Usa axios senza alcuna configurazione speciale
+      const response = await axios({
+        method: 'POST',
+        url: DIRECT_BACKEND_URL,
+        data: {
+          email,
+          password
+        },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
       
+      console.log('Risposta login:', response.status);
+      
       if (!response.data || !response.data.token) {
+        console.error('Risposta senza token:', response.data);
         return { success: false, error: 'Risposta dal server non valida' };
       }
       
@@ -178,6 +149,15 @@ export const UserProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Errore login:', error);
+      if (error.response) {
+        console.error('Dettagli errore:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers,
+          url: error.config.url
+        });
+      }
       return { 
         success: false, 
         error: error.response?.data?.message || 'Email o password non valide' 
@@ -185,56 +165,35 @@ export const UserProvider = ({ children }) => {
     }
   };
   
-  // Funzione per la registrazione
+  // Funzione per la registrazione - VERSIONE COMPLETAMENTE HARDCODED
   const register = async (email, password, name = '') => {
     try {
-      // OVERRIDE DI EMERGENZA PER IL DOMINIO DI PRODUZIONE
-      if (typeof window !== 'undefined' && window.location.hostname === 'www.wearesalusapp.com') {
-        console.log('OVERRIDE EMERGENZA - Registrazione su www.wearesalusapp.com');
-        
-        // URL hardcoded per la registrazione sul backend
-        const directUrl = 'https://salus-backend.onrender.com/auth/register';
-        console.log('Usando URL diretto:', directUrl);
-        
-        const response = await axios({
-          method: 'POST',
-          url: directUrl,
-          data: {
-            email,
-            password,
-            name
-          },
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (!response.data || !response.data.token) {
-          return { success: false, error: 'Risposta dal server non valida' };
-        }
-        
-        const { token, user: userData } = response.data;
-        localStorage.setItem('token', token);
-        setUser(userData);
-        
-        if (userData.language) {
-          i18n.changeLanguage(userData.language);
-          localStorage.setItem('preferredLanguage', userData.language);
-        }
-        
-        return { success: true };
-      }
+      console.log('USANDO VERSIONE HARDCODED PER LA REGISTRAZIONE');
+      console.log('Dati registrazione:', { email, name });
       
-      // Normale flusso per ambienti non di produzione
-      // Utilizziamo il nuovo helper API per la registrazione
-      const response = await apiPost('/auth/register', {
-        email,
-        password,
-        name
+      // URL DEFINITIVO HARDCODED
+      const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/register';
+      console.log('URL diretto:', DIRECT_BACKEND_URL);
+      
+      // Usa axios senza alcuna configurazione speciale
+      const response = await axios({
+        method: 'POST',
+        url: DIRECT_BACKEND_URL,
+        data: {
+          email,
+          password,
+          name
+        },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
       
+      console.log('Risposta registrazione:', response.status);
+      
       if (!response.data || !response.data.token) {
+        console.error('Risposta senza token:', response.data);
         return { success: false, error: 'Risposta dal server non valida' };
       }
       
@@ -255,6 +214,15 @@ export const UserProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Errore registrazione:', error);
+      if (error.response) {
+        console.error('Dettagli errore:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers,
+          url: error.config.url
+        });
+      }
       return { 
         success: false, 
         error: error.response?.data?.message || 'Errore durante la registrazione' 

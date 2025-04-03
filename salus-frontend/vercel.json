@@ -9,7 +9,7 @@
   ],
   "cleanUrls": true,
   "env": {
-    "REACT_APP_API_URL": "https://salus-backend.onrender.com/api"
+    "REACT_APP_API_URL": "https://salus-backend.onrender.com"
   },
   "headers": [
     {
@@ -20,9 +20,75 @@
           "value": "public, max-age=0, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+        }
+      ]
     }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+    { "source": "/(.*)", "destination": "/index.html" },
+    {
+      "source": "/api/auth/register",
+      "destination": "https://salus-backend.onrender.com/auth/register"
+    },
+    {
+      "source": "/api/auth/login",
+      "destination": "https://salus-backend.onrender.com/auth/login"
+    },
+    {
+      "source": "/api/auth/forgot-password",
+      "destination": "https://salus-backend.onrender.com/auth/forgot-password"
+    },
+    {
+      "source": "/api/auth/resend-verification",
+      "destination": "https://salus-backend.onrender.com/auth/resend-verification"
+    },
+    {
+      "source": "/api/users/me",
+      "destination": "https://salus-backend.onrender.com/users/me"
+    },
+    {
+      "source": "/api/users/profile",
+      "destination": "https://salus-backend.onrender.com/users/profile"
+    },
+    {
+      "source": "/api/users/language",
+      "destination": "https://salus-backend.onrender.com/users/language"
+    },
+    {
+      "source": "/api/feedback/send",
+      "destination": "https://salus-backend.onrender.com/feedback/send"
+    },
+    {
+      "source": "/api/api/:path*",
+      "destination": "https://salus-backend.onrender.com/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://salus-backend.onrender.com/:path*"
+    }
+  ],
+  "build": {
+    "env": {
+      "REACT_APP_API_URL": "https://salus-backend.onrender.com"
+    }
+  }
 } 
