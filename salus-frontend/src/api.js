@@ -1,26 +1,46 @@
 import axios from 'axios';
 
 // Imposta l'URL di base dell'API
+// Verifichiamo se l'URL contiene già /api per evitare duplicazioni
 export const apiUrl = process.env.REACT_APP_API_URL || 'https://salus-backend.onrender.com';
+
+// Logging per debug
+console.log('API URL configurato:', apiUrl);
 
 // Funzione per normalizzare i percorsi API ed evitare duplicazioni
 export const normalizePath = (path) => {
-  // Se il percorso inizia con /api e l'URL di base termina con /api,
-  // rimuoviamo /api dal percorso
-  if (path.startsWith('/api/') && apiUrl.endsWith('/api')) {
-    return path.substring(4); // Rimuovi '/api' all'inizio
+  // Log per debug
+  console.log('Normalizzando percorso:', path, 'con baseURL:', apiUrl);
+  
+  // Rimuovi 'api' o '/api' se l'URL di base contiene già '/api'
+  if (apiUrl.includes('/api')) {
+    if (path.startsWith('/api/')) {
+      console.log('Rimozione prefisso /api/ dal percorso');
+      return path.substring(4); // Rimuovi '/api'
+    }
+    if (path.startsWith('api/')) {
+      console.log('Rimozione prefisso api/ dal percorso');
+      return path.substring(3); // Rimuovi 'api'
+    }
   }
   
-  // Se il percorso inizia con api/ (senza slash iniziale)
-  if (path.startsWith('api/') && apiUrl.endsWith('/api')) {
-    return path.substring(3); // Rimuovi 'api' all'inizio
+  // Verifica se l'URL è quello di produzione con wearesalusapp.com
+  if (apiUrl.includes('wearesalusapp.com')) {
+    console.log('Rilevato URL di produzione wearesalusapp.com');
+    // Per l'URL di produzione, assicuriamoci che non ci siano duplicazioni di /api
+    if (path.startsWith('/api/')) {
+      console.log('Rimozione prefisso /api/ dal percorso per URL produzione');
+      return path.substring(4); // Rimuovi '/api'
+    }
   }
   
-  // Se il percorso non inizia con / ma deve essere aggiunto
+  // Assicurati che il percorso inizi con / se necessario
   if (!path.startsWith('/') && !apiUrl.endsWith('/')) {
+    console.log('Aggiunta / iniziale al percorso');
     return '/' + path;
   }
   
+  console.log('Percorso normalizzato:', path);
   return path;
 };
 

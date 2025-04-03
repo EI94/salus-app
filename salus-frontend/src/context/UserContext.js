@@ -26,7 +26,11 @@ export const UserProvider = ({ children }) => {
         
         // Verifica validità del token con il server
         try {
-          const response = await axios.get(`${apiUrl}/api/users/me`, {
+          // Normalizziamo il percorso
+          const normalizedPath = normalizePath('/users/me');
+          console.log('Percorso normalizzato per getUserData:', normalizedPath);
+          
+          const response = await axios.get(`${apiUrl}${normalizedPath}`, {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -66,8 +70,12 @@ export const UserProvider = ({ children }) => {
         return { success: false, error: 'Utente non autenticato' };
       }
       
+      // Normalizziamo il percorso
+      const normalizedPath = normalizePath('/users/profile');
+      console.log('Percorso normalizzato per updateUser:', normalizedPath);
+      
       // Invia dati aggiornati al server
-      const response = await axios.put(`${apiUrl}/api/users/profile`, userData, {
+      const response = await axios.put(`${apiUrl}${normalizedPath}`, userData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -147,9 +155,13 @@ export const UserProvider = ({ children }) => {
       const normalizedPath = normalizePath('/auth/register');
       console.log('Percorso normalizzato per registrazione:', normalizedPath);
       
+      // Creiamo l'URL completo per debug
+      const fullUrl = `${apiUrl}${normalizedPath}`;
+      console.log('URL completo per registrazione:', fullUrl);
+      
       const response = await axios({
         method: 'POST',
-        url: `${apiUrl}${normalizedPath}`,
+        url: fullUrl,
         data: {
           email,
           password,
@@ -182,6 +194,16 @@ export const UserProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Errore registrazione:', error);
+      // Aggiungiamo più dettagli sull'errore
+      if (error.response) {
+        console.error('Dettagli errore:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers,
+          url: error.config.url
+        });
+      }
       return { 
         success: false, 
         error: error.response?.data?.message || 'Errore durante la registrazione' 
