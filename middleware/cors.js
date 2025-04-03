@@ -3,12 +3,12 @@ const cors = require('cors');
 // Lista di domini consentiti per le richieste CORS
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://salus-frontend.vercel.app', // Cambia con il tuo dominio di produzione
-  'https://salus-app.vercel.app',       // Aggiungi altri domini se necessario
-  'https://www.wearesalusapp.com',       // Dominio principale
-  'https://wearesalusapp.com',             // Senza www
-  'https://salus-app-lk16.vercel.app',     // Nuovo dominio fork Vercel
-  'https://salus-frontend-fork.vercel.app'  // Altro dominio fork
+  'https://salus-frontend.vercel.app',
+  'https://salus-app.vercel.app',
+  'https://www.wearesalusapp.com',
+  'https://wearesalusapp.com',
+  'https://salus-app-lk16.vercel.app',  // Dominio con problema CORS
+  'https://salus-frontend-fork.vercel.app'
 ];
 
 // Opzioni di configurazione CORS
@@ -16,6 +16,9 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Consentire richieste senza origine (come le app mobili o Postman)
     if (!origin) return callback(null, true);
+    
+    // Debug: Log di tutte le origini per tracciamento
+    console.log(`Richiesta CORS da origine: ${origin}`);
     
     // Verificare se l'origine è nella lista dei domini consentiti
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -37,20 +40,36 @@ const corsOptions = {
   optionsSuccessStatus: 204
 };
 
-// Opzioni CORS permissive per debug
-const permissiveCorsOptions = {
-  origin: '*',                  // Consenti qualsiasi origine
-  credentials: true,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: 'Content-Type,Authorization'
-};
-
 // Middleware CORS basato sull'ambiente
 const setupCors = (app) => {
   if (process.env.NODE_ENV === 'production') {
-    // In produzione, temporaneamente usiamo una configurazione permissiva per debug
-    app.use(cors(permissiveCorsOptions));
-    console.log('CORS configurato in modalità PERMISSIVA per debug');
+    // In produzione, usa opzioni CORS che accettano origin specifici
+    app.use(cors(corsOptions));
+    console.log('CORS configurato in modalità produzione con whitelist estesa');
+    
+    // Aggiunge anche un middleware per gestire le opzioni CORS manualmente per i casi problematici
+    app.use((req, res, next) => {
+      const origin = req.headers.origin;
+      
+      // Se l'origine è nella lista consentita, imposta l'header esplicitamente
+      if (origin && allowedOrigins.indexOf(origin) !== -1) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+        res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+        res.header('Access-Control-Allow-Credentials', 'true');
+      }
+      
+      // Gestione speciale per l'origin salus-app-lk16.vercel.app che sta causando problemi
+      if (origin && origin.includes('salus-app-lk16.vercel.app')) {
+        console.log('Richiesta da dominio problematico: ' + origin);
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+        res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+        res.header('Access-Control-Allow-Credentials', 'true');
+      }
+      
+      next();
+    });
   } else {
     // In sviluppo, consenti tutte le richieste
     app.use(cors());

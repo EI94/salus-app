@@ -71,13 +71,17 @@
           const statusElement = document.getElementById('emergency-status');
           statusElement.innerHTML = 'Registrazione in corso...';
           
-          // Chiamata API diretta con modalità no-cors per evitare problemi CORS
-          fetch('https://salus-backend.onrender.com/auth/register', {
+          // SOLUZIONE CORS: Utilizziamo un proxy CORS online per aggirare le restrizioni
+          const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+          const targetUrl = 'https://salus-backend.onrender.com/auth/register';
+          
+          // Primo tentativo: utilizzando un proxy CORS
+          fetch(proxyUrl + targetUrl, {
             method: 'POST',
-            mode: 'no-cors', // Modalità no-cors per bypasare le restrizioni CORS
             headers: {
               'Content-Type': 'application/json',
-              'Accept': 'application/json'
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest' // Necessario per CORS-Anywhere
             },
             body: JSON.stringify({
               email: email,
@@ -86,32 +90,36 @@
             })
           })
           .then(response => {
-            console.log('Risposta registrazione con no-cors:', response);
-            // In modalità no-cors, la risposta è sempre di tipo "opaque" e non possiamo leggere lo stato
-            // Tentiamo comunque di completare la registrazione
-            statusElement.innerHTML = 'Richiesta inviata. Prova ad accedere con le credenziali appena create.';
+            console.log('Risposta registrazione con proxy:', response);
             
-            // Mostra bottone per tentare il login
-            const loginButton = document.createElement('button');
-            loginButton.innerHTML = 'Vai al Login';
-            loginButton.style.marginTop = '10px';
-            loginButton.addEventListener('click', function() {
-              window.location.href = '/login';
-            });
-            statusElement.appendChild(document.createElement('br'));
-            statusElement.appendChild(loginButton);
+            if (!response.ok) {
+              throw new Error('Errore nella registrazione: ' + response.status);
+            }
             
-            return { success: true };
+            return response.json();
+          })
+          .then(data => {
+            console.log('Registrazione completata (via proxy):', data);
+            statusElement.innerHTML = 'Registrazione completata con successo! Reindirizzamento...';
+            
+            // Salva il token nel localStorage
+            if (data.token) {
+              localStorage.setItem('token', data.token);
+              
+              // Reindirizza alla dashboard dopo 2 secondi
+              setTimeout(function() {
+                window.location.href = '/dashboard';
+              }, 2000);
+            }
           })
           .catch(error => {
-            console.error('Errore durante la registrazione:', error);
-            
-            // Secondo tentativo con modalità normale
+            console.error('Errore durante la registrazione con proxy:', error);
             statusElement.innerHTML = 'Tentativo alternativo in corso...';
             
-            // Chiamata API tentativo backup senza no-cors
-            return fetch('https://salus-backend.onrender.com/auth/register', {
+            // Secondo tentativo: utilizzando no-cors (non possiamo leggere la risposta ma potrebbe funzionare)
+            fetch('https://salus-backend.onrender.com/auth/register', {
               method: 'POST',
+              mode: 'no-cors',
               headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -123,30 +131,78 @@
               })
             })
             .then(response => {
-              console.log('Risposta registrazione tentativo backup:', response.status);
-              if (!response.ok) {
-                throw new Error('Errore nella registrazione: ' + response.status);
-              }
-              return response.json();
-            })
-            .then(data => {
-              console.log('Registrazione completata (backup):', data);
-              statusElement.innerHTML = 'Registrazione completata con successo! Reindirizzamento...';
+              console.log('Risposta registrazione con no-cors:', response);
+              statusElement.innerHTML = 'Richiesta inviata. Poiché non possiamo verificare la risposta, prova ad accedere con le credenziali appena create.';
               
-              // Salva il token nel localStorage
-              if (data.token) {
-                localStorage.setItem('token', data.token);
-                
-                // Reindirizza alla dashboard dopo 2 secondi
-                setTimeout(function() {
-                  window.location.href = '/dashboard';
-                }, 2000);
-              }
+              // Mostra bottone per tentare il login
+              const loginButton = document.createElement('button');
+              loginButton.innerHTML = 'Vai al Login';
+              loginButton.style.marginTop = '10px';
+              loginButton.addEventListener('click', function() {
+                window.location.href = '/login';
+              });
+              statusElement.appendChild(document.createElement('br'));
+              statusElement.appendChild(loginButton);
             })
             .catch(backupError => {
-              console.error('Errore anche nel tentativo backup:', backupError);
-              statusElement.innerHTML = 'Errore durante la registrazione: ' + backupError.message + 
-                '<br><small>La registrazione potrebbe comunque essere stata eseguita. Prova ad accedere con le credenziali create.</small>';
+              console.error('Errore anche nel tentativo con no-cors:', backupError);
+              
+              // Terzo tentativo: utilizzando un form di sottomissione invisibile
+              statusElement.innerHTML = 'Tentativo finale in corso...';
+              
+              // Crea un form invisibile che invia i dati direttamente al backend
+              const form = document.createElement('form');
+              form.method = 'POST';
+              form.action = 'https://salus-backend.onrender.com/auth/register';
+              form.target = '_blank'; // Apre in una nuova tab
+              form.style.display = 'none';
+              
+              // Aggiungi i campi al form
+              const emailField = document.createElement('input');
+              emailField.type = 'hidden';
+              emailField.name = 'email';
+              emailField.value = email;
+              form.appendChild(emailField);
+              
+              const passwordField = document.createElement('input');
+              passwordField.type = 'hidden';
+              passwordField.name = 'password';
+              passwordField.value = password;
+              form.appendChild(passwordField);
+              
+              const nameField = document.createElement('input');
+              nameField.type = 'hidden';
+              nameField.name = 'name';
+              nameField.value = name || '';
+              form.appendChild(nameField);
+              
+              // Aggiungi il form al documento e sottomettilo
+              document.body.appendChild(form);
+              
+              statusElement.innerHTML = 'Tentativo finale: si aprirà una nuova finestra per completare la registrazione.<br><small>Una volta completata, torna qui e vai alla pagina di login.</small>';
+              
+              // Aggiungi un pulsante per inviare manualmente il form
+              const submitButton = document.createElement('button');
+              submitButton.innerHTML = 'Completa Registrazione';
+              submitButton.style.marginTop = '10px';
+              submitButton.addEventListener('click', function() {
+                form.submit();
+                
+                // Dopo l'invio del form, mostra il pulsante per andare al login
+                const loginRedirectButton = document.createElement('button');
+                loginRedirectButton.innerHTML = 'Vai al Login';
+                loginRedirectButton.style.marginTop = '10px';
+                loginRedirectButton.addEventListener('click', function() {
+                  window.location.href = '/login';
+                });
+                
+                statusElement.innerHTML = 'Una volta completata la registrazione nella nuova finestra, torna qui e vai al login.';
+                statusElement.appendChild(document.createElement('br'));
+                statusElement.appendChild(loginRedirectButton);
+              });
+              
+              statusElement.appendChild(document.createElement('br'));
+              statusElement.appendChild(submitButton);
             });
           });
         };
