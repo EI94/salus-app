@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, /*useEffect,*/ useContext, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import Auth from './components/Auth';
 import SymptomTracker from './components/SymptomTracker';
@@ -6,12 +6,12 @@ import MedicationTracker from './components/MedicationTracker';
 import WellnessTracker from './components/WellnessTracker';
 import AIAssistant from './components/AIAssistant';
 import NotificationCenter from './components/NotificationCenter';
-import Home from './components/Home';
+// import Home from './components/Home';
 import Profile from './components/Profile';
 import FeedbackWidget from './components/FeedbackWidget';
 import './styles/complete-app.css'; /* Tutti gli stili dell'app */
 import './App.css';  /* File minimo solo per compatibilità */
-import api from './api';
+// import api from './api';
 import { useTranslation } from 'react-i18next';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';

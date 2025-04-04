@@ -160,12 +160,12 @@ const Auth = () => {
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
-  const [authInProgress, setAuthInProgress] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   // Stati per il form
   const [email, setEmail] = useState('');
@@ -173,7 +173,6 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   // Componente Auth caricato

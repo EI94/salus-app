@@ -3,6 +3,30 @@ import '../styles/NotificationCenter.css';
 
 const NotificationCenter = () => {
   const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [language, setLanguage] = useState('en');
+  
+  // Aggiungo le traduzioni necessarie
+  const translations = {
+    it: {
+      categories: {
+        all: 'Tutte',
+        urgent: 'Urgenti',
+        medication: 'Farmaci',
+        appointment: 'Appuntamenti',
+        wellness: 'Benessere'
+      }
+    },
+    en: {
+      categories: {
+        all: 'All',
+        urgent: 'Urgent',
+        medication: 'Medications',
+        appointment: 'Appointments',
+        wellness: 'Wellness'
+      }
+    }
+  };
   
   useEffect(() => {
     // Crea un gestore per l'evento personalizzato di notifica
@@ -82,6 +106,32 @@ const NotificationCenter = () => {
       );
     }, 300); // Durata dell'animazione di uscita
   };
+  
+  // Caricamento e aggiornamento notifiche con effetto
+  useEffect(() => {
+    // Simula il caricamento delle notifiche
+    const mockNotifications = [
+      // ... existing code ...
+    ];
+    
+    setIsLoading(false);
+    setNotifications(mockNotifications);
+    
+    // Simula una nuova notifica dopo 5 secondi
+    const timer = setTimeout(() => {
+      addNotification({
+        id: 'new-notification',
+        title: translations[language].categories.urgent,
+        message: 'Questa è una notifica di test generata automaticamente',
+        category: 'urgent',
+        time: new Date(),
+        read: false,
+        important: true
+      });
+    }, 5000);
+    
+    return () => clearTimeout(timer);
+  }, [language, addNotification]); // Aggiungo addNotification come dipendenza
   
   // Ritorna null se non ci sono notifiche
   if (notifications.length === 0) {

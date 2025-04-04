@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { apiUrl, normalizePath } from '../api';
 import { apiGet, apiPost, apiPut } from '../utils/apiHelper';
@@ -12,7 +13,8 @@ export const UserProvider = ({ children }) => {
   // Stato per i dati dell'utente
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, /*setError*/] = useState(null);
+  const navigate = useNavigate();
   
   // Carica i dati utente dal localStorage al mount del componente
   useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+// import { Link } from 'react-router-dom';
+// import axios from 'axios';
 import '../styles/Home.css';
 
 const Home = ({ userId, userName, userData }) => {
@@ -16,20 +16,20 @@ const Home = ({ userId, userName, userData }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
   // Funzione per ottenere il colore in base al punteggio di benessere
-  const getWellnessColor = (score) => {
-    if (score >= 80) return '#10b981'; // verde
-    if (score >= 60) return '#0ea5e9'; // blu
-    if (score >= 40) return '#f59e0b'; // giallo
-    return '#ef4444'; // rosso
-  };
+  // const getWellnessColor = (score) => {
+  //   if (score >= 80) return '#10b981'; // verde
+  //   if (score >= 60) return '#0ea5e9'; // blu
+  //   if (score >= 40) return '#f59e0b'; // giallo
+  //   return '#ef4444'; // rosso
+  // };
   
   // Funzione per ottenere il colore in base all'intensità del sintomo
-  const getIntensityColor = (intensity) => {
-    if (intensity <= 2) return '#10b981'; // verde
-    if (intensity <= 5) return '#f59e0b'; // giallo
-    if (intensity <= 8) return '#f97316'; // arancione
-    return '#ef4444'; // rosso
-  };
+  // const getIntensityColor = (intensity) => {
+  //   if (intensity <= 2) return '#10b981'; // verde
+  //   if (intensity <= 5) return '#f59e0b'; // giallo
+  //   if (intensity <= 8) return '#f97316'; // arancione
+  //   return '#ef4444'; // rosso
+  // };
 
   // Inizializzazione dati dalla props
   useEffect(() => {
@@ -106,7 +106,6 @@ const Home = ({ userId, userName, userData }) => {
   const getMedicationReminders = (medications) => {
     if (!medications || medications.length === 0) return [];
     
-    const now = new Date();
     const reminders = [];
     
     medications.forEach(med => {
@@ -127,10 +126,10 @@ const Home = ({ userId, userName, userData }) => {
   };
   
   // Formattazione data
-  const formatDate = (dateString) => {
-    const options = { day: 'numeric', month: 'short', year: 'numeric' };
-    return new Date(dateString).toLocaleDateString('it-IT', options);
-  };
+  // const formatDate = (dateString) => {
+  //   const options = { day: 'numeric', month: 'short', year: 'numeric' };
+  //   return new Date(dateString).toLocaleDateString('it-IT', options);
+  // };
   
   // Controlla se l'utente è nuovo al primo rendering
   useEffect(() => {

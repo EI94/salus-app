@@ -78,29 +78,16 @@ const SymptomTracker = ({ userId }) => {
     }
   ];
 
-  // Carica i dati all'avvio
+  // Caricamento dei sintomi
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Simula chiamata API
-        setTimeout(() => {
-          setSymptoms(mockSymptoms);
-          setFilteredSymptoms(mockSymptoms);
-          
-          // Estrai categorie uniche
-          const uniqueCategories = [...new Set(mockSymptoms.map(s => s.category))];
-          setCategories(uniqueCategories);
-          
-          setLoading(false);
-        }, 800);
-      } catch (error) {
-        console.error('Errore nel caricamento dei sintomi:', error);
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [userId]);
+    // Simula richiesta API
+    setTimeout(() => {
+      setSymptoms(mockSymptoms);
+      setFilteredSymptoms(mockSymptoms);
+      setCategories(predefinedCategories);
+      setLoading(false);
+    }, 1000);
+  }, [mockSymptoms]); // Aggiungo mockSymptoms come dipendenza
 
   // Filtra i sintomi quando cambiano i filtri
   useEffect(() => {

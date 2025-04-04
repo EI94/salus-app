@@ -109,24 +109,15 @@ const MedicationTracker = ({ userId }) => {
     }
   ];
 
-  // Carica i dati all'avvio
+  // Caricamento iniziale dei dati
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Simula chiamata API
-        setTimeout(() => {
-          setMedications(mockMedications);
-          setFilteredMedications(mockMedications);
-          setLoading(false);
-        }, 800);
-      } catch (error) {
-        console.error('Errore nel caricamento dei farmaci:', error);
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [userId]);
+    // Simuliamo il caricamento dei dati
+    setTimeout(() => {
+      setMedications(mockMedications);
+      setLoading(false);
+    }, 800);
+    // Includere mockMedications come dipendenza
+  }, [mockMedications]);
 
   // Filtra i farmaci quando cambiano i filtri
   useEffect(() => {

@@ -114,10 +114,12 @@ export const apiDelete = (path, options = {}) => {
   return apiRequest('DELETE', path, null, options);
 };
 
-export default {
+const apiHelper = {
   apiRequest,
   apiGet,
   apiPost,
   apiPut,
   apiDelete
-}; 
+};
+
+export default apiHelper; 

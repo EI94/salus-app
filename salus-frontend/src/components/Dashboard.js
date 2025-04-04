@@ -5,9 +5,9 @@ import '../styles/Dashboard.css';
 
 const Dashboard = () => {
   const { t } = useTranslation();
-  const [symptoms, setSymptoms] = useState([]);
-  const [medications, setMedications] = useState([]);
-  const [wellness, setWellness] = useState([]);
+  const [symptoms, /*setSymptoms*/] = useState([]);
+  const [medications, /*setMedications*/] = useState([]);
+  const [wellness, /*setWellness*/] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
