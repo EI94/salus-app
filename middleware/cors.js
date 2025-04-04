@@ -51,8 +51,19 @@ const setupCors = (app) => {
     app.use((req, res, next) => {
       const origin = req.headers.origin;
       
+      // Log per tutte le richieste
+      console.log(`Richiesta ricevuta da origine: ${origin}, metodo: ${req.method}, URL: ${req.url}`);
+      
       // Se l'origine è nella lista consentita, imposta l'header esplicitamente
       if (origin && allowedOrigins.indexOf(origin) !== -1) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+        res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+        res.header('Access-Control-Allow-Credentials', 'true');
+      } else if (origin) {
+        // Per origine non nella whitelist ma con richieste in arrivo, imposta comunque gli header CORS
+        // Questo è utile durante lo sviluppo e il testing con nuovi domini
+        console.log(`Imposto CORS per origine non in whitelist: ${origin}`);
         res.header('Access-Control-Allow-Origin', origin);
         res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
@@ -66,6 +77,12 @@ const setupCors = (app) => {
         res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
         res.header('Access-Control-Allow-Credentials', 'true');
+      }
+      
+      // Gestione speciale per le richieste OPTIONS (preflight)
+      if (req.method === 'OPTIONS') {
+        console.log('Ricevuta richiesta OPTIONS/preflight da: ' + origin);
+        return res.status(200).end();
       }
       
       next();

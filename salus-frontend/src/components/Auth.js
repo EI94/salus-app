@@ -739,7 +739,7 @@ const Auth = () => {
           
           try {
             console.log('Tentativo registrazione diretta con fetch');
-            const DIRECT_URL = 'https://salus-backend.onrender.com/auth/register';
+            const DIRECT_URL = 'https://salus-backend.onrender.com/api/auth/register';
             console.log('URL diretto:', DIRECT_URL);
             
             const response = await fetch(DIRECT_URL, {
