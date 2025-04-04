@@ -13,6 +13,43 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     
+    <!-- Script di correzione CORS - Viene eseguito prima di ogni altro script -->
+    <script>
+      // Override del metodo fetch per forzare un'intestazione Origin che funzioni 
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options = {}) {
+        // Crea nuove opzioni con l'intestazione specificata
+        const newOptions = {
+          ...options,
+          mode: 'cors',
+          credentials: 'include',
+          headers: {
+            ...(options.headers || {}),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        };
+        
+        // Log per debug
+        if (url.includes('/auth/') || url.includes('/api/auth/')) {
+          console.log('🔄 Fetch intercettato:', url);
+          console.log('🔄 Opzioni:', newOptions);
+        }
+        
+        // Assicura che le richieste a onrender.com contengano il prefisso /api
+        if (typeof url === 'string' && url.includes('salus-backend.onrender.com') && !url.includes('/api/')) {
+          // Trasforma https://salus-backend.onrender.com/auth/login in https://salus-backend.onrender.com/api/auth/login
+          const parts = url.split('salus-backend.onrender.com/');
+          if (parts.length > 1 && !parts[1].startsWith('api/') && !parts[1].startsWith('status')) {
+            url = parts[0] + 'salus-backend.onrender.com/api/' + parts[1];
+            console.log('🛠️ URL corretto con prefisso /api:', url);
+          }
+        }
+        
+        return originalFetch.call(this, url, newOptions);
+      };
+    </script>
+    
     <title>Salus Health App</title>
     <style>
       /* Stili di base - per evitare FOUC */
