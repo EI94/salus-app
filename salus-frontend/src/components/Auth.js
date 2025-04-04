@@ -109,8 +109,8 @@ const DebugInfo = () => {
   const fullUrl = window.location.href;
   
   // URL DIRETTO CORRETTO (dovrebbe essere usato per registrazione/login)
-  const directLoginUrl = 'https://salus-backend.onrender.com/auth/login';
-  const directRegisterUrl = 'https://salus-backend.onrender.com/auth/register';
+  const directLoginUrl = 'https://salus-backend.onrender.com/api/auth/login';
+  const directRegisterUrl = 'https://salus-backend.onrender.com/api/auth/register';
   
   // URL tramite normalizePath
   const normalizedPath = normalizePath('/auth/register');

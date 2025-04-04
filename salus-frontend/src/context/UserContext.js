@@ -176,7 +176,7 @@ export const UserProvider = ({ children }) => {
       console.log('Dati registrazione:', { email, name });
       
       // URL DEFINITIVO HARDCODED - URL diretto al backend
-      const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/register';
+      const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/api/auth/register';
       console.log('URL diretto:', DIRECT_BACKEND_URL);
       
       // Usa fetch invece di axios per evitare problemi di configurazione
