@@ -58,55 +58,6 @@
           }, 1000);
         });
         
-        // Funzione per creare un iframe invisibile e fare una richiesta direttamente
-        // Questa tecnica aggira completamente i controlli CORS
-        window.createIframeRequest = function(url, params, callback) {
-          const uniqueID = 'iframe_' + Date.now();
-          const iframe = document.createElement('iframe');
-          
-          iframe.id = uniqueID;
-          iframe.name = uniqueID;
-          iframe.style.display = 'none';
-          document.body.appendChild(iframe);
-          
-          // Crea un form dentro l'iframe
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = url;
-          form.target = uniqueID;
-          
-          // Aggiungi i parametri al form
-          for (const key in params) {
-            if (params.hasOwnProperty(key)) {
-              const input = document.createElement('input');
-              input.type = 'hidden';
-              input.name = key;
-              input.value = params[key];
-              form.appendChild(input);
-            }
-          }
-          
-          // Aggiungi listeners per il completamento o errore
-          iframe.onload = function() {
-            callback({ success: true, message: 'Richiesta completata' });
-          };
-          
-          iframe.onerror = function() {
-            callback({ success: false, message: 'Errore durante la richiesta' });
-          };
-          
-          // Aggiungi il form al documento e invialo
-          document.body.appendChild(form);
-          form.submit();
-          
-          // Rimuovi il form (l'iframe deve rimanere per ricevere la risposta)
-          setTimeout(function() {
-            document.body.removeChild(form);
-          }, 100);
-          
-          return iframe;
-        };
-        
         // Funzione per la registrazione di emergenza
         window.emergencyRegister = function(event) {
           event.preventDefault();
@@ -121,44 +72,10 @@
           }
           
           const statusElement = document.getElementById('emergency-status');
-          statusElement.innerHTML = 'Registrazione in corso con metodo diretto...';
+          statusElement.innerHTML = 'Utilizzo metodo alternativo per la registrazione...';
           
-          // Creiamo un form in un iframe per fare la richiesta direttamente
-          // Questa è la tecnica più semplice per aggirare CORS
-          const iframe = window.createIframeRequest(
-            'https://salus-backend.onrender.com/auth/register',
-            {
-              email: email,
-              password: password,
-              name: name || ''
-            },
-            function(result) {
-              if (result.success) {
-                statusElement.innerHTML = 'Richiesta inviata con successo! Prova ora ad effettuare il login con le credenziali appena create.';
-                
-                // Mostra bottone per tentare il login
-                const loginButton = document.createElement('button');
-                loginButton.innerHTML = 'Vai al Login';
-                loginButton.style.marginTop = '10px';
-                loginButton.addEventListener('click', function() {
-                  window.location.href = '/login';
-                });
-                statusElement.appendChild(document.createElement('br'));
-                statusElement.appendChild(loginButton);
-                
-                // Dopo 5 secondi, rimuovi l'iframe
-                setTimeout(function() {
-                  document.body.removeChild(iframe);
-                }, 5000);
-              } else {
-                statusElement.innerHTML = 'Si è verificato un errore: ' + result.message;
-                
-                // Tenta il backup method
-                statusElement.innerHTML += '<br>Tentativo con metodo alternativo...';
-                window.emergencyRegisterBackup(email, password, name, statusElement);
-              }
-            }
-          );
+          // Usa il metodo di backup direttamente
+          window.emergencyRegisterBackup(email, password, name, statusElement);
         };
         
         // Metodo di backup per la registrazione
@@ -191,7 +108,7 @@
           document.body.appendChild(backupForm);
           
           // Mostra il messaggio di backup
-          statusElement.innerHTML = 'Tentativo finale: si aprirà una nuova finestra per completare la registrazione.<br><small>Una volta completata, torna qui e vai alla pagina di login.</small>';
+          statusElement.innerHTML = 'Si aprirà una nuova finestra per completare la registrazione.<br><small>Una volta completata, torna qui e vai alla pagina di login.</small>';
           
           // Aggiungi un pulsante per inviare manualmente il form
           const submitButton = document.createElement('button');
