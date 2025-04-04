@@ -7,8 +7,9 @@ const allowedOrigins = [
   'https://salus-app.vercel.app',
   'https://www.wearesalusapp.com',
   'https://wearesalusapp.com',
-  'https://salus-app-lk16.vercel.app',  // Dominio con problema CORS
-  'https://salus-frontend-fork.vercel.app'
+  'https://salus-app-lk16.vercel.app',
+  'https://salus-frontend-fork.vercel.app',
+  '*'  // Consenti tutte le origini per risoluzione problemi
 ];
 
 // Opzioni di configurazione CORS
@@ -20,6 +21,11 @@ const corsOptions = {
     // Debug: Log di tutte le origini per tracciamento
     console.log(`Richiesta CORS da origine: ${origin}`);
     
+    // In modalità debug, consenti tutte le origini
+    return callback(null, true);
+    
+    // Codice originale disabilitato per consentire tutte le origini
+    /*
     // Verificare se l'origine è nella lista dei domini consentiti
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -32,16 +38,49 @@ const corsOptions = {
       // Disabilitato il blocco CORS per permettere i test
       // callback(new Error('Non consentito da CORS'));
     }
+    */
   },
   credentials: true,            // Abilitare l'invio di credenziali (cookies, headers auth)
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: 'Content-Type,Authorization',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: 'Content-Type,Authorization,Accept',
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
 
 // Middleware CORS basato sull'ambiente
 const setupCors = (app) => {
+  // In qualsiasi ambiente, per ora usa un approccio permissivo per CORS
+  app.use(cors({ origin: true, credentials: true }));
+  console.log('CORS configurato in modalità permissiva globale');
+  
+  // Middleware extra per gestire preventivamente le richieste OPTIONS
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      console.log('Gestione preventiva richiesta OPTIONS da: ' + (req.headers.origin || 'unknown'));
+      
+      // Imposta intestazioni CORS permissive
+      res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+      res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      
+      return res.status(204).end();
+    }
+    
+    // Log per ogni richiesta
+    const origin = req.headers.origin;
+    console.log(`Richiesta ricevuta da origine: ${origin || 'unknown'}, metodo: ${req.method}, URL: ${req.url}`);
+    
+    // Imposta intestazioni CORS per tutte le altre richieste
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    next();
+  });
+  
+  /* Disabilito la configurazione ambiente-specifica per usare un approccio permissivo globale
   if (process.env.NODE_ENV === 'production') {
     // In produzione, usa opzioni CORS che accettano origin specifici
     app.use(cors(corsOptions));
@@ -92,6 +131,7 @@ const setupCors = (app) => {
     app.use(cors());
     console.log('CORS configurato in modalità sviluppo');
   }
+  */
 };
 
 module.exports = setupCors; 

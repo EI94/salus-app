@@ -16,11 +16,36 @@ const healthRoutes = require('./routes/health');
 
 const app = express();
 
+// Middleware aggiuntivo CORS per gestire il problema specifico con salus-app-lk16.vercel.app
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Abilita CORS per tutte le origini in modalità sviluppo
+  res.header('Access-Control-Allow-Origin', origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Log per debugging
+  console.log(`[CORS principale] Richiesta da: ${origin || 'nessuna origine'}, metodo: ${req.method}, URL: ${req.url}`);
+  
+  // Gestisce le richieste OPTIONS immediatamente
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
 // Configurazione CORS basata sull'ambiente
 setupCors(app);
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Middleware per servire file statici
+app.use(express.static('public'));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -55,6 +80,20 @@ app.use('/api/medications', medicationRoutes);
 app.use('/api/wellness', wellnessRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/health', healthRoutes);
+
+// Aggiungiamo percorsi duplicati senza il prefisso /api per maggiore compatibilità
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+app.use('/symptoms', symptomRoutes);
+app.use('/medications', medicationRoutes);
+app.use('/wellness', wellnessRoutes);
+app.use('/ai', aiRoutes);
+app.use('/health', healthRoutes);
+
+// Route per il controllo dello stato del server
+app.get('/status', (req, res) => {
+  res.json({ status: 'online', timestamp: new Date() });
+});
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
