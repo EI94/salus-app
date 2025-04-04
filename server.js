@@ -16,28 +16,8 @@ const healthRoutes = require('./routes/health');
 
 const app = express();
 
-// Middleware aggiuntivo CORS per gestire il problema specifico con salus-app-lk16.vercel.app
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  // Abilita CORS per tutte le origini in modalità sviluppo
-  res.header('Access-Control-Allow-Origin', origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  // Log per debugging
-  console.log(`[CORS principale] Richiesta da: ${origin || 'nessuna origine'}, metodo: ${req.method}, URL: ${req.url}`);
-  
-  // Gestisce le richieste OPTIONS immediatamente
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  next();
-});
-
-// Configurazione CORS basata sull'ambiente
+// Configurazione CORS centralizzata - questa è l'unica configurazione CORS necessaria
+console.log('Configurazione CORS centralizzata in server.js');
 setupCors(app);
 
 // Middleware
@@ -63,9 +43,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// CORS preflight per tutte le route
-app.options('*', cors());
-
 // Debug per il problema di registrazione
 app.post('/debug-register', (req, res) => {
   console.log('Debug registrazione ricevuta:', req.body);
@@ -74,7 +51,7 @@ app.post('/debug-register', (req, res) => {
 
 // Routes - CORRETTO
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);  // Modificato per evitare conflitti
+app.use('/api/users', userRoutes);
 app.use('/api/symptoms', symptomRoutes);
 app.use('/api/medications', medicationRoutes);
 app.use('/api/wellness', wellnessRoutes);

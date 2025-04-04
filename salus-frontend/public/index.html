@@ -15,39 +15,81 @@
     
     <!-- Script di correzione CORS - Viene eseguito prima di ogni altro script -->
     <script>
-      // Override del metodo fetch per forzare un'intestazione Origin che funzioni 
+      // Override del metodo fetch per correggere i problemi di CORS e percorsi API
       const originalFetch = window.fetch;
       window.fetch = function(url, options = {}) {
-        // Crea nuove opzioni con l'intestazione specificata
+        // Quando inizializziamo il fetch, annotiamo l'ora per poter misurare quanto tempo richiede
+        const startTime = new Date().getTime();
+        
+        // Crea nuove opzioni ottimizzate per evitare problemi CORS
+        // Impostiamo mode su 'cors' e non su 'no-cors' perché quest'ultimo limita le informazioni che possiamo ricevere
         const newOptions = {
           ...options,
           mode: 'cors',
-          credentials: 'include',
+          // Non impostiamo credentials a 'include' perché può causare problemi con CORS
+          // quando il server non è configurato per accettarle
+          credentials: 'same-origin',
           headers: {
             ...(options.headers || {}),
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': options.body ? 'application/json' : (options.headers?.['Content-Type'] || 'text/plain')
           }
         };
         
-        // Log per debug
-        if (url.includes('/auth/') || url.includes('/api/auth/')) {
-          console.log('🔄 Fetch intercettato:', url);
-          console.log('🔄 Opzioni:', newOptions);
-        }
-        
-        // Assicura che le richieste a onrender.com contengano il prefisso /api
-        if (typeof url === 'string' && url.includes('salus-backend.onrender.com') && !url.includes('/api/')) {
-          // Trasforma https://salus-backend.onrender.com/auth/login in https://salus-backend.onrender.com/api/auth/login
-          const parts = url.split('salus-backend.onrender.com/');
-          if (parts.length > 1 && !parts[1].startsWith('api/') && !parts[1].startsWith('status')) {
-            url = parts[0] + 'salus-backend.onrender.com/api/' + parts[1];
-            console.log('🛠️ URL corretto con prefisso /api:', url);
+        // Se l'URL è una stringa, controlliamo se dobbiamo correggerlo
+        if (typeof url === 'string') {
+          // Log per debug solo per richieste di autenticazione/registrazione
+          if (url.includes('/auth/') || url.includes('/api/auth/')) {
+            console.log(`🔄 Fetch originale: ${url}`);
+            console.log(`🔄 Opzioni: ${JSON.stringify(newOptions, null, 2)}`);
+          }
+          
+          // Correggi URL per backend onrender.com
+          if (url.includes('salus-backend.onrender.com')) {
+            // Normalizza i percorsi API prima di inviare la richiesta
+            if (!url.includes('/api/') && !url.includes('/status') && !url.includes('/debug-register')) {
+              // Inserisci '/api/' nel percorso se manca
+              const parts = url.split('salus-backend.onrender.com/');
+              if (parts.length > 1 && !parts[1].startsWith('api/')) {
+                const correctedUrl = `${parts[0]}salus-backend.onrender.com/api/${parts[1]}`;
+                console.log(`🛠️ URL corretto: ${url} → ${correctedUrl}`);
+                url = correctedUrl;
+              }
+            }
           }
         }
         
-        return originalFetch.call(this, url, newOptions);
+        // Esegui il fetch con le nuove opzioni e l'URL corretto
+        return originalFetch.call(this, url, newOptions)
+          .then(response => {
+            // Log del tempo di risposta
+            const endTime = new Date().getTime();
+            if (typeof url === 'string' && (url.includes('/auth/') || url.includes('/api/auth/'))) {
+              console.log(`✅ Risposta da ${url} in ${endTime - startTime}ms: ${response.status} ${response.statusText}`);
+            }
+            
+            // Controlla se la risposta è riuscita
+            if (!response.ok && response.status !== 204) {
+              // Per errori CORS, aggiunge informazioni utili al messaggio di errore
+              if (response.status === 0 || response.type === 'opaqueredirect') {
+                console.error(`❌ Probabile errore CORS su ${url}`);
+                throw new Error(`Errore CORS: impossibile accedere a ${url}`);
+              }
+            }
+            
+            return response;
+          })
+          .catch(error => {
+            // Log degli errori di rete
+            console.error(`❌ Errore fetch per ${url}:`, error.message);
+            throw error;
+          });
       };
+      
+      // Registra quando il documento è completamente caricato
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Documento caricato, proxy fetch installato per correggere problemi CORS');
+      });
     </script>
     
     <title>Salus Health App</title>
