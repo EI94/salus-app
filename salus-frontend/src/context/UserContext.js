@@ -1,8 +1,16 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { apiUrl, normalizePath } from '../api';
 import { useTranslation } from 'react-i18next';
+import {
+  getCurrentUser,
+  loginWithEmailAndPassword,
+  registerWithEmailAndPassword,
+  logoutUser,
+  resetPassword,
+  resendVerificationEmail,
+  updateUserProfile,
+  onAuthStateChange
+} from '../firebase/auth';
 
 // Creazione del contesto utente
 const UserContext = createContext(null);
@@ -18,152 +26,106 @@ export function UserProvider({ children }) {
   const { i18n } = useTranslation();
   const navigate = useNavigate();
 
-  // Funzione helper per le chiamate API con proxy CORS
-  const apiRequestWithCorsProxy = async (method, path, data = null, token = null) => {
-    const normalizedPath = normalizePath(path);
-    const TARGET_URL = `${apiUrl}${normalizedPath}`;
-    const PROXY_URL = 'https://corsproxy.io/?';
-    const CORS_PROXY_URL = PROXY_URL + encodeURIComponent(TARGET_URL);
-    
-    console.log(`[${method.toUpperCase()}] Richiesta con proxy CORS a: ${CORS_PROXY_URL}`);
-    
-    const headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest'
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    
-    try {
-      const response = await axios({
-        method: method,
-        url: CORS_PROXY_URL,
-        headers: headers,
-        data: data
-      });
-      return response;
-    } catch (error) {
-      console.error(`Errore durante la richiesta ${method.toUpperCase()} a ${CORS_PROXY_URL}:`, error);
-      throw error; // Rilancia l'errore per la gestione a livello superiore
-    }
-  };
-
-  // Controllo iniziale dell'autenticazione
+  // Controllo iniziale dell'autenticazione usando Firebase
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          setUser({ id: 'loading' }); // Placeholder durante il caricamento
-          
-          const response = await apiRequestWithCorsProxy('get', '/users/profile', null, token);
-          
-          if (response.status === 200 && response.data) {
-            setUser(response.data);
-            setIsAuthenticated(true);
-            
-            // Imposta lingua utente
-            if (response.data.language) {
-              i18n.changeLanguage(response.data.language);
-            }
-          } else {
-            // Token non valido
-            localStorage.removeItem('token');
-            setUser(null);
-            setIsAuthenticated(false);
-          }
-        } catch (error) {
-          console.error('Errore nel controllo autenticazione:', error);
-          localStorage.removeItem('token');
-          setUser(null);
-          setIsAuthenticated(false);
+    console.log('Controllo autenticazione Firebase...');
+    
+    // Utilizziamo onAuthStateChange per gestire lo stato dell'utente
+    const unsubscribe = onAuthStateChange((firebaseUser) => {
+      if (firebaseUser) {
+        console.log('Utente Firebase autenticato:', firebaseUser);
+        const userData = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || 'Utente',
+          emailVerified: firebaseUser.emailVerified,
+          photoURL: firebaseUser.photoURL,
+          createdAt: firebaseUser.metadata.creationTime,
+          // Conserviamo la lingua nell'utente se disponibile
+          language: localStorage.getItem('preferredLanguage') || i18n.language
+        };
+        
+        setUser(userData);
+        setIsAuthenticated(true);
+        
+        // Imposta lingua utente
+        if (userData.language) {
+          i18n.changeLanguage(userData.language);
         }
       } else {
+        console.log('Nessun utente Firebase autenticato');
         setUser(null);
         setIsAuthenticated(false);
       }
       setLoading(false);
-    };
+    });
     
-    checkAuth();
-  }, [i18n]); // Aggiunto i18n come dipendenza
+    // Unsubscribe quando il componente viene smontato
+    return () => unsubscribe();
+  }, [i18n]);
 
-  // Funzione per il login con CORS proxy
-  const login = async (email, password, rememberMe = true) => { // Aggiunto rememberMe
+  // Funzione per il login con Firebase Auth
+  const login = async (email, password, rememberMe = true) => {
     try {
       setLoading(true);
-      const response = await apiRequestWithCorsProxy('post', '/auth/login', { email, password });
+      const result = await loginWithEmailAndPassword(email, password);
 
-      if (response.status === 200) {
-        const { token, user } = response.data;
-        
-        // Salva token in base alla scelta "remember me"
-        if (rememberMe) {
-          localStorage.setItem('token', token);
-        } else {
-          sessionStorage.setItem('token', token);
-        }
-        
-        setUser(user);
-        setIsAuthenticated(true);
+      if (result.success) {
+        // Firebase gestisce automaticamente il token di autenticazione
+        // Non dobbiamo più gestire manualmente localStorage/sessionStorage
 
         // Imposta la lingua utente se disponibile
-        if (user && user.language) {
-          i18n.changeLanguage(user.language);
-          localStorage.setItem('preferredLanguage', user.language);
+        if (result.user) {
+          // Salviamo la lingua preferita dell'utente
+          const preferredLanguage = localStorage.getItem('preferredLanguage') || i18n.language;
+          i18n.changeLanguage(preferredLanguage);
         }
 
-        return { success: true, user };
+        return { success: true, user: result.user };
       } else {
-        console.log('Risposta login non valida:', response);
-        return { success: false, error: 'Risposta dal server non valida' };
+        console.log('Errore login Firebase:', result.error);
+        return { success: false, error: result.error };
       }
     } catch (error) {
-      console.log('Errore login:', error);
-      setUser(null);
-      setIsAuthenticated(false);
+      console.log('Errore imprevisto durante login:', error);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Credenziali non valide'
+        error: error.message || 'Errore durante il login'
       };
     } finally {
       setLoading(false);
     }
   };
 
-  // Funzione per la registrazione con CORS proxy
+  // Funzione per la registrazione con Firebase Auth
   const register = async (email, password, name) => {
     try {
       setLoading(true);
-      const response = await apiRequestWithCorsProxy('post', '/auth/register', { email, password, name });
+      const result = await registerWithEmailAndPassword(email, password, name);
 
-      if (response.status === 201 || response.status === 200) {
-        const { token, user } = response.data;
-        // Non impostiamo il token qui, l'utente dovrà loggarsi dopo la verifica email
-        // localStorage.setItem('token', token);
-        setUser(user); // Potremmo voler mostrare un messaggio di successo basato su questo
-        setIsAuthenticated(false); // L'utente non è ancora autenticato, deve verificare l'email
-        return { success: true, user, message: 'Registrazione completata. Controlla la tua email per la verifica.' };
+      if (result.success) {
+        // Per Firebase, dopo la registrazione, l'utente deve verificare l'email
+        return { 
+          success: true, 
+          user: result.user,
+          message: 'Registrazione completata. Controlla la tua email per la verifica.'
+        };
       } else {
-        console.log('Risposta registrazione non valida:', response);
-        return { success: false, error: 'Risposta dal server non valida' };
+        console.log('Errore registrazione Firebase:', result.error);
+        return { success: false, error: result.error };
       }
     } catch (error) {
-      console.log('Errore registrazione:', error);
-      setUser(null);
-      setIsAuthenticated(false);
+      console.log('Errore imprevisto durante registrazione:', error);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Errore durante la registrazione'
+        error: error.message || 'Errore durante la registrazione'
       };
     } finally {
       setLoading(false);
     }
   };
 
-  // Funzione per aggiornare la lingua con CORS proxy
+  // Funzione per aggiornare la lingua dell'utente
   const updateLanguage = async (language) => {
     try {
       setLoading(true);
@@ -172,23 +134,15 @@ export function UserProvider({ children }) {
       i18n.changeLanguage(language);
       localStorage.setItem('preferredLanguage', language);
       
-      // Se l'utente è autenticato, salva la preferenza nel database
-      if (user && user.id && isAuthenticated) { // Aggiunto controllo isAuthenticated
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const response = await apiRequestWithCorsProxy('put', '/users/language', { language }, token);
-
-        if (response.status === 200) {
-          setUser({
-            ...user,
-            language
-          });
-          return { success: true };
-        }
-      } else {
-        console.log('Aggiornamento lingua: utente non autenticato, aggiorno solo localmente.');
+      // Se l'utente è autenticato, aggiorna anche lo stato utente locale
+      if (user && isAuthenticated) {
+        setUser({
+          ...user,
+          language
+        });
       }
       
-      return { success: true }; // Successo anche se aggiornato solo localmente
+      return { success: true };
     } catch (error) {
       console.error('Errore aggiornamento lingua:', error);
       return {
@@ -200,33 +154,68 @@ export function UserProvider({ children }) {
     }
   };
 
-  // Funzione per il logout
-  const logout = () => {
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token'); // Rimuovi anche da sessionStorage
-    setUser(null);
-    setIsAuthenticated(false);
-    navigate('/login');
+  // Funzione per il logout con Firebase Auth
+  const logout = async () => {
+    try {
+      await logoutUser();
+      // Firebase gestisce la pulizia dei token
+      setUser(null);
+      setIsAuthenticated(false);
+      navigate('/login');
+      return { success: true };
+    } catch (error) {
+      console.error('Errore durante logout:', error);
+      return { success: false, error: error.message };
+    }
   };
   
-  // Funzione per aggiornare il profilo utente con CORS proxy
-  const updateUserProfile = async (profileData) => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (!token || !isAuthenticated) {
-      return { success: false, error: 'Utente non autenticato' };
-    }
+  // Funzione per inviare email di reset password
+  const forgotPassword = async (email) => {
     try {
       setLoading(true);
-      const response = await apiRequestWithCorsProxy('put', '/users/profile', profileData, token);
-      if (response.status === 200 && response.data) {
-        setUser(response.data);
-        return { success: true, user: response.data };
-      } else {
-        return { success: false, error: 'Errore aggiornamento profilo' };
+      const result = await resetPassword(email);
+      return result;
+    } catch (error) {
+      console.error('Errore reset password:', error);
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Funzione per inviare nuovamente email di verifica
+  const sendVerificationEmail = async () => {
+    try {
+      setLoading(true);
+      const result = await resendVerificationEmail();
+      return result;
+    } catch (error) {
+      console.error('Errore invio email verifica:', error);
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Funzione per aggiornare il profilo utente
+  const updateProfile = async (profileData) => {
+    try {
+      setLoading(true);
+      // Per ora supportiamo solo l'aggiornamento del nome
+      const result = await updateUserProfile(profileData.name);
+      
+      if (result.success && result.user) {
+        // Aggiorna i dati utente nel contesto
+        setUser({
+          ...user,
+          name: result.user.displayName
+        });
       }
+      
+      return result;
     } catch (error) {
       console.error('Errore aggiornamento profilo:', error);
-      return { success: false, error: error.response?.data?.message || 'Errore server' };
+      return { success: false, error: error.message };
     } finally {
       setLoading(false);
     }
@@ -236,14 +225,15 @@ export function UserProvider({ children }) {
     <UserContext.Provider
       value={{
         user,
-        setUser, // Mantenuto per usi diretti se necessario
         loading,
         isAuthenticated,
         login,
         register,
         logout,
         updateLanguage,
-        updateUserProfile // Aggiunto updateUserProfile
+        forgotPassword,
+        sendVerificationEmail,
+        updateProfile
       }}
     >
       {children}

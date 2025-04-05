@@ -2,67 +2,86 @@ import React, { useState, useEffect, useContext } from 'react';
 import { loadUserData, saveUserData } from '../utils/dataManager';
 import '../styles/Profile.css';
 import { useTranslation } from 'react-i18next';
-import { UserContext } from '../context/UserContext';
+import { UserContext, useUser } from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
-function Profile({ userId, userName, userData: propUserData, activeTab = 'profile' }) {
+function Profile({ activeTab = 'profile' }) {
   const [activeSection, setActiveSection] = useState(activeTab);
-  const [userData, setUserData] = useState(propUserData || {});
+  const { user, updateLanguage, logout, loading, updateProfile } = useUser();
+  const navigate = useNavigate();
+  const { i18n } = useTranslation();
+  
+  const [userData, setUserData] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: userName || '',
-    email: userData?.email || '',
-    phone: userData?.phone || '',
-    birthdate: userData?.birthdate || '',
-    gender: userData?.gender || '',
-    height: userData?.height || '',
-    weight: userData?.weight || '',
-    allergies: userData?.allergies || '',
-    conditions: userData?.conditions || '',
-    medications: userData?.medications || '',
-    emergencyContact: userData?.emergencyContact || '',
-    emergencyPhone: userData?.emergencyPhone || '',
-    doctorName: userData?.doctorName || '',
-    doctorPhone: userData?.doctorPhone || '',
-    insuranceProvider: userData?.insuranceProvider || '',
-    insuranceNumber: userData?.insuranceNumber || '',
-    bloodType: userData?.bloodType || '',
-    notes: userData?.notes || '',
+    name: '',
+    email: '',
+    phone: '',
+    birthdate: '',
+    gender: '',
+    height: '',
+    weight: '',
+    allergies: '',
+    conditions: '',
+    medications: '',
+    emergencyContact: '',
+    emergencyPhone: '',
+    doctorName: '',
+    doctorPhone: '',
+    insuranceProvider: '',
+    insuranceNumber: '',
+    bloodType: '',
+    notes: '',
   });
   
   const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: userData?.notificationSettings?.emailNotifications || true,
-    pushNotifications: userData?.notificationSettings?.pushNotifications || true,
-    medicationReminders: userData?.notificationSettings?.medicationReminders || true,
-    appointmentReminders: userData?.notificationSettings?.appointmentReminders || true,
-    dataUpdates: userData?.notificationSettings?.dataUpdates || true,
+    emailNotifications: true,
+    pushNotifications: true,
+    medicationReminders: true,
+    appointmentReminders: true,
+    dataUpdates: true,
   });
   
   const [privacySettings, setPrivacySettings] = useState({
-    shareDataWithDoctor: userData?.privacySettings?.shareDataWithDoctor || false,
-    allowAnonymousDataUse: userData?.privacySettings?.allowAnonymousDataUse || false,
-    storeDataLocally: userData?.privacySettings?.storeDataLocally || true,
-    twoFactorAuth: userData?.privacySettings?.twoFactorAuth || false,
+    shareDataWithDoctor: false,
+    allowAnonymousDataUse: false,
+    storeDataLocally: true,
+    twoFactorAuth: false,
   });
 
   // Impostazioni della lingua
-  const [language, setLanguage] = useState(userData?.language || 'it');
+  const [language, setLanguage] = useState('it');
 
-  // Ottieni funzioni per supporto i18n
-  const { i18n } = useTranslation();
-
-  // Ottieni il contesto utente
-  const userContext = useContext(UserContext);
-
+  // Se non c'è un utente autenticato, reindirizza alla pagina di login
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
+  
+  // Inizializza i dati del form quando l'utente è caricato
+  useEffect(() => {
+    if (user) {
+      setFormData(prevForm => ({
+        ...prevForm,
+        name: user.name || 'Utente',
+        email: user.email || ''
+      }));
+      
+      setLanguage(user.language || 'it');
+    }
+  }, [user]);
+  
   // Carica i dati dell'utente
   useEffect(() => {
-    if (userId && !propUserData) {
-      const data = loadUserData(userId);
+    if (user?.id) {
+      const data = loadUserData(user.id);
       if (data) {
         setUserData(data);
-        // Inizializza il form con i dati caricati
-        setFormData({
-          name: userName || '',
-          email: data.email || '',
+        
+        // Aggiorna form con i dati salvati localmente
+        setFormData(prevFormData => ({
+          ...prevFormData,
           phone: data.phone || '',
           birthdate: data.birthdate || '',
           gender: data.gender || '',
@@ -79,7 +98,7 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
           insuranceNumber: data.insuranceNumber || '',
           bloodType: data.bloodType || '',
           notes: data.notes || '',
-        });
+        }));
         
         // Inizializza impostazioni di notifica e privacy
         if (data.notificationSettings) {
@@ -96,8 +115,16 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
         }
       }
     }
-  }, [userId, propUserData, userName]);
+  }, [user]);
 
+  // Non renderizzare nulla durante il caricamento o se l'utente non è autenticato
+  if (loading || !user) {
+    return <div className="loading">Caricamento profilo...</div>;
+  }
+
+  const userId = user.id;
+  const userName = user.name || 'Utente';
+  
   // Gestisce il cambio di sezione
   const handleSectionChange = (section) => {
     setActiveSection(section);
@@ -135,24 +162,17 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
     const newLang = e.target.value;
     setLanguage(newLang);
     
-    // Usa la funzione dal contesto utente per aggiornare la lingua in tutta l'app
-    if (userContext && userContext.updateLanguage) {
-      userContext.updateLanguage(newLang)
-        .then(result => {
-          if (!result.success) {
-            console.error('Errore nel cambio lingua:', result.error);
-          }
-        });
-    } else {
-      // Fallback se il contesto non è disponibile
-      i18n.changeLanguage(newLang);
-      localStorage.setItem('userLanguage', newLang);
-      localStorage.setItem('preferredLanguage', newLang);
-    }
+    // Usa la funzione dal contesto utente per aggiornare la lingua
+    updateLanguage(newLang)
+      .then(result => {
+        if (!result.success) {
+          console.error('Errore nel cambio lingua:', result.error);
+        }
+      });
   };
 
   // Salva le modifiche al profilo
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     const updatedUserData = {
       ...userData,
       ...formData,
@@ -161,20 +181,30 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
       language
     };
     
-    // Salva i dati aggiornati
+    // Salva i dati localmente
     saveUserData(userId, updatedUserData);
     setUserData(updatedUserData);
+    
+    // Aggiorna il nome dell'utente in Firebase (solo se è cambiato)
+    if (formData.name !== userName) {
+      try {
+        const result = await updateProfile({ name: formData.name });
+        if (!result.success) {
+          console.error('Errore nell\'aggiornamento del profilo:', result.error);
+          alert('Si è verificato un errore nell\'aggiornamento del nome: ' + result.error);
+          return;
+        }
+      } catch (error) {
+        console.error('Errore durante l\'aggiornamento del profilo:', error);
+        alert('Si è verificato un errore nell\'aggiornamento del nome.');
+        return;
+      }
+    }
+    
     setIsEditing(false);
     
-    // Assicurati che la lingua sia aggiornata in tutta l'app
-    if (userContext && userContext.updateLanguage) {
-      userContext.updateLanguage(language)
-        .then(result => {
-          if (!result.success) {
-            console.error('Errore nel cambio lingua:', result.error);
-          }
-        });
-    }
+    // Assicurati che la lingua sia aggiornata
+    updateLanguage(language);
     
     // Mostra messaggio di conferma
     alert('Profilo aggiornato con successo!');
@@ -194,17 +224,22 @@ function Profile({ userId, userName, userData: propUserData, activeTab = 'profil
     document.body.removeChild(link);
   };
 
-  // Elimina tutti i dati dell'utente (funzione di esempio)
-  const handleDeleteAccount = () => {
+  // Elimina l'account dell'utente
+  const handleDeleteAccount = async () => {
     if (window.confirm('Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.')) {
-      // In un'app reale, qui si dovrebbe chiamare un'API per eliminare l'account
-      localStorage.removeItem(`user_${userId}`);
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('userName');
-      
-      // Reindirizza alla pagina di login
-      window.location.href = '/';
+      try {
+        // Elimina i dati locali
+        localStorage.removeItem(`user_${userId}`);
+        
+        // Fa il logout dell'utente (in un'implementazione completa, qui si chiamerebbe un'API per eliminare l'account)
+        await logout();
+        
+        // Reindirizza alla pagina di login
+        navigate('/login');
+      } catch (error) {
+        console.error('Errore durante l\'eliminazione dell\'account:', error);
+        alert('Si è verificato un errore durante l\'eliminazione dell\'account. Riprova più tardi.');
+      }
     }
   };
 

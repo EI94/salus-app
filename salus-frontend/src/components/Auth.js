@@ -175,7 +175,7 @@ const Auth = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // Componente Auth caricato
+  // Controllo iniziale dell'autenticazione
   useEffect(() => {
     console.log("Componente Auth caricato");
     return () => {};
@@ -203,25 +203,22 @@ const Auth = () => {
     }
   }, [registrationSuccess, userContext?.user, navigate]);
 
-  // Validazione form avanzata
+  // Validazione form
   const validateForm = () => {
     const newErrors = {};
     
-    // Validazione email
     if (!email) {
       newErrors.email = t('emailRequired');
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
-      newErrors.email = t('invalidEmail');
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = t('emailInvalid');
     }
     
-    // Validazione password
     if (!password) {
       newErrors.password = t('passwordRequired');
-    } else if (!isLogin && password.length < 8) {
-      newErrors.password = t('passwordMinLength');
+    } else if (password.length < 6) {
+      newErrors.password = t('passwordTooShort');
     }
     
-    // Validazione aggiuntiva per registrazione
     if (!isLogin) {
       if (!name) {
         newErrors.name = t('nameRequired');
@@ -266,22 +263,16 @@ const Auth = () => {
     setAuthError(null);
     
     try {
-      console.log('Tentativo login tramite UserContext');
+      console.log('Tentativo login tramite Firebase Auth');
       const response = await userContext.login(email, password, rememberMe);
       
       if (response.success) {
         console.log('Autenticazione completata con successo');
         // Il reindirizzamento alla dashboard è gestito dal router
-      } else if (response.needsVerification) {
-        setMessage({
-          type: 'warning',
-          text: t('emailNotVerified')
-        });
-        setVerificationEmailSent(false);
       } else {
         const errorMessage = response.error || t('loginError');
         setAuthError(new Error(errorMessage));
-        console.log('Auth error:', new Error(errorMessage));
+        console.log('Auth error:', errorMessage);
       }
     } catch (error) {
       setAuthError(error);
@@ -300,21 +291,21 @@ const Auth = () => {
     setAuthError(null);
     
     try {
-      // Utilizziamo il metodo register dal context utente
+      console.log('Tentativo registrazione tramite Firebase Auth');
       const response = await userContext.register(email, password, name);
       
       if (response.success) {
         setRegistrationSuccess(true);
         setMessage({
           type: 'success',
-          text: t('registrationSuccess')
+          text: response.message || t('registrationSuccess')
         });
         
         // Verifichiamo subito se l'utente è stato impostato
         if (userContext.user) {
           console.log("Utente registrato con successo:", userContext.user);
         } else {
-          console.log("Utente non disponibile dopo registrazione");
+          console.log("Utente non disponibile dopo registrazione, è richiesta verifica email");
         }
       } else {
         setAuthError(new Error(response.error || t('registrationError')));
@@ -343,36 +334,23 @@ const Auth = () => {
       
       console.log('Invio richiesta recupero password per:', email);
       
-      // URL DIRETTO HARDCODED per reset password
-      const DIRECT_URL = 'https://salus-backend.onrender.com/auth/forgot-password';
-      console.log('URL diretto per reset password:', DIRECT_URL);
+      // Utilizzo del servizio Firebase Auth tramite context
+      const response = await userContext.forgotPassword(email);
       
-      // Usa fetch invece di axios per evitare problemi
-      const response = await fetch(DIRECT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Errore nella richiesta di recupero password');
+      if (response.success) {
+        setResetEmailSent(true);
+        setMessage({
+          type: 'success',
+          text: t('passwordResetEmailSent')
+        });
+      } else {
+        throw new Error(response.error || 'Errore nella richiesta di recupero password');
       }
-      
-      setResetEmailSent(true);
-      setMessage({
-        type: 'success',
-        text: t('passwordResetEmailSent')
-      });
-      
     } catch (error) {
       console.error('Errore recupero password:', error);
       setMessage({
         type: 'error',
-        text: getErrorMessage(error) || t('passwordResetError')
+        text: error.message || t('passwordResetError')
       });
     } finally {
       setLoading(false);
@@ -392,36 +370,23 @@ const Auth = () => {
       
       console.log('Richiesta nuovo invio email di verifica per:', email);
       
-      // URL DIRETTO HARDCODED per invio email di verifica
-      const DIRECT_URL = 'https://salus-backend.onrender.com/auth/resend-verification';
-      console.log('URL diretto per invio email di verifica:', DIRECT_URL);
+      // Utilizzo del servizio Firebase Auth tramite context
+      const response = await userContext.sendVerificationEmail();
       
-      // Usa fetch invece di axios per evitare problemi
-      const response = await fetch(DIRECT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Errore nella richiesta di nuovo invio email');
+      if (response.success) {
+        setVerificationEmailSent(true);
+        setMessage({
+          type: 'success',
+          text: t('verificationEmailSent')
+        });
+      } else {
+        throw new Error(response.error || 'Errore nella richiesta di nuovo invio email');
       }
-      
-      setVerificationEmailSent(true);
-      setMessage({
-        type: 'success',
-        text: t('verificationEmailSent')
-      });
-      
     } catch (error) {
       console.error('Errore invio email verifica:', error);
       setMessage({
         type: 'error',
-        text: getErrorMessage(error) || t('verificationEmailError')
+        text: error.message || t('verificationEmailError')
       });
     } finally {
       setLoading(false);
@@ -739,14 +704,18 @@ const Auth = () => {
           
           try {
             console.log('Tentativo registrazione diretta con fetch');
-            const DIRECT_URL = 'https://salus-backend.onrender.com/api/auth/register';
-            console.log('URL diretto:', DIRECT_URL);
+            // Utilizziamo un proxy CORS per superare il blocco CORS
+            const PROXY_URL = 'https://corsproxy.io/?';
+            const TARGET_URL = 'https://salus-backend.onrender.com/api/auth/register';
+            const DIRECT_URL = PROXY_URL + encodeURIComponent(TARGET_URL);
+            console.log('URL con proxy CORS:', DIRECT_URL);
             
             const response = await fetch(DIRECT_URL, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
               },
               body: JSON.stringify({
                 email,
