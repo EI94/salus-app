@@ -487,21 +487,6 @@ const Auth = () => {
         {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
       </div>
       
-      <div className="form-group">
-        <label htmlFor="language">{t('language')}</label>
-        <div className="input-field">
-          <select
-            id="language"
-            value={language}
-            onChange={handleLanguageChange}
-          >
-            <option value="it">{t('italian')}</option>
-            <option value="en">{t('english')}</option>
-            <option value="hi">{t('hindi')}</option>
-          </select>
-        </div>
-      </div>
-      
       {authError && (
         <div className="error-box">
           <span>⚠</span>
@@ -651,23 +636,75 @@ const Auth = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-box">
-        <div className="auth-header">
+      <div className="auth-left">
+        <div className="auth-brand">
           <img src="/logo-light.svg" alt="Salus Logo" className="auth-logo" />
-          <div className="auth-icons">
-            <div className="auth-icon">
+          <h1>{t('appTitle', 'Salus')}</h1>
+          <p>{t('appDescription', 'Monitora la tua salute in modo semplice e intuitivo')}</p>
+        </div>
+        
+        <div className="auth-features">
+          <h2>{t('appFeatures', 'Funzionalità')}</h2>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
               <HeartPulseIcon />
             </div>
-            <div className="auth-icon">
+            <div className="feature-text">
+              <h3>{t('symptomTracking', 'Tracciamento sintomi')}</h3>
+              <p>{t('symptomTrackingDesc', 'Tieni traccia dei tuoi sintomi e monitora la tua salute')}</p>
+            </div>
+          </div>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
               <MedicationIcon />
             </div>
-            <div className="auth-icon">
+            <div className="feature-text">
+              <h3>{t('medicationManagement', 'Gestione farmaci')}</h3>
+              <p>{t('medicationManagementDesc', 'Gestisci i tuoi farmaci e ricevi promemoria')}</p>
+            </div>
+          </div>
+          
+          <div className="feature-item">
+            <div className="feature-icon">
               <AIIcon />
+            </div>
+            <div className="feature-text">
+              <h3>{t('aiAssistant', 'Assistente IA')}</h3>
+              <p>{t('aiAssistantDesc', 'Ricevi consigli personalizzati basati sui tuoi dati')}</p>
             </div>
           </div>
         </div>
         
-        <div className="auth-content">
+        <div className="language-selector">
+          <label htmlFor="language-selector">{t('language', 'Lingua')}:</label>
+          <select
+            id="language-selector"
+            value={language}
+            onChange={handleLanguageChange}
+          >
+            <option value="it">{t('italian', 'Italiano')}</option>
+            <option value="en">{t('english', 'Inglese')}</option>
+            <option value="hi">{t('hindi', 'Hindi')}</option>
+          </select>
+        </div>
+      </div>
+      
+      <div className="auth-right">
+        <div className="auth-box">
+          <div className="auth-header">
+            <h2>{isLogin ? t('login', 'Accedi') : t('createAccount', 'Crea account')}</h2>
+            <p>{isLogin ? t('loginToAccount', 'Accedi al tuo account') : t('fillDetails', 'Compila i dettagli per registrarti')}</p>
+          </div>
+          
+          {message.text && (
+            <div className={`message-box ${message.type}`}>
+              <span>{message.type === 'success' ? '✓' : message.type === 'warning' ? '⚠' : '⚠'}</span>
+              <div>{message.text}</div>
+            </div>
+          )}
+          
           {renderForm()}
         </div>
       </div>
