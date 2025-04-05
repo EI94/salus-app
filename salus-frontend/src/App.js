@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children }) => {
   const userContext = useContext(UserContext);
   
   // Verifica se il contesto utente è disponibile e se l'utente è autenticato
-  if (!userContext || !userContext.isAuthenticated()) {
+  if (!userContext || !userContext.isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
   
@@ -34,7 +34,7 @@ const PublicRoute = ({ children }) => {
   const userContext = useContext(UserContext);
   
   // Se l'utente è già autenticato, reindirizza alla dashboard
-  if (userContext && userContext.isAuthenticated()) {
+  if (userContext && userContext.isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
   
@@ -45,7 +45,7 @@ const PublicRoute = ({ children }) => {
 const RootRedirect = () => {
   const userContext = useContext(UserContext);
   
-  if (userContext && userContext.isAuthenticated()) {
+  if (userContext && userContext.isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
   

@@ -1,311 +1,255 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { apiUrl, normalizePath } from '../api';
-import { apiGet, apiPost, apiPut } from '../utils/apiHelper';
-import i18n from '../i18n';
+import { useTranslation } from 'react-i18next';
 
 // Creazione del contesto utente
-export const UserContext = createContext(null);
+const UserContext = createContext(null);
+
+// Esporto UserContext direttamente
+export { UserContext };
 
 // Provider del contesto
-export const UserProvider = ({ children }) => {
-  // Stato per i dati dell'utente
+export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, /*setError*/] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { i18n } = useTranslation();
   const navigate = useNavigate();
-  
-  // Carica i dati utente dal localStorage al mount del componente
+
+  // Funzione helper per le chiamate API con proxy CORS
+  const apiRequestWithCorsProxy = async (method, path, data = null, token = null) => {
+    const normalizedPath = normalizePath(path);
+    const TARGET_URL = `${apiUrl}${normalizedPath}`;
+    const PROXY_URL = 'https://corsproxy.io/?';
+    const CORS_PROXY_URL = PROXY_URL + encodeURIComponent(TARGET_URL);
+    
+    console.log(`[${method.toUpperCase()}] Richiesta con proxy CORS a: ${CORS_PROXY_URL}`);
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    try {
+      const response = await axios({
+        method: method,
+        url: CORS_PROXY_URL,
+        headers: headers,
+        data: data
+      });
+      return response;
+    } catch (error) {
+      console.error(`Errore durante la richiesta ${method.toUpperCase()} a ${CORS_PROXY_URL}:`, error);
+      throw error; // Rilancia l'errore per la gestione a livello superiore
+    }
+  };
+
+  // Controllo iniziale dell'autenticazione
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        
-        if (!token) {
-          setLoading(false);
-          return;
-        }
-        
-        // Verifica validità del token con il server
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
         try {
-          // Normalizziamo il percorso
-          const normalizedPath = normalizePath('/users/me');
-          console.log('Percorso normalizzato per getUserData:', normalizedPath);
+          setUser({ id: 'loading' }); // Placeholder durante il caricamento
           
-          const response = await axios.get(`${apiUrl}${normalizedPath}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
+          const response = await apiRequestWithCorsProxy('get', '/users/profile', null, token);
           
-          if (response.data && response.data.user) {
-            setUser(response.data.user);
+          if (response.status === 200 && response.data) {
+            setUser(response.data);
+            setIsAuthenticated(true);
             
-            // Impostiamo la lingua dell'utente
-            if (response.data.user.language) {
-              i18n.changeLanguage(response.data.user.language);
-              localStorage.setItem('preferredLanguage', response.data.user.language);
+            // Imposta lingua utente
+            if (response.data.language) {
+              i18n.changeLanguage(response.data.language);
             }
+          } else {
+            // Token non valido
+            localStorage.removeItem('token');
+            setUser(null);
+            setIsAuthenticated(false);
           }
         } catch (error) {
-          console.error('Errore verifica token:', error);
-          // Token non valido, rimuovi i dati di autenticazione
+          console.error('Errore nel controllo autenticazione:', error);
           localStorage.removeItem('token');
-          sessionStorage.removeItem('token');
+          setUser(null);
+          setIsAuthenticated(false);
         }
-      } catch (error) {
-        console.error('Errore caricamento utente:', error);
-      } finally {
-        setLoading(false);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
       }
+      setLoading(false);
     };
+    
+    checkAuth();
+  }, [i18n]); // Aggiunto i18n come dipendenza
 
-    loadUser();
-  }, []);
-  
-  // Funzione per aggiornare i dati utente
-  const updateUser = async (userData) => {
+  // Funzione per il login con CORS proxy
+  const login = async (email, password, rememberMe = true) => { // Aggiunto rememberMe
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      setLoading(true);
+      const response = await apiRequestWithCorsProxy('post', '/auth/login', { email, password });
+
+      if (response.status === 200) {
+        const { token, user } = response.data;
+        
+        // Salva token in base alla scelta "remember me"
+        if (rememberMe) {
+          localStorage.setItem('token', token);
+        } else {
+          sessionStorage.setItem('token', token);
+        }
+        
+        setUser(user);
+        setIsAuthenticated(true);
+
+        // Imposta la lingua utente se disponibile
+        if (user && user.language) {
+          i18n.changeLanguage(user.language);
+          localStorage.setItem('preferredLanguage', user.language);
+        }
+
+        return { success: true, user };
+      } else {
+        console.log('Risposta login non valida:', response);
+        return { success: false, error: 'Risposta dal server non valida' };
+      }
+    } catch (error) {
+      console.log('Errore login:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || 'Credenziali non valide'
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Funzione per la registrazione con CORS proxy
+  const register = async (email, password, name) => {
+    try {
+      setLoading(true);
+      const response = await apiRequestWithCorsProxy('post', '/auth/register', { email, password, name });
+
+      if (response.status === 201 || response.status === 200) {
+        const { token, user } = response.data;
+        // Non impostiamo il token qui, l'utente dovrà loggarsi dopo la verifica email
+        // localStorage.setItem('token', token);
+        setUser(user); // Potremmo voler mostrare un messaggio di successo basato su questo
+        setIsAuthenticated(false); // L'utente non è ancora autenticato, deve verificare l'email
+        return { success: true, user, message: 'Registrazione completata. Controlla la tua email per la verifica.' };
+      } else {
+        console.log('Risposta registrazione non valida:', response);
+        return { success: false, error: 'Risposta dal server non valida' };
+      }
+    } catch (error) {
+      console.log('Errore registrazione:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || 'Errore durante la registrazione'
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Funzione per aggiornare la lingua con CORS proxy
+  const updateLanguage = async (language) => {
+    try {
+      setLoading(true);
       
-      if (!token) {
-        return { success: false, error: 'Utente non autenticato' };
+      // Aggiorna prima localmente
+      i18n.changeLanguage(language);
+      localStorage.setItem('preferredLanguage', language);
+      
+      // Se l'utente è autenticato, salva la preferenza nel database
+      if (user && user.id && isAuthenticated) { // Aggiunto controllo isAuthenticated
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const response = await apiRequestWithCorsProxy('put', '/users/language', { language }, token);
+
+        if (response.status === 200) {
+          setUser({
+            ...user,
+            language
+          });
+          return { success: true };
+        }
+      } else {
+        console.log('Aggiornamento lingua: utente non autenticato, aggiorno solo localmente.');
       }
       
-      // Normalizziamo il percorso
-      const normalizedPath = normalizePath('/users/profile');
-      console.log('Percorso normalizzato per updateUser:', normalizedPath);
-      
-      // Invia dati aggiornati al server
-      const response = await axios.put(`${apiUrl}${normalizedPath}`, userData, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      if (response.data && response.data.user) {
-        setUser(response.data.user);
-        return { success: true };
+      return { success: true }; // Successo anche se aggiornato solo localmente
+    } catch (error) {
+      console.error('Errore aggiornamento lingua:', error);
+      return {
+        success: false,
+        error: error.message || 'Errore durante l\'aggiornamento della lingua'
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Funzione per il logout
+  const logout = () => {
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token'); // Rimuovi anche da sessionStorage
+    setUser(null);
+    setIsAuthenticated(false);
+    navigate('/login');
+  };
+  
+  // Funzione per aggiornare il profilo utente con CORS proxy
+  const updateUserProfile = async (profileData) => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token || !isAuthenticated) {
+      return { success: false, error: 'Utente non autenticato' };
+    }
+    try {
+      setLoading(true);
+      const response = await apiRequestWithCorsProxy('put', '/users/profile', profileData, token);
+      if (response.status === 200 && response.data) {
+        setUser(response.data);
+        return { success: true, user: response.data };
       } else {
         return { success: false, error: 'Errore aggiornamento profilo' };
       }
     } catch (error) {
-      console.error('Errore aggiornamento utente:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Errore durante l\'aggiornamento dell\'utente' 
-      };
+      console.error('Errore aggiornamento profilo:', error);
+      return { success: false, error: error.response?.data?.message || 'Errore server' };
+    } finally {
+      setLoading(false);
     }
   };
-  
-  // Funzione per il login - VERSIONE BYPASS DIRETTO SENZA NORMALIZZAZIONE
-  const login = async (email, password, rememberMe = true) => {
-    try {
-      console.log('USANDO VERSIONE HARDCODED PER IL LOGIN');
-      console.log('Dati login:', { email, rememberMe });
-      
-      // URL DEFINITIVO HARDCODED - URL diretto al backend
-      const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/auth/login';
-      console.log('URL diretto:', DIRECT_BACKEND_URL);
-      
-      // Usa fetch invece di axios per evitare problemi di configurazione
-      const response = await fetch(DIRECT_BACKEND_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          password
-        })
-      });
-      
-      console.log('Risposta login STATUS:', response.status);
-      console.log('Risposta login OK:', response.ok);
-      
-      // Se abbiamo un errore HTTP, lanciamo un errore
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Risposta errore server:', errorText);
-        throw new Error(`Errore server: ${response.status} ${response.statusText} - ${errorText}`);
-      }
-      
-      // Parsiamo la risposta JSON
-      const data = await response.json();
-      console.log('Risposta JSON:', data);
-      
-      if (!data || !data.token) {
-        console.error('Risposta senza token:', data);
-        return { success: false, error: 'Risposta dal server non valida' };
-      }
-      
-      const { token, user: userData } = data;
-      
-      // Salva token in base alla scelta "remember me"
-      if (rememberMe) {
-        localStorage.setItem('token', token);
-      } else {
-        sessionStorage.setItem('token', token);
-      }
-      
-      // Aggiorna lo stato
-      setUser(userData);
-      
-      // Imposta la lingua dell'utente se disponibile
-      if (userData && userData.language) {
-        i18n.changeLanguage(userData.language);
-        localStorage.setItem('preferredLanguage', userData.language);
-      }
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Errore login:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Email o password non valide' 
-      };
-    }
-  };
-  
-  // Funzione per la registrazione - VERSIONE BYPASS DIRETTO SENZA NORMALIZZAZIONE
-  const register = async (email, password, name = '') => {
-    try {
-      console.log('USANDO VERSIONE HARDCODED PER LA REGISTRAZIONE');
-      console.log('Dati registrazione:', { email, name });
-      
-      // URL DEFINITIVO HARDCODED - URL diretto al backend
-      const DIRECT_BACKEND_URL = 'https://salus-backend.onrender.com/api/auth/register';
-      console.log('URL diretto:', DIRECT_BACKEND_URL);
-      
-      // Usa fetch invece di axios per evitare problemi di configurazione
-      const response = await fetch(DIRECT_BACKEND_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          name
-        })
-      });
-      
-      console.log('Risposta registrazione STATUS:', response.status);
-      console.log('Risposta registrazione OK:', response.ok);
-      
-      // Se abbiamo un errore HTTP, lanciamo un errore
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Risposta errore server:', errorText);
-        throw new Error(`Errore server: ${response.status} ${response.statusText} - ${errorText}`);
-      }
-      
-      // Parsiamo la risposta JSON
-      const data = await response.json();
-      console.log('Risposta JSON:', data);
-      
-      if (!data || !data.token) {
-        console.error('Risposta senza token:', data);
-        return { success: false, error: 'Risposta dal server non valida' };
-      }
-      
-      const { token, user: userData } = data;
-      
-      // Salva token
-      localStorage.setItem('token', token);
-      
-      // Aggiorna lo stato
-      setUser(userData);
-      
-      // Imposta la lingua dell'utente se disponibile
-      if (userData && userData.language) {
-        i18n.changeLanguage(userData.language);
-        localStorage.setItem('preferredLanguage', userData.language);
-      }
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Errore registrazione:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Errore durante la registrazione' 
-      };
-    }
-  };
-  
-  // Funzione per il logout
-  const logout = () => {
-    // Rimuovi dati autenticazione
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-    setUser(null);
-    
-    return { success: true };
-  };
-  
-  // Verifica se l'utente è autenticato
-  const isAuthenticated = () => {
-    return !!user && (!!localStorage.getItem('token') || !!sessionStorage.getItem('token'));
-  };
-  
-  // Funzione per aggiornare la lingua dell'utente
-  const updateLanguage = async (language) => {
-    try {
-      if (!user) {
-        return { success: false, error: 'Utente non autenticato' };
-      }
-      
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      
-      // Normalizziamo il percorso
-      const normalizedPath = normalizePath('/users/language');
-      
-      // Aggiorna la lingua sul server
-      await axios.put(`${apiUrl}${normalizedPath}`, { language }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      // Aggiorna l'oggetto utente localmente
-      const updatedUser = { ...user, language };
-      setUser(updatedUser);
-      
-      // Aggiorna i18n
-      i18n.changeLanguage(language);
-      localStorage.setItem('preferredLanguage', language);
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Errore aggiornamento lingua:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Errore durante l\'aggiornamento della lingua' 
-      };
-    }
-  };
-  
+
   return (
-    <UserContext.Provider 
-      value={{ 
-        user, 
-        setUser,
-        updateUser,
+    <UserContext.Provider
+      value={{
+        user,
+        setUser, // Mantenuto per usi diretti se necessario
+        loading,
+        isAuthenticated,
         login,
         register,
         logout,
-        isAuthenticated,
-        loading,
-        error,
-        updateLanguage
+        updateLanguage,
+        updateUserProfile // Aggiunto updateUserProfile
       }}
     >
       {children}
     </UserContext.Provider>
   );
-};
+}
 
-export default UserProvider; 
+// Hook personalizzato per utilizzare il contesto utente
+export const useUser = () => useContext(UserContext); 
