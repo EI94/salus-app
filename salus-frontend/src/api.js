@@ -175,10 +175,27 @@ api.interceptors.response.use(
 // Funzione per inviare un messaggio all'AI Assistant
 export const sendMessageToAI = async (message) => {
   try {
+    // Verifica token nei diversi metodi di storage
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     
-    // Se non c'è un token, restituisci una risposta di fallback invece di generare un errore
-    if (!token) {
+    // Verifica userId come fallback aggiuntivo
+    const userId = localStorage.getItem('userId') || 
+                  sessionStorage.getItem('userId') || 
+                  localStorage.getItem('currentUser');
+    
+    // Log per debug
+    console.log('API Assistant - Token disponibile:', !!token);
+    console.log('API Assistant - UserId disponibile:', !!userId);
+    
+    // Controlla se c'è un utente attualmente autenticato
+    // Nota: evitiamo di usare firebase direttamente poiché potrebbe non essere disponibile
+    const currentUser = localStorage.getItem('currentUser');
+    const isUserLoggedIn = !!token || !!userId || !!currentUser;
+    
+    console.log('Utente loggato:', isUserLoggedIn);
+    
+    // Se nessun metodo di autenticazione è disponibile, l'utente non è autenticato
+    if (!isUserLoggedIn) {
       console.log('Utente non autenticato, utilizzando risposta di fallback');
       return {
         reply: "Per accedere all'assistenza AI, devi prima effettuare l'accesso. Vai alla pagina di login se non hai ancora un account o accedi con le tue credenziali.",
@@ -186,19 +203,29 @@ export const sendMessageToAI = async (message) => {
       };
     }
     
+    // Recupera le variabili d'ambiente per OpenAI o valori predefiniti
+    const openaiApiKey = process.env.REACT_APP_OPENAI_KEY || window.OPENAI_API_KEY;
+    console.log('OpenAI API Key disponibile:', !!openaiApiKey);
+    
     // Utilizziamo il percorso normalizzato
     const normalizedPath = normalizePath('/ai/chat');
+    console.log('Percorso normalizzato per la chiamata AI:', normalizedPath);
 
     const response = await fetch(`${apiUrl}${normalizedPath}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': token ? `Bearer ${token}` : '',
+        'X-User-ID': userId || ''
       },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ 
+        message,
+        apiKey: openaiApiKey // Passiamo la chiave API per sicurezza
+      })
     });
 
     if (!response.ok) {
+      console.error(`Errore nella risposta del server: ${response.status} ${response.statusText}`);
       throw new Error(`Errore ${response.status}: ${response.statusText}`);
     }
 
@@ -207,7 +234,7 @@ export const sendMessageToAI = async (message) => {
     console.error('Errore nel servizio AI:', error);
     // Restituisci una risposta di fallback invece di propagare l'errore
     return {
-      reply: "Mi dispiace, si è verificato un problema di connessione. Riprova più tardi o controlla la tua connessione internet.",
+      reply: "Mi dispiace, si è verificato un problema di connessione con l'assistente AI. Verifica che la chiave API di OpenAI sia configurata correttamente o contatta l'amministratore.",
       offline: true,
       error: error.message
     };
