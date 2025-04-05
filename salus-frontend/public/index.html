@@ -1,17 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/assets/icons/logo.svg" />
+    <link rel="icon" href="%PUBLIC_URL%/logo-light.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#4FC1E9" />
+    
+    <!-- Logo che può essere utilizzato dall'applicazione -->
+    <link rel="preload" as="image" href="%PUBLIC_URL%/logo-light.svg" />
+    
     <meta
       name="description"
-      content="Salus - La tua app per la gestione personale della salute"
+      content="Salus - Applicazione per il monitoraggio della salute e del benessere"
     />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <title>Salus - Monitora la tua salute</title>
+    
+    <!-- Icone Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    
+    <!-- Redirect in caso di errore 404 per refresh -->
+    <script>
+      // Script per gestire il refresh della pagina con routing client-side
+      (function() {
+        // Se siamo su Vercel o simili, in caso di refresh,
+        // reindirizza alla root e mantieni il path come hash
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname !== "/" &&
+          !window.location.pathname.match(/\.(css|js|png|jpg|jpeg|svg|ico|json)$/)
+        ) {
+          // Salva il path corrente come hash
+          const newPath = "/#" + window.location.pathname;
+          window.location.replace(newPath);
+        }
+      })();
+    </script>
     
     <!-- Script di correzione CORS - Viene eseguito prima di ogni altro script -->
     <script>
@@ -92,7 +123,6 @@
       });
     </script>
     
-    <title>Salus Health App</title>
     <style>
       /* Stili di base - per evitare FOUC */
       body {
@@ -162,7 +192,7 @@
     </style>
   </head>
   <body>
-    <noscript>È necessario abilitare JavaScript per eseguire questa app.</noscript>
+    <noscript>È necessario abilitare JavaScript per utilizzare questa app.</noscript>
     <div id="root"></div>
   </body>
 </html> 

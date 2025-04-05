@@ -79,7 +79,7 @@ function Layout({ children }) {
         <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`} ref={sidebarRef}>
           <div className="sidebar-header">
             <div className="app-logo">
-              <img src="/logo-light.png" alt="Salus Logo" />
+              <img src="/logo-light.svg" alt="Salus Logo" />
               <h1>Salus</h1>
             </div>
             <button className="sidebar-toggle" onClick={() => setSidebarOpen(!isSidebarOpen)}>

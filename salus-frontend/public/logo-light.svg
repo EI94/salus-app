@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sfondo circolare con gradiente -->
+  <circle cx="256" cy="256" r="240" fill="url(#paint0_linear)" />
+  
+  <!-- Foglia stilizzata -->
+  <path d="M256 145C210 145 175 180 175 226C175 272 235 345 256 376C277 345 337 272 337 226C337 180 302 145 256 145Z" fill="#ffffff" />
+  
+  <!-- Iniziale "S" stilizzata -->
+  <path d="M256 190C236 190 220 206 220 226C220 246 254 266 256 280C258 266 292 246 292 226C292 206 276 190 256 190Z" fill="#4FC1E9" />
+  
+  <!-- Cerchio esterno -->
+  <circle cx="256" cy="256" r="240" stroke="#ffffff" stroke-width="8" stroke-opacity="0.5" />
+  
+  <!-- Definizione del gradiente -->
+  <defs>
+    <linearGradient id="paint0_linear" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4FC1E9" />
+      <stop offset="1" stop-color="#5D9CEC" />
+    </linearGradient>
+  </defs>
+</svg> 
