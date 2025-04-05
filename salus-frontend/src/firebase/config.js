@@ -3,14 +3,14 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 // Configurazione Firebase
-// Utilizziamo variabili d'ambiente per evitare di esporre le chiavi API
+// Usiamo direttamente la chiave API fornita
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyCLDDpv53AQ-SlbTeRbC0RVftiZHT-1E",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "salus-demo.firebaseapp.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "salus-demo",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "salus-demo.appspot.com",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "123456789012",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:123456789012:web:abcdef1234567890"
+  apiKey: "AIzaSyDUTXCmzG-RPKvl9dhyTYeJpR-pKATX60w",
+  authDomain: "salus-ai-c9da2.firebaseapp.com",
+  projectId: "salus-ai-c9da2",
+  storageBucket: "salus-ai-c9da2.firebasestorage.app",
+  messagingSenderId: "818422699421",
+  appId: "1:818422699421:web:781cbf05b5d20a00dacb74"
 };
 
 // Inizializza Firebase
