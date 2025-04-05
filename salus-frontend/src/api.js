@@ -176,8 +176,14 @@ api.interceptors.response.use(
 export const sendMessageToAI = async (message) => {
   try {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    
+    // Se non c'è un token, restituisci una risposta di fallback invece di generare un errore
     if (!token) {
-      throw new Error('Utente non autenticato');
+      console.log('Utente non autenticato, utilizzando risposta di fallback');
+      return {
+        reply: "Per accedere all'assistenza AI, devi prima effettuare l'accesso. Vai alla pagina di login se non hai ancora un account o accedi con le tue credenziali.",
+        offline: true
+      };
     }
     
     // Utilizziamo il percorso normalizzato
@@ -199,7 +205,12 @@ export const sendMessageToAI = async (message) => {
     return await response.json();
   } catch (error) {
     console.error('Errore nel servizio AI:', error);
-    throw error;
+    // Restituisci una risposta di fallback invece di propagare l'errore
+    return {
+      reply: "Mi dispiace, si è verificato un problema di connessione. Riprova più tardi o controlla la tua connessione internet.",
+      offline: true,
+      error: error.message
+    };
   }
 };
 

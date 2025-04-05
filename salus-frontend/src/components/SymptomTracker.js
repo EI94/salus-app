@@ -121,10 +121,9 @@ const SymptomTracker = ({ userId }) => {
   const EmptyState = () => (
     <div className="empty-state">
       <div className="empty-illustration">
-        <img src="/assets/icons/symptom-empty.svg" alt="Nessun sintomo" 
-             onError={(e) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/4161/4161754.png'} />
+        <i className="fas fa-heartbeat" style={{ fontSize: '180px', color: 'var(--primary-color-light)' }}></i>
       </div>
-      <h2>Non hai ancora registrato sintomi</h2>
+      <h2>Nessun sintomo registrato</h2>
       <p>Tieni traccia dei tuoi sintomi per monitorare la tua salute nel tempo</p>
       
       <div className="benefits-list">
