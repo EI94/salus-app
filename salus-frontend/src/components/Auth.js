@@ -164,6 +164,7 @@ const Auth = () => {
     
     setIsSubmitting(true);
     setAuthError(null);
+    setMessage({ type: '', text: '' });
     
     try {
       console.log('Tentativo login tramite Firebase Auth');
@@ -175,10 +176,19 @@ const Auth = () => {
       } else {
         const errorMessage = response.error || t('loginError');
         setAuthError(new Error(errorMessage));
+        setMessage({
+          type: 'error',
+          text: errorMessage
+        });
         console.log('Auth error:', errorMessage);
       }
     } catch (error) {
+      const errorMessage = error.message || t('loginError');
       setAuthError(error);
+      setMessage({
+        type: 'error',
+        text: errorMessage
+      });
       console.log('Auth error:', error);
     } finally {
       setIsSubmitting(false);
@@ -192,6 +202,7 @@ const Auth = () => {
     
     setIsSubmitting(true);
     setAuthError(null);
+    setMessage({ type: '', text: '' });
     
     try {
       console.log('Tentativo registrazione tramite Firebase Auth');
@@ -211,10 +222,20 @@ const Auth = () => {
           console.log("Utente non disponibile dopo registrazione, è richiesta verifica email");
         }
       } else {
-        setAuthError(new Error(response.error || t('registrationError')));
+        const errorMessage = response.error || t('registrationError');
+        setAuthError(new Error(errorMessage));
+        setMessage({
+          type: 'error',
+          text: errorMessage
+        });
       }
     } catch (error) {
+      const errorMessage = error.message || t('registrationError');
       setAuthError(error);
+      setMessage({
+        type: 'error',
+        text: errorMessage
+      });
       console.log('Registration error:', error);
     } finally {
       setIsSubmitting(false);

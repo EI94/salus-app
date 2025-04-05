@@ -223,70 +223,132 @@ const Dashboard = () => {
   );
   
   // Componente modale per aggiornamento giornaliero
-  const TodayModal = () => (
-    <div className={`modal-overlay ${showTodayModal ? 'active' : ''}`}>
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2>Come ti senti oggi?</h2>
-          <button className="close-modal" onClick={() => setShowTodayModal(false)}>
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-        
-        <div className="modal-body">
-          <div className="mood-selector">
-            <h3>Il tuo umore</h3>
-            <div className="mood-options">
-              <button className="mood-option">
-                <i className="fas fa-sad-tear"></i>
-                <span>Triste</span>
-              </button>
-              <button className="mood-option">
-                <i className="fas fa-meh"></i>
-                <span>Neutro</span>
-              </button>
-              <button className="mood-option">
-                <i className="fas fa-smile"></i>
-                <span>Bene</span>
-              </button>
-              <button className="mood-option">
-                <i className="fas fa-grin-beam"></i>
-                <span>Ottimo</span>
-              </button>
-            </div>
+  const TodayModal = () => {
+    // Stato per gestire la selezione dell'umore
+    const [selectedMood, setSelectedMood] = useState(null);
+    // Stato per gestire la qualità del sonno
+    const [sleepQuality, setSleepQuality] = useState(3);
+    
+    // Funzione per gestire il salvataggio dei dati
+    const handleSave = () => {
+      // Qui potremmo inviare i dati al backend
+      // Per ora, chiudiamo semplicemente il modale e mostriamo un messaggio
+      setShowTodayModal(false);
+      
+      // Esempio di messaggio di conferma che potremmo mostrare
+      alert("Dati salvati con successo!");
+    };
+    
+    // Funzione per navigare all'aggiunta di un sintomo
+    const handleAddSymptom = (e) => {
+      e.preventDefault(); // Previene la chiusura del modale
+      setShowTodayModal(false);
+      navigateToAdd('/sintomi', 'add');
+    };
+    
+    return (
+      <div className={`modal-overlay ${showTodayModal ? 'active' : ''}`}>
+        <div className="modal-content">
+          <div className="modal-header">
+            <h2>Come ti senti oggi?</h2>
+            <button 
+              className="close-modal" 
+              onClick={() => setShowTodayModal(false)}
+              aria-label="Chiudi"
+            >
+              <i className="fas fa-times"></i>
+            </button>
           </div>
           
-          <div className="sleep-selector">
-            <h3>Qualità del sonno</h3>
-            <div className="sleep-slider">
-              <input type="range" min="1" max="5" defaultValue="3" />
-              <div className="range-labels">
-                <span>Scarsa</span>
-                <span>Media</span>
-                <span>Ottima</span>
+          <div className="modal-body">
+            <div className="mood-selector">
+              <h3>Il tuo umore</h3>
+              <div className="mood-options">
+                <button 
+                  className={`mood-option ${selectedMood === 'sad' ? 'selected' : ''}`}
+                  onClick={() => setSelectedMood('sad')}
+                  type="button"
+                >
+                  <i className="fas fa-sad-tear"></i>
+                  <span>Triste</span>
+                </button>
+                <button 
+                  className={`mood-option ${selectedMood === 'neutral' ? 'selected' : ''}`}
+                  onClick={() => setSelectedMood('neutral')}
+                  type="button"
+                >
+                  <i className="fas fa-meh"></i>
+                  <span>Neutro</span>
+                </button>
+                <button 
+                  className={`mood-option ${selectedMood === 'good' ? 'selected' : ''}`}
+                  onClick={() => setSelectedMood('good')}
+                  type="button"
+                >
+                  <i className="fas fa-smile"></i>
+                  <span>Bene</span>
+                </button>
+                <button 
+                  className={`mood-option ${selectedMood === 'great' ? 'selected' : ''}`}
+                  onClick={() => setSelectedMood('great')}
+                  type="button"
+                >
+                  <i className="fas fa-grin-beam"></i>
+                  <span>Ottimo</span>
+                </button>
               </div>
             </div>
+            
+            <div className="sleep-selector">
+              <h3>Qualità del sonno</h3>
+              <div className="sleep-slider">
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="5" 
+                  value={sleepQuality}
+                  onChange={(e) => setSleepQuality(parseInt(e.target.value))}
+                />
+                <div className="range-labels">
+                  <span>Scarsa</span>
+                  <span>Media</span>
+                  <span>Ottima</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="symptoms-quick-add">
+              <h3>Hai sintomi oggi?</h3>
+              <button 
+                className="quick-add-button"
+                onClick={handleAddSymptom}
+                type="button"
+              >
+                <i className="fas fa-plus"></i> Aggiungi sintomo
+              </button>
+            </div>
           </div>
           
-          <div className="symptoms-quick-add">
-            <h3>Hai sintomi oggi?</h3>
-            <button className="quick-add-button">
-              <i className="fas fa-plus"></i> Aggiungi sintomo
+          <div className="modal-footer">
+            <button 
+              className="secondary-button" 
+              onClick={() => setShowTodayModal(false)}
+              type="button"
+            >
+              Annulla
+            </button>
+            <button 
+              className="primary-button"
+              onClick={handleSave}
+              type="button"
+            >
+              Salva
             </button>
           </div>
         </div>
-        
-        <div className="modal-footer">
-          <button className="secondary-button" onClick={() => setShowTodayModal(false)}>
-            Annulla
-          </button>
-          <button className="primary-button" onClick={() => setShowTodayModal(false)}>
-            Salva
-          </button>
-        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (

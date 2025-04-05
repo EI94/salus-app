@@ -159,7 +159,10 @@ export const translateFirebaseError = (errorCode) => {
     'auth/network-request-failed': 'Errore di connessione. Verifica la tua connessione internet.',
     'auth/too-many-requests': 'Troppi tentativi falliti. Riprova più tardi.',
     'auth/user-disabled': 'Questo account è stato disabilitato.',
-    'auth/requires-recent-login': 'Questa operazione richiede un login recente. Esci e accedi nuovamente.'
+    'auth/requires-recent-login': 'Questa operazione richiede un login recente. Esci e accedi nuovamente.',
+    'auth/invalid-credential': 'Credenziali non valide. Verifica email e password o registra un nuovo account.',
+    'auth/invalid-login-credentials': 'Credenziali di accesso non valide. Verifica email e password.',
+    'auth/account-exists-with-different-credential': 'Esiste già un account con questa email ma con un metodo di accesso diverso.'
   };
   
   return errorMessages[errorCode] || null;

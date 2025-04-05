@@ -235,53 +235,20 @@ const MedicationTracker = ({ userId }) => {
     };
   };
 
-  // Componente per stato vuoto con onboarding
+  // Componente per lo stato vuoto
   const EmptyState = () => (
     <div className="empty-state">
       <div className="empty-illustration">
-        <img src="/assets/icons/medication-empty.svg" alt="Nessun farmaco" 
-             onError={(e) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/4005/4005937.png'} />
+        {/* Utilizziamo l'icona SVG incorporata nell'HTML invece del file esterno */}
+        <i className="fas fa-pills" style={{ fontSize: '180px', color: 'var(--primary-color-light)' }}></i>
       </div>
-      <h2>Non hai ancora aggiunto farmaci</h2>
-      <p>Tieni traccia dei tuoi farmaci per non dimenticare mai una dose</p>
-      
-      <div className="benefits-list">
-        <div className="benefit-item">
-          <div className="benefit-icon">
-            <i className="fas fa-bell"></i>
-          </div>
-          <div className="benefit-text">
-            <h3>Ricevi promemoria</h3>
-            <p>Ti avvisiamo quando è il momento di prendere i tuoi farmaci</p>
-          </div>
-        </div>
-        
-        <div className="benefit-item">
-          <div className="benefit-icon">
-            <i className="fas fa-chart-line"></i>
-          </div>
-          <div className="benefit-text">
-            <h3>Monitora l'aderenza</h3>
-            <p>Visualizza statistiche sulla regolarità con cui prendi i tuoi farmaci</p>
-          </div>
-        </div>
-        
-        <div className="benefit-item">
-          <div className="benefit-icon">
-            <i className="fas fa-history"></i>
-          </div>
-          <div className="benefit-text">
-            <h3>Storico completo</h3>
-            <p>Accedi allo storico dei farmaci per le visite mediche</p>
-          </div>
-        </div>
-      </div>
-      
+      <h2>Nessun farmaco registrato</h2>
+      <p>Aggiungi i tuoi farmaci per ricevere promemoria e monitorare l'aderenza</p>
       <button 
-        className="add-medication-button-large"
+        className="add-button" 
         onClick={() => setIsAddModalOpen(true)}
       >
-        <i className="fas fa-plus-circle"></i> Aggiungi il tuo primo farmaco
+        <i className="fas fa-plus"></i> Aggiungi farmaco
       </button>
     </div>
   );
