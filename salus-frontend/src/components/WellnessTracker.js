@@ -51,8 +51,7 @@ const WellnessTracker = ({ userId }) => {
   const EmptyState = () => (
     <div className="empty-state">
       <div className="empty-illustration">
-        <img src="/assets/icons/wellness-empty.svg" alt="Nessun dato di benessere" 
-             onError={(e) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/3588/3588243.png'} />
+        <i className="fas fa-smile-beam" style={{ fontSize: '180px', color: 'var(--primary-color-light)' }}></i>
       </div>
       <h2>Non hai ancora registrato dati sul benessere</h2>
       <p>Tieni traccia del tuo benessere giornaliero per scoprire pattern e migliorare il tuo stile di vita</p>
