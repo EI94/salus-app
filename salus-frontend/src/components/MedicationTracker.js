@@ -53,61 +53,8 @@ const MedicationTracker = ({ userId }) => {
     { value: 'paused', label: 'In pausa' }
   ];
 
-  // Mock dati farmaci
-  const mockMedications = [
-    {
-      id: 1,
-      name: 'Paracetamolo',
-      dosage: '1000',
-      unit: 'mg',
-      frequency: 'twice',
-      time: ['08:00', '20:00'],
-      startDate: '2023-10-15',
-      endDate: '2023-11-15',
-      notes: 'Prendere con acqua abbondante',
-      status: 'active',
-      adherence: 0.9 // 90% di aderenza
-    },
-    {
-      id: 2,
-      name: 'Vitamina D',
-      dosage: '10',
-      unit: 'gocce',
-      frequency: 'daily',
-      time: ['08:00'],
-      startDate: '2023-09-01',
-      endDate: '',
-      notes: 'Prendere dopo colazione',
-      status: 'active',
-      adherence: 0.85
-    },
-    {
-      id: 3,
-      name: 'Ibuprofene',
-      dosage: '600',
-      unit: 'mg',
-      frequency: 'as-needed',
-      time: [],
-      startDate: '2023-10-10',
-      endDate: '2023-10-20',
-      notes: 'In caso di dolore intenso',
-      status: 'completed',
-      adherence: 1.0
-    },
-    {
-      id: 4,
-      name: 'Probiotico',
-      dosage: '1',
-      unit: 'compresse',
-      frequency: 'daily',
-      time: ['13:00'],
-      startDate: '2023-10-01',
-      endDate: '2023-11-30',
-      notes: 'Prendere durante i pasti',
-      status: 'paused',
-      adherence: 0.6
-    }
-  ];
+  // Mock dati farmaci - sostituito con array vuoto
+  const mockMedications = [];
 
   // Caricamento iniziale dei dati
   useEffect(() => {
@@ -115,9 +62,8 @@ const MedicationTracker = ({ userId }) => {
     setTimeout(() => {
       setMedications(mockMedications);
       setLoading(false);
-    }, 800);
-    // Includere mockMedications come dipendenza
-  }, [mockMedications]);
+    }, 400); // Ridotto tempo di caricamento per un'esperienza più veloce
+  }, []);
 
   // Filtra i farmaci quando cambiano i filtri
   useEffect(() => {
@@ -135,7 +81,7 @@ const MedicationTracker = ({ userId }) => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(m => 
         m.name.toLowerCase().includes(query) || 
-        m.notes.toLowerCase().includes(query)
+        m.notes?.toLowerCase().includes(query)
       );
     }
     
@@ -274,12 +220,80 @@ const MedicationTracker = ({ userId }) => {
     return Math.round((total / medications.length) * 100);
   };
 
+  // Calcolo delle statistiche per insight
+  const getMedicationInsights = () => {
+    if (!medications.length) return null;
+    
+    const totalMedications = medications.length;
+    const activeMedications = medications.filter(m => m.status === 'active').length;
+    const avgAdherence = medications.reduce((sum, m) => sum + (m.adherence || 0), 0) / totalMedications || 0;
+    
+    return {
+      totalMedications,
+      activeMedications,
+      avgAdherence: (avgAdherence * 100).toFixed(0)
+    };
+  };
+
+  // Componente per stato vuoto con onboarding
+  const EmptyState = () => (
+    <div className="empty-state">
+      <div className="empty-illustration">
+        <img src="/assets/icons/medication-empty.svg" alt="Nessun farmaco" 
+             onError={(e) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/4005/4005937.png'} />
+      </div>
+      <h2>Non hai ancora aggiunto farmaci</h2>
+      <p>Tieni traccia dei tuoi farmaci per non dimenticare mai una dose</p>
+      
+      <div className="benefits-list">
+        <div className="benefit-item">
+          <div className="benefit-icon">
+            <i className="fas fa-bell"></i>
+          </div>
+          <div className="benefit-text">
+            <h3>Ricevi promemoria</h3>
+            <p>Ti avvisiamo quando è il momento di prendere i tuoi farmaci</p>
+          </div>
+        </div>
+        
+        <div className="benefit-item">
+          <div className="benefit-icon">
+            <i className="fas fa-chart-line"></i>
+          </div>
+          <div className="benefit-text">
+            <h3>Monitora l'aderenza</h3>
+            <p>Visualizza statistiche sulla regolarità con cui prendi i tuoi farmaci</p>
+          </div>
+        </div>
+        
+        <div className="benefit-item">
+          <div className="benefit-icon">
+            <i className="fas fa-history"></i>
+          </div>
+          <div className="benefit-text">
+            <h3>Storico completo</h3>
+            <p>Accedi allo storico dei farmaci per le visite mediche</p>
+          </div>
+        </div>
+      </div>
+      
+      <button 
+        className="add-medication-button-large"
+        onClick={() => setIsAddModalOpen(true)}
+      >
+        <i className="fas fa-plus-circle"></i> Aggiungi il tuo primo farmaco
+      </button>
+    </div>
+  );
+
+  // Rendering condizionale basato sullo stato di loading e la presenza di dati
+
   if (loading) {
     return (
       <div className="medication-tracker">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <div className="loading-text">Caricamento farmaci...</div>
+          <p>Caricamento farmaci...</p>
         </div>
       </div>
     );
@@ -289,107 +303,168 @@ const MedicationTracker = ({ userId }) => {
     <div className="medication-tracker">
       <div className="medication-header">
         <div className="medication-title">
-          <h1>Gestione Farmaci</h1>
-          <p>Tieni traccia dei tuoi farmaci e della loro assunzione</p>
-        </div>
-        <button 
-          className="add-medication-button" 
-          onClick={() => setIsAddModalOpen(true)}
-        >
-          <i className="fas fa-plus"></i> Nuovo Farmaco
-        </button>
-      </div>
-      
-      <div className="medication-stats">
-        <div className="stat-card">
-          <div className="stat-value">{medications ? medications.length : 0}</div>
-          <div className="stat-label">Farmaci totali</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">{getActiveMedicationsCount()}</div>
-          <div className="stat-label">Farmaci attivi</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">{getAverageAdherence()}%</div>
-          <div className="stat-label">Aderenza media</div>
-        </div>
-      </div>
-      
-      <div className="medication-filters">
-        <div className="search-box">
-          <i className="fas fa-search"></i>
-          <input 
-            type="text" 
-            placeholder="Cerca farmaci..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <h1>I Tuoi Farmaci</h1>
+          <p>Gestisci e monitora l'assunzione di farmaci</p>
         </div>
         
-        <div className="status-filter">
-          <select 
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+        {medications.length > 0 && (
+          <button 
+            className="add-medication-button" 
+            onClick={() => setIsAddModalOpen(true)}
           >
-            <option value="all">Tutti gli stati</option>
-            {statusOptions.map(status => (
-              <option key={status.value} value={status.value}>{status.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      
-      <div className="medication-list">
-        {filteredMedications && filteredMedications.length > 0 ? (
-          filteredMedications.map(medication => (
-            <div 
-              key={medication.id} 
-              className="medication-card" 
-              onClick={() => handleMedicationClick(medication)}
-            >
-              <div className="medication-info">
-                <div className="medication-name">
-                  <h3>{medication.name}</h3>
-                  <span className={`medication-status ${getStatusColor(medication.status)}`}>
-                    {getStatusLabel(medication.status)}
-                  </span>
-                </div>
-                <div className="medication-dosage">
-                  {medication.dosage} {medication.unit} &bull; {getFrequencyLabel(medication.frequency)}
-                </div>
-                <div className="medication-dates">
-                  <i className="far fa-calendar"></i> Dal {formatDate(medication.startDate)}
-                  {medication.endDate && ` al ${formatDate(medication.endDate)}`}
-                </div>
-              </div>
-              <div className="medication-adherence">
-                <div 
-                  className="adherence-circle" 
-                  style={{
-                    background: `conic-gradient(#4f46e5 ${medication.adherence * 360}deg, #e2e8f0 0deg)`
-                  }}
-                >
-                  <div className="adherence-inner">
-                    {Math.round(medication.adherence * 100)}%
-                  </div>
-                </div>
-                <div className="adherence-label">Aderenza</div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="no-medications">
-            <i className="fas fa-pills"></i>
-            <p>Nessun farmaco trovato</p>
-            <button 
-              className="add-first-medication" 
-              onClick={() => setIsAddModalOpen(true)}
-            >
-              Aggiungi il tuo primo farmaco
-            </button>
-          </div>
+            <i className="fas fa-plus"></i> Nuovo Farmaco
+          </button>
         )}
       </div>
+      
+      {medications.length > 0 ? (
+        <>
+          <div className="medication-insights">
+            <div className="insight-card">
+              <div className="insight-icon">
+                <i className="fas fa-pills"></i>
+              </div>
+              <div className="insight-content">
+                <h3>{getActiveMedicationsCount()}</h3>
+                <p>Farmaci attivi</p>
+              </div>
+            </div>
+            
+            <div className="insight-card">
+              <div className="insight-icon">
+                <i className="fas fa-check-circle"></i>
+              </div>
+              <div className="insight-content">
+                <h3>{getAverageAdherence()}%</h3>
+                <p>Aderenza media</p>
+              </div>
+            </div>
+            
+            <div className="insight-card">
+              <div className="insight-icon">
+                <i className="fas fa-calendar-check"></i>
+              </div>
+              <div className="insight-content">
+                <h3>{medications.length}</h3>
+                <p>Totale farmaci</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="medication-filters">
+            <div className="search-bar">
+              <i className="fas fa-search"></i>
+              <input
+                type="text"
+                placeholder="Cerca farmaco..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button 
+                  className="clear-search" 
+                  onClick={() => setSearchQuery('')}
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              )}
+            </div>
+            
+            <div className="status-filters">
+              <button
+                className={filterStatus === 'all' ? 'active' : ''}
+                onClick={() => setFilterStatus('all')}
+              >
+                Tutti
+              </button>
+              <button
+                className={filterStatus === 'active' ? 'active' : ''}
+                onClick={() => setFilterStatus('active')}
+              >
+                Attivi
+              </button>
+              <button
+                className={filterStatus === 'completed' ? 'active' : ''}
+                onClick={() => setFilterStatus('completed')}
+              >
+                Completati
+              </button>
+              <button
+                className={filterStatus === 'paused' ? 'active' : ''}
+                onClick={() => setFilterStatus('paused')}
+              >
+                In pausa
+              </button>
+            </div>
+          </div>
+          
+          <div className="medications-list">
+            {filteredMedications.length > 0 ? (
+              filteredMedications.map(medication => (
+                <div 
+                  key={medication.id} 
+                  className={`medication-card ${medication.status}`}
+                  onClick={() => handleMedicationClick(medication)}
+                >
+                  <div className="medication-info">
+                    <h2 className="medication-name">{medication.name}</h2>
+                    <div className="medication-status">
+                      <span className={`status-badge ${medication.status}`}>
+                        {getStatusLabel(medication.status)}
+                      </span>
+                    </div>
+                    <div className="medication-details">
+                      <p>{medication.dosage} {medication.unit} • {getFrequencyLabel(medication.frequency)}</p>
+                      <p className="date-range">
+                        Dal {formatDate(medication.startDate)}
+                        {medication.endDate ? ` al ${formatDate(medication.endDate)}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="medication-adherence">
+                    <div className="adherence-gauge">
+                      <svg viewBox="0 0 36 36">
+                        <path
+                          className="adherence-background"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                          className="adherence-fill"
+                          strokeDasharray={`${medication.adherence * 100}, 100`}
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <text x="18" y="20.35" className="adherence-text">
+                          {Math.round(medication.adherence * 100)}%
+                        </text>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-results">
+                <div className="no-results-icon">
+                  <i className="fas fa-search"></i>
+                </div>
+                <h3>Nessun farmaco trovato</h3>
+                <p>Prova a modificare i filtri di ricerca</p>
+                <button 
+                  className="reset-filters-button"
+                  onClick={() => {
+                    setFilterStatus('all');
+                    setSearchQuery('');
+                  }}
+                >
+                  Reimposta filtri
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <EmptyState />
+      )}
       
       {/* Modal per aggiungere un farmaco */}
       {isAddModalOpen && (

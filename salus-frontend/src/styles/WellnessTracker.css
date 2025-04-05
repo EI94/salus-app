@@ -451,4 +451,747 @@
   .wellness-notes p {
     color: #bdbdbd;
   }
+}
+
+/* Stili per WellnessTracker */
+.wellness-tracker {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Header e titolo */
+.wellness-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.wellness-title h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #1e293b;
+}
+
+.wellness-title p {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0;
+}
+
+.add-wellness-button {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+}
+
+.add-wellness-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(99, 102, 241, 0.3);
+}
+
+.add-wellness-button i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+/* Stato vuoto */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.empty-illustration {
+  margin-bottom: 24px;
+}
+
+.empty-illustration img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.empty-state h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #1e293b;
+}
+
+.empty-state p {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0 0 32px;
+  max-width: 450px;
+}
+
+.benefits-list {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 32px;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.benefit-item:last-child {
+  border-bottom: none;
+}
+
+.benefit-icon {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+.benefit-icon i {
+  font-size: 18px;
+}
+
+.benefit-text {
+  text-align: left;
+}
+
+.benefit-text h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: #1e293b;
+}
+
+.benefit-text p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.add-wellness-button-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
+  width: 100%;
+  max-width: 320px;
+}
+
+.add-wellness-button-large:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
+}
+
+.add-wellness-button-large i {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+/* Form di inserimento */
+.wellness-form-container {
+  background-color: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.wellness-form-container h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 24px;
+  color: #1e293b;
+}
+
+.wellness-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #475569;
+  font-size: 15px;
+}
+
+.form-group input[type="date"],
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.range-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.range-group label i {
+  font-size: 18px;
+}
+
+.range-group label span {
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+.range-slider {
+  width: 100%;
+  height: 8px;
+  -webkit-appearance: none;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin: 12px 0;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #64748b;
+  margin-top: -6px;
+}
+
+.checkbox-group {
+  margin-top: 24px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+  accent-color: #4f46e5;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.cancel-button {
+  padding: 12px 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: white;
+  color: #475569;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.save-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.save-button:hover {
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.25);
+}
+
+.save-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.button-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+/* Messaggio di successo */
+.success-message {
+  padding: 16px;
+  background-color: #dcfce7;
+  color: #166534;
+  font-weight: 500;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.success-message i {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+/* Statistiche wellness */
+.wellness-stats {
+  margin-bottom: 40px;
+}
+
+.wellness-stats h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 20px;
+  color: #1e293b;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.stat-icon i {
+  font-size: 20px;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Storico dei log */
+.wellness-history {
+  margin-bottom: 40px;
+}
+
+.wellness-history h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 20px;
+  color: #1e293b;
+}
+
+.wellness-logs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.wellness-log-card {
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.log-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.log-date {
+  font-weight: 600;
+  color: #475569;
+  font-size: 14px;
+}
+
+.log-mood {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.log-mood i {
+  font-size: 18px;
+}
+
+.log-metrics {
+  padding: 16px;
+}
+
+.metric {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.metric:last-child {
+  margin-bottom: 0;
+}
+
+.metric i {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  color: #64748b;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.metric-details {
+  flex: 1;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  display: flex;
+  align-items: center;
+}
+
+.metric-bar {
+  flex: 1;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-right: 8px;
+}
+
+.metric-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.metric-value span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  min-width: 28px;
+}
+
+.log-activity {
+  padding: 12px 16px;
+  background-color: #f0fdf4;
+  color: #166534;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.log-activity i {
+  margin-right: 8px;
+}
+
+.log-notes {
+  padding: 16px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #475569;
+}
+
+.log-notes i {
+  margin-right: 8px;
+  color: #94a3b8;
+}
+
+/* Stato di caricamento */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  padding: 40px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(99, 102, 241, 0.2);
+  border-top: 3px solid #4f46e5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wellness-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .add-wellness-button {
+    margin-top: 16px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+  
+  .wellness-logs {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .form-actions button {
+    width: 100%;
+  }
+  
+  .cancel-button {
+    order: 2;
+  }
+  
+  .save-button {
+    order: 1;
+    margin-bottom: 12px;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .wellness-tracker {
+    color: #e2e8f0;
+  }
+  
+  .wellness-title h1 {
+    color: #f8fafc;
+  }
+  
+  .wellness-title p {
+    color: #cbd5e1;
+  }
+  
+  .empty-state,
+  .wellness-form-container,
+  .stat-card,
+  .wellness-log-card {
+    background-color: #1e293b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .empty-state h2 {
+    color: #f8fafc;
+  }
+  
+  .empty-state p {
+    color: #cbd5e1;
+  }
+  
+  .benefit-text h3 {
+    color: #f1f5f9;
+  }
+  
+  .benefit-text p {
+    color: #cbd5e1;
+  }
+  
+  .form-group label {
+    color: #cbd5e1;
+  }
+  
+  .form-group input[type="date"],
+  .form-group textarea {
+    background-color: #334155;
+    border-color: #475569;
+    color: #f1f5f9;
+  }
+  
+  .range-slider {
+    background: #475569;
+  }
+  
+  .range-labels {
+    color: #94a3b8;
+  }
+  
+  .cancel-button {
+    border-color: #475569;
+    background-color: #334155;
+    color: #cbd5e1;
+  }
+  
+  .cancel-button:hover {
+    background-color: #475569;
+    color: #f1f5f9;
+  }
+  
+  .wellness-stats h2,
+  .wellness-history h2 {
+    color: #f1f5f9;
+  }
+  
+  .stat-value {
+    color: #f1f5f9;
+  }
+  
+  .stat-label {
+    color: #cbd5e1;
+  }
+  
+  .log-header {
+    border-bottom-color: #334155;
+  }
+  
+  .log-date {
+    color: #cbd5e1;
+  }
+  
+  .metric i {
+    background-color: #334155;
+    color: #cbd5e1;
+  }
+  
+  .metric-label {
+    color: #cbd5e1;
+  }
+  
+  .metric-bar {
+    background-color: #475569;
+  }
+  
+  .metric-value span {
+    color: #e2e8f0;
+  }
+  
+  .log-activity {
+    background-color: rgba(22, 101, 52, 0.2);
+  }
+  
+  .log-notes {
+    border-top-color: #334155;
+    color: #cbd5e1;
+  }
+  
+  .loading-container {
+    background-color: #1e293b;
+  }
 } 

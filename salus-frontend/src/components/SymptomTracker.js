@@ -23,71 +23,30 @@ const SymptomTracker = ({ userId }) => {
     time: new Date().toTimeString().split(' ')[0].substring(0, 5)
   });
 
-  // Categorie di sintomi predefinite
+  // Dati di esempio - sostituiti con array vuoto
+  const mockSymptoms = [];
+
+  // Categorie predefinite
   const predefinedCategories = [
-    'Respiratorio', 'Digestivo', 'Neurologico', 
-    'Cardiaco', 'Muscolare', 'Articolare', 'Altro'
-  ];
-  
-  // Mock dati sintomi
-  const mockSymptoms = [
-    {
-      id: 1,
-      name: 'Mal di testa',
-      intensity: 7,
-      category: 'Neurologico',
-      description: 'Dolore pulsante alla tempia destra',
-      date: '2023-11-01',
-      time: '14:30'
-    },
-    {
-      id: 2,
-      name: 'Nausea',
-      intensity: 4,
-      category: 'Digestivo',
-      description: 'Leggera nausea dopo pranzo',
-      date: '2023-11-02',
-      time: '13:45'
-    },
-    {
-      id: 3,
-      name: 'Tosse',
-      intensity: 6,
-      category: 'Respiratorio',
-      description: 'Tosse secca persistente',
-      date: '2023-11-03',
-      time: '08:15'
-    },
-    {
-      id: 4,
-      name: 'Dolore al ginocchio',
-      intensity: 5,
-      category: 'Articolare',
-      description: 'Dolore al ginocchio destro durante la camminata',
-      date: '2023-11-04',
-      time: '17:20'
-    },
-    {
-      id: 5,
-      name: 'Stanchezza',
-      intensity: 8,
-      category: 'Altro',
-      description: 'Forte sensazione di stanchezza durante il giorno',
-      date: '2023-11-05',
-      time: '10:00'
-    }
+    { id: 1, name: 'Respiratorio', icon: 'fa-lungs' },
+    { id: 2, name: 'Digestivo', icon: 'fa-stomach' },
+    { id: 3, name: 'Neurologico', icon: 'fa-brain' }, 
+    { id: 4, name: 'Cardiaco', icon: 'fa-heart' },
+    { id: 5, name: 'Muscolare', icon: 'fa-dumbbell' },
+    { id: 6, name: 'Articolare', icon: 'fa-bone' },
+    { id: 7, name: 'Altro', icon: 'fa-notes-medical' }
   ];
 
-  // Caricamento dei sintomi
+  // Caricamento iniziale dei dati
   useEffect(() => {
-    // Simula richiesta API
+    // Simuliamo il caricamento dei dati
     setTimeout(() => {
       setSymptoms(mockSymptoms);
       setFilteredSymptoms(mockSymptoms);
       setCategories(predefinedCategories);
       setLoading(false);
-    }, 1000);
-  }, [mockSymptoms]); // Aggiungo mockSymptoms come dipendenza
+    }, 400); // Ridotto tempo di caricamento per un'esperienza più veloce
+  }, []);
 
   // Filtra i sintomi quando cambiano i filtri
   useEffect(() => {
@@ -96,7 +55,7 @@ const SymptomTracker = ({ userId }) => {
     let filtered = [...symptoms];
     
     // Filtra per categoria
-    if (selectedCategory !== 'all') {
+    if (selectedCategory && selectedCategory !== 'all') {
       filtered = filtered.filter(s => s.category === selectedCategory);
     }
     
@@ -105,12 +64,109 @@ const SymptomTracker = ({ userId }) => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(s => 
         s.name.toLowerCase().includes(query) || 
-        s.description.toLowerCase().includes(query)
+        s.description?.toLowerCase().includes(query)
       );
     }
     
     setFilteredSymptoms(filtered);
   }, [selectedCategory, searchQuery, symptoms]);
+
+  // Calcolo delle statistiche per insight
+  const getSymptomInsights = () => {
+    if (!symptoms.length) return null;
+    
+    const totalSymptoms = symptoms.length;
+    const categoryCounts = {};
+    let highIntensityCount = 0;
+    
+    symptoms.forEach(symptom => {
+      // Conta per categoria
+      if (categoryCounts[symptom.category]) {
+        categoryCounts[symptom.category]++;
+      } else {
+        categoryCounts[symptom.category] = 1;
+      }
+      
+      // Conta sintomi ad alta intensità
+      if (symptom.intensity > 7) {
+        highIntensityCount++;
+      }
+    });
+    
+    // Trova la categoria più comune
+    let mostCommonCategory = '';
+    let maxCount = 0;
+    
+    Object.entries(categoryCounts).forEach(([category, count]) => {
+      if (count > maxCount) {
+        mostCommonCategory = category;
+        maxCount = count;
+      }
+    });
+    
+    return {
+      totalSymptoms,
+      highIntensityCount,
+      mostCommonCategory
+    };
+  };
+
+  // Restituisce l'icona relativa alla categoria
+  const getCategoryIcon = (categoryName) => {
+    const category = categories.find(c => c.name === categoryName);
+    return category ? category.icon : 'fa-notes-medical';
+  };
+
+  // Componente per stato vuoto
+  const EmptyState = () => (
+    <div className="empty-state">
+      <div className="empty-illustration">
+        <img src="/assets/icons/symptom-empty.svg" alt="Nessun sintomo" 
+             onError={(e) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/4161/4161754.png'} />
+      </div>
+      <h2>Non hai ancora registrato sintomi</h2>
+      <p>Tieni traccia dei tuoi sintomi per monitorare la tua salute nel tempo</p>
+      
+      <div className="benefits-list">
+        <div className="benefit-item">
+          <div className="benefit-icon">
+            <i className="fas fa-chart-line"></i>
+          </div>
+          <div className="benefit-text">
+            <h3>Monitora l'andamento</h3>
+            <p>Visualizza come i sintomi evolvono nel tempo</p>
+          </div>
+        </div>
+        
+        <div className="benefit-item">
+          <div className="benefit-icon">
+            <i className="fas fa-search"></i>
+          </div>
+          <div className="benefit-text">
+            <h3>Identifica pattern</h3>
+            <p>Scopri relazioni tra diversi sintomi e possibili cause</p>
+          </div>
+        </div>
+        
+        <div className="benefit-item">
+          <div className="benefit-icon">
+            <i className="fas fa-file-medical"></i>
+          </div>
+          <div className="benefit-text">
+            <h3>Report medici</h3>
+            <p>Crea report dettagliati da condividere con i medici</p>
+          </div>
+        </div>
+      </div>
+      
+      <button 
+        className="add-symptom-button-large"
+        onClick={() => setIsAddModalOpen(true)}
+      >
+        <i className="fas fa-plus-circle"></i> Registra il tuo primo sintomo
+      </button>
+    </div>
+  );
 
   // Gestione del nuovo sintomo
   const handleInputChange = (e) => {
@@ -176,7 +232,7 @@ const SymptomTracker = ({ userId }) => {
       <div className="symptom-tracker">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <div className="loading-text">Caricamento sintomi...</div>
+          <p>Caricamento sintomi...</p>
         </div>
       </div>
     );
@@ -186,101 +242,153 @@ const SymptomTracker = ({ userId }) => {
     <div className="symptom-tracker">
       <div className="symptom-header">
         <div className="symptom-title">
-          <h1>Tracciamento Sintomi</h1>
-          <p>Monitora i tuoi sintomi per tenere sotto controllo la tua salute</p>
-        </div>
-        <button 
-          className="add-symptom-button" 
-          onClick={() => setIsAddModalOpen(true)}
-        >
-          <i className="fas fa-plus"></i> Nuovo Sintomo
-        </button>
-      </div>
-      
-      <div className="symptom-filters">
-        <div className="search-box">
-          <i className="fas fa-search"></i>
-          <input 
-            type="text" 
-            placeholder="Cerca sintomi..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <h1>I Tuoi Sintomi</h1>
+          <p>Monitora e analizza i tuoi sintomi nel tempo</p>
         </div>
         
-        <div className="category-filter">
-          <select 
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+        {symptoms.length > 0 && (
+          <button 
+            className="add-symptom-button" 
+            onClick={() => setIsAddModalOpen(true)}
           >
-            <option value="all">Tutte le categorie</option>
-            {categories && categories.length > 0 && categories.map((category, index) => (
-              <option key={index} value={category}>{category}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      
-      <div className="symptom-stats">
-        <div className="stat-card">
-          <div className="stat-value">{symptoms ? symptoms.length : 0}</div>
-          <div className="stat-label">Sintomi totali</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">
-            {symptoms && Array.isArray(symptoms) ? 
-              symptoms.filter(s => new Date(s.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length : 0}
-          </div>
-          <div className="stat-label">Ultimi 7 giorni</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">
-            {symptoms && Array.isArray(symptoms) && symptoms.length > 0 ? 
-              Math.round(symptoms.reduce((acc, s) => acc + s.intensity, 0) / symptoms.length) : 0}
-          </div>
-          <div className="stat-label">Intensità media</div>
-        </div>
-      </div>
-      
-      <div className="symptom-list">
-        {filteredSymptoms && filteredSymptoms.length > 0 ? (
-          filteredSymptoms.map(symptom => (
-            <div 
-              key={symptom.id} 
-              className="symptom-card" 
-              onClick={() => handleSymptomClick(symptom)}
-            >
-              <div className="symptom-info">
-                <div className="symptom-name">
-                  <h3>{symptom.name}</h3>
-                  <span className="symptom-category">{symptom.category}</span>
-                </div>
-                <div className="symptom-description">{symptom.description}</div>
-                <div className="symptom-date">
-                  <i className="far fa-calendar"></i> {formatDate(symptom.date)} alle {symptom.time}
-                </div>
-              </div>
-              <div className="symptom-intensity">
-                <div className={`intensity-indicator ${getIntensityColor(symptom.intensity)}`}>
-                  {symptom.intensity}
-                </div>
-                <div className="intensity-label">Intensità</div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="no-symptoms">
-            <i className="fas fa-file-medical-alt"></i>
-            <p>Nessun sintomo trovato</p>
-            <button 
-              className="add-first-symptom" 
-              onClick={() => setIsAddModalOpen(true)}
-            >
-              Aggiungi il tuo primo sintomo
-            </button>
-          </div>
+            <i className="fas fa-plus"></i> Nuovo Sintomo
+          </button>
         )}
       </div>
+      
+      {symptoms.length > 0 ? (
+        <>
+          <div className="symptom-insights">
+            <div className="insight-card">
+              <div className="insight-icon">
+                <i className="fas fa-clipboard-list"></i>
+              </div>
+              <div className="insight-content">
+                <h3>{symptoms.length}</h3>
+                <p>Sintomi registrati</p>
+              </div>
+            </div>
+            
+            {getSymptomInsights() && (
+              <>
+                <div className="insight-card">
+                  <div className="insight-icon">
+                    <i className="fas fa-exclamation-circle"></i>
+                  </div>
+                  <div className="insight-content">
+                    <h3>{getSymptomInsights().highIntensityCount}</h3>
+                    <p>Sintomi ad alta intensità</p>
+                  </div>
+                </div>
+                
+                <div className="insight-card">
+                  <div className="insight-icon">
+                    <i className={`fas ${getCategoryIcon(getSymptomInsights().mostCommonCategory)}`}></i>
+                  </div>
+                  <div className="insight-content">
+                    <h3>{getSymptomInsights().mostCommonCategory}</h3>
+                    <p>Categoria più frequente</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          
+          <div className="symptom-filters">
+            <div className="search-bar">
+              <i className="fas fa-search"></i>
+              <input
+                type="text"
+                placeholder="Cerca sintomo..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button 
+                  className="clear-search" 
+                  onClick={() => setSearchQuery('')}
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              )}
+            </div>
+            
+            <div className="category-filters">
+              <button
+                className={selectedCategory === 'all' ? 'active' : ''}
+                onClick={() => setSelectedCategory('all')}
+              >
+                Tutte le categorie
+              </button>
+              
+              {categories.map(category => (
+                <button
+                  key={category.id}
+                  className={selectedCategory === category.name ? 'active' : ''}
+                  onClick={() => setSelectedCategory(category.name)}
+                >
+                  <i className={`fas ${category.icon}`}></i> {category.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div className="symptoms-list">
+            {filteredSymptoms.length > 0 ? (
+              filteredSymptoms.map(symptom => (
+                <div 
+                  key={symptom.id} 
+                  className="symptom-card"
+                  onClick={() => handleSymptomClick(symptom)}
+                >
+                  <div className="symptom-severity" 
+                       style={{backgroundColor: getIntensityColor(symptom.intensity)}}>
+                    <span>{symptom.intensity}</span>
+                  </div>
+                  
+                  <div className="symptom-info">
+                    <h2 className="symptom-name">{symptom.name}</h2>
+                    <div className="symptom-category">
+                      <i className={`fas ${getCategoryIcon(symptom.category)}`}></i>
+                      <span>{symptom.category}</span>
+                    </div>
+                    {symptom.description && (
+                      <p className="symptom-description">
+                        {symptom.description.length > 120 
+                          ? symptom.description.substring(0, 120) + '...' 
+                          : symptom.description}
+                      </p>
+                    )}
+                    <p className="symptom-date">
+                      <i className="far fa-calendar"></i> {formatDate(symptom.date)}
+                      {symptom.time && <><i className="far fa-clock ml-2"></i> {symptom.time}</>}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-results">
+                <div className="no-results-icon">
+                  <i className="fas fa-search"></i>
+                </div>
+                <h3>Nessun sintomo trovato</h3>
+                <p>Prova a modificare i filtri di ricerca</p>
+                <button 
+                  className="reset-filters-button"
+                  onClick={() => {
+                    setSelectedCategory('all');
+                    setSearchQuery('');
+                  }}
+                >
+                  Reimposta filtri
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <EmptyState />
+      )}
       
       {/* Modal per aggiungere un sintomo */}
       {isAddModalOpen && (
@@ -315,7 +423,7 @@ const SymptomTracker = ({ userId }) => {
                 >
                   <option value="">Seleziona categoria</option>
                   {predefinedCategories.map((cat, index) => (
-                    <option key={index} value={cat}>{cat}</option>
+                    <option key={index} value={cat.name}>{cat.name}</option>
                   ))}
                 </select>
               </div>
