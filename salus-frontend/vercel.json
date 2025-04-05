@@ -99,8 +99,12 @@
   },
   "github": {
     "enabled": true,
-    "silent": false,
+    "silent": true,
     "autoJobCancelation": true
   },
-  "ignoreCommand": "if [ -d \"node_modules\" ]; then echo \"Skipping package installation\"; else npm install; fi"
+  "ignoreCommand": "if [ -d \"node_modules\" ]; then echo \"Skipping package installation\"; else npm install; fi",
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "framework": "create-react-app",
+  "devCommand": "npm run start"
 } 
