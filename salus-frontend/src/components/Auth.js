@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Auth.css';
 import { UserContext } from '../context/UserContext';
@@ -39,126 +39,29 @@ const ERROR_MESSAGES = {
   'default': 'Si è verificato un errore. Riprova più tardi.'
 };
 
-// Funzione per tradurre i codici di errore in messaggi user-friendly
-const getErrorMessage = (error) => {
-  console.log('Tipo errore:', error);
-  
-  // Caso errore 405 (Method Not Allowed)
-  if (error.response && error.response.status === 405) {
-    // Non mostriamo errore all'utente per errori 405 poiché usiamo la modalità offline
-    return null;
-  }
-  
-  // Estrai il codice di errore o messaggio dalla risposta
-  const errorCode = error?.response?.data?.error?.code || 
-                    error?.response?.data?.code ||
-                    error?.code || 
-                    'default';
-  
-  // Check se l'errore contiene un messaggio personalizzato dal server
-  const serverMessage = error?.response?.data?.message;
-  
-  // Check per errori di utente già esistente nella registrazione
-  if (serverMessage && serverMessage.includes('già registrato')) {
-    return 'Questo indirizzo email è già registrato. Prova ad accedere.';
-  }
-  
-  // Check per errori di credenziali errate nel login
-  if (serverMessage && serverMessage.includes('credenziali')) {
-    return 'Email o password errata. Riprova.';
-  }
-  
-  // Se error.message contiene qualcosa di utile
-  if (error.message && !error.message.includes('Error') && !error.message.includes('fail')) {
-    return error.message;
-  }
-  
-  // Altrimenti usa la nostra mappa di errori
-  return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES['default'];
-};
-
-// Componente di debug per mostrare informazioni sull'ambiente
-const DebugInfo = () => {
-  const [showDebug, setShowDebug] = useState(false);
-  
-  const debugStyle = {
-    position: 'fixed',
-    bottom: showDebug ? '20px' : '-1px',
-    right: '20px',
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    color: 'white',
-    padding: showDebug ? '15px' : '5px',
-    borderRadius: '5px',
-    fontSize: '12px',
-    fontFamily: 'monospace',
-    zIndex: 9999,
-    maxWidth: '400px',
-    maxHeight: showDebug ? '400px' : '20px',
-    overflow: 'auto',
-    transition: 'all 0.3s ease',
-    border: '1px solid #666',
-    cursor: 'pointer'
-  };
-  
-  const toggleDebug = () => {
-    setShowDebug(!showDebug);
-  };
-  
-  // Ottengo alcune informazioni utili per il debug
-  const hostname = window.location.hostname;
-  const fullUrl = window.location.href;
-  
-  // URL DIRETTO CORRETTO (dovrebbe essere usato per registrazione/login)
-  const directLoginUrl = 'https://salus-backend.onrender.com/api/auth/login';
-  const directRegisterUrl = 'https://salus-backend.onrender.com/api/auth/register';
-  
-  // URL tramite normalizePath
-  const normalizedPath = normalizePath('/auth/register');
-  const fullApiPath = `${apiUrl}${normalizedPath}`;
-  
-  // URL che causa errore 405
-  const problemUrl = '/api/api/auth/register';
-  
-  return (
-    <div style={debugStyle} onClick={toggleDebug}>
-      {showDebug ? (
-        <>
-          <h4 style={{ margin: '0 0 8px 0' }}>Informazioni Debug</h4>
-          <p style={{ margin: '2px 0' }}><strong>Hostname:</strong> {hostname}</p>
-          <p style={{ margin: '2px 0' }}><strong>URL Completo:</strong> {fullUrl}</p>
-          <p style={{ margin: '2px 0' }}><strong>API URL:</strong> {apiUrl}</p>
-          
-          <p style={{ margin: '8px 0 2px 0', color: '#ff6b6b' }}><strong>URL PROBLEMA:</strong> {problemUrl}</p>
-          
-          <p style={{ margin: '8px 0 2px 0', color: '#63E6BE' }}><strong>URL DIRETTI CORRETTI:</strong></p>
-          <p style={{ margin: '2px 0 2px 15px', color: '#63E6BE' }}>Login: {directLoginUrl}</p>
-          <p style={{ margin: '2px 0 2px 15px', color: '#63E6BE' }}>Register: {directRegisterUrl}</p>
-          
-          <p style={{ margin: '8px 0 2px 0' }}><strong>Percorso Normalizzato:</strong> {normalizedPath}</p>
-          <p style={{ margin: '2px 0' }}><strong>URL API Completo:</strong> {fullApiPath}</p>
-          
-          <p style={{ margin: '8px 0 2px 0' }}><strong>Storage:</strong></p>
-          <p style={{ margin: '2px 0 2px 15px' }}><strong>localStorage Token:</strong> {localStorage.getItem('token') ? '✓ Presente' : '❌ Assente'}</p>
-          <p style={{ margin: '2px 0 2px 15px' }}><strong>sessionStorage Token:</strong> {sessionStorage.getItem('token') ? '✓ Presente' : '❌ Assente'}</p>
-          <p style={{ margin: '2px 0' }}><strong>React App API URL:</strong> {process.env.REACT_APP_API_URL || 'Non impostato'}</p>
-          <p style={{ margin: '10px 0 2px', fontStyle: 'italic' }}>Per risolvere il problema, utilizza gli URL diretti anziché quelli normalizzati</p>
-          <p style={{ margin: '10px 0 2px' }}>Clicca per nascondere</p>
-        </>
-      ) : (
-        <p style={{ margin: '2px' }}>Debug Info (clicca per espandere)</p>
-      )}
-    </div>
-  );
-};
-
 const Auth = () => {
   const { t, i18n } = useTranslation();
+  
+  // Funzione per tradurre i codici di errore in messaggi user-friendly
+  const getErrorMessage = (error) => {
+    if (!error) return '';
+    
+    // Controlla se l'errore proviene dal server e ha un messaggio
+    if (error.response && error.response.data && error.response.data.message) {
+      return error.response.data.message;
+    }
+    
+    // Altrimenti usa il messaggio generico dell'errore
+    return error.message || t('genericError');
+  };
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [language, setLanguage] = useState(i18n.language);
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [errors, setErrors] = useState({});
   const [authError, setAuthError] = useState(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -501,78 +404,6 @@ const Auth = () => {
         {isSubmitting ? t('loggingIn') : t('login')}
       </button>
       
-      {/* Pulsante di login diretto per debug */}
-      <button
-        type="button"
-        className="auth-button debug-button"
-        style={{
-          backgroundColor: '#2a9d8f',
-          marginTop: '10px',
-          fontSize: '0.8rem',
-          padding: '8px 16px'
-        }}
-        onClick={async () => {
-          if (!validateForm()) return;
-          
-          setIsSubmitting(true);
-          setAuthError(null);
-          
-          try {
-            console.log('Tentativo login diretto con fetch');
-            const DIRECT_URL = 'https://salus-backend.onrender.com/auth/login';
-            console.log('URL diretto:', DIRECT_URL);
-            
-            const response = await fetch(DIRECT_URL, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify({
-                email,
-                password
-              })
-            });
-            
-            console.log('Risposta login STATUS:', response.status);
-            console.log('Risposta login OK:', response.ok);
-            
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.error('Risposta errore server:', errorText);
-              throw new Error(`Errore server: ${response.status} ${response.statusText} - ${errorText}`);
-            }
-            
-            const data = await response.json();
-            console.log('Risposta JSON:', data);
-            
-            if (data && data.token) {
-              // Salva token in base alla scelta "remember me"
-              if (rememberMe) {
-                localStorage.setItem('token', data.token);
-              } else {
-                sessionStorage.setItem('token', data.token);
-              }
-              
-              // Aggiorna contesto utente
-              userContext.setUser(data.user);
-              
-              // Redirige alla dashboard
-              navigate('/dashboard', { replace: true });
-            } else {
-              throw new Error('Risposta dal server non valida');
-            }
-          } catch (error) {
-            console.error('Errore login diretto:', error);
-            setAuthError(error);
-          } finally {
-            setIsSubmitting(false);
-          }
-        }}
-      >
-        Login Diretto (Debug)
-      </button>
-      
       <div className="auth-footer">
         <p>{t('noAccount')}</p>
         <button
@@ -684,81 +515,6 @@ const Auth = () => {
         disabled={isSubmitting}
       >
         {isSubmitting ? t('registering') : t('register')}
-      </button>
-      
-      {/* Pulsante di registrazione diretta per debug */}
-      <button
-        type="button"
-        className="auth-button debug-button"
-        style={{
-          backgroundColor: '#2a9d8f',
-          marginTop: '10px',
-          fontSize: '0.8rem',
-          padding: '8px 16px'
-        }}
-        onClick={async () => {
-          if (!validateForm()) return;
-          
-          setIsSubmitting(true);
-          setAuthError(null);
-          
-          try {
-            console.log('Tentativo registrazione diretta con fetch');
-            // Utilizziamo un proxy CORS per superare il blocco CORS
-            const PROXY_URL = 'https://corsproxy.io/?';
-            const TARGET_URL = 'https://salus-backend.onrender.com/api/auth/register';
-            const DIRECT_URL = PROXY_URL + encodeURIComponent(TARGET_URL);
-            console.log('URL con proxy CORS:', DIRECT_URL);
-            
-            const response = await fetch(DIRECT_URL, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-              },
-              body: JSON.stringify({
-                email,
-                password,
-                name
-              })
-            });
-            
-            console.log('Risposta registrazione STATUS:', response.status);
-            console.log('Risposta registrazione OK:', response.ok);
-            
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.error('Risposta errore server:', errorText);
-              throw new Error(`Errore server: ${response.status} ${response.statusText} - ${errorText}`);
-            }
-            
-            const data = await response.json();
-            console.log('Risposta JSON:', data);
-            
-            if (data && data.token) {
-              // Salva token
-              localStorage.setItem('token', data.token);
-              // Aggiorna contesto utente
-              userContext.setUser(data.user);
-              
-              setRegistrationSuccess(true);
-              setMessage({
-                type: 'success',
-                text: t('registrationSuccess')
-              });
-            } else {
-              throw new Error('Risposta dal server non valida');
-            }
-          } catch (error) {
-            console.error('Errore registrazione diretta:', error);
-            setAuthError(error);
-          } finally {
-            setIsSubmitting(false);
-          }
-        }}
-      >
-        Registrazione Diretta (Debug)
       </button>
       
       <div className="auth-footer">
@@ -895,76 +651,23 @@ const Auth = () => {
 
   return (
     <div className="auth-container">
-      <DebugInfo />
-      <div className="auth-left">
-        <div className="auth-brand">
-          <img src="/assets/images/logo.svg" alt="Salus Logo" className="auth-logo" />
-          <h1>{t('appTitle')}</h1>
-          <p>{t('appDescription')}</p>
-        </div>
-        
-        <div className="auth-features">
-          <h2>{t('appFeatures')}</h2>
-          
-          <div className="feature-item">
-            <div className="feature-icon">
+      <div className="auth-box">
+        <div className="auth-header">
+          <img src="/logo-light.svg" alt="Salus Logo" className="auth-logo" />
+          <div className="auth-icons">
+            <div className="auth-icon">
               <HeartPulseIcon />
             </div>
-            <div className="feature-text">
-              <h3>{t('symptomTracking')}</h3>
-              <p>{t('symptomTrackingDesc')}</p>
-            </div>
-          </div>
-          
-          <div className="feature-item">
-            <div className="feature-icon">
+            <div className="auth-icon">
               <MedicationIcon />
             </div>
-            <div className="feature-text">
-              <h3>{t('medicationManagement')}</h3>
-              <p>{t('medicationManagementDesc')}</p>
-            </div>
-          </div>
-          
-          <div className="feature-item">
-            <div className="feature-icon">
+            <div className="auth-icon">
               <AIIcon />
-            </div>
-            <div className="feature-text">
-              <h3>{t('aiAssistant')}</h3>
-              <p>{t('aiAssistantDesc')}</p>
             </div>
           </div>
         </div>
         
-        <div className="language-selector">
-          <label htmlFor="language-selector">{t('language')}:</label>
-          <select
-            id="language-selector"
-            value={language}
-            onChange={handleLanguageChange}
-          >
-            <option value="it">{t('italian')}</option>
-            <option value="en">{t('english')}</option>
-            <option value="hi">{t('hindi')}</option>
-          </select>
-        </div>
-      </div>
-      
-      <div className="auth-right">
-        <div className="auth-box">
-          <div className="auth-header">
-            <h2>{isLogin ? t('login') : t('createAccount')}</h2>
-            <p>{isLogin ? t('loginToAccount') : t('fillDetails')}</p>
-          </div>
-          
-          {message.text && (
-            <div className={`message-box ${message.type}`}>
-              <span>{message.type === 'success' ? '✓' : message.type === 'warning' ? '⚠' : '⚠'}</span>
-              <div>{message.text}</div>
-            </div>
-          )}
-          
+        <div className="auth-content">
           {renderForm()}
         </div>
       </div>

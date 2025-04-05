@@ -78,7 +78,7 @@
           // Correggi URL per backend onrender.com
           if (url.includes('salus-backend.onrender.com')) {
             // Normalizza i percorsi API prima di inviare la richiesta
-            if (!url.includes('/api/') && !url.includes('/status') && !url.includes('/debug-register')) {
+            if (!url.includes('/api/') && !url.includes('/status')) {
               // Inserisci '/api/' nel percorso se manca
               const parts = url.split('salus-backend.onrender.com/');
               if (parts.length > 1 && !parts[1].startsWith('api/')) {

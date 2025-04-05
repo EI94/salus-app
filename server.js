@@ -35,18 +35,11 @@ app.use((req, res, next) => {
 
 // Route principale per health check
 app.get('/', (req, res) => {
-  res.json({ 
-    status: 'online',
+  res.json({
     message: 'Salus API è in esecuzione',
     env: process.env.NODE_ENV,
     time: new Date().toISOString()
   });
-});
-
-// Debug per il problema di registrazione
-app.post('/debug-register', (req, res) => {
-  console.log('Debug registrazione ricevuta:', req.body);
-  res.json({ success: true, message: 'Richiesta di debug ricevuta', body: req.body });
 });
 
 // Routes - CORRETTO
