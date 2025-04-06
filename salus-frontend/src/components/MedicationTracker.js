@@ -60,7 +60,26 @@ const MedicationTracker = ({ userId }) => {
   useEffect(() => {
     // Simuliamo il caricamento dei dati
     setTimeout(() => {
-      setMedications(mockMedications);
+      try {
+        // Verifica se ci sono dati nel localStorage
+        const storedMedications = localStorage.getItem('medications');
+        
+        if (storedMedications) {
+          console.log("Trovati farmaci salvati nel localStorage");
+          const parsedMedications = JSON.parse(storedMedications);
+          setMedications(parsedMedications);
+          setFilteredMedications(parsedMedications);
+        } else {
+          console.log("Nessun farmaco trovato nel localStorage, utilizzo array vuoto");
+          setMedications(mockMedications);
+          setFilteredMedications(mockMedications);
+        }
+      } catch (error) {
+        console.error("Errore nel caricamento dei farmaci dal localStorage:", error);
+        setMedications(mockMedications);
+        setFilteredMedications(mockMedications);
+      }
+      
       setLoading(false);
     }, 400); // Ridotto tempo di caricamento per un'esperienza più veloce
   }, []);
@@ -120,30 +139,47 @@ const MedicationTracker = ({ userId }) => {
       return;
     }
     
-    const newMedicationWithId = {
-      ...newMedication,
-      id: Date.now(),
-      adherence: 1.0
-    };
+    console.log("Salvataggio farmaco in corso...", newMedication);
     
-    const updatedMedications = [newMedicationWithId, ...medications];
-    setMedications(updatedMedications);
-    setFilteredMedications(updatedMedications);
-    
-    // Resetta il form
-    setNewMedication({
-      name: '',
-      dosage: '',
-      unit: 'mg',
-      frequency: 'daily',
-      time: [],
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: '',
-      notes: '',
-      status: 'active'
-    });
-    
-    setIsAddModalOpen(false);
+    try {
+      const newMedicationWithId = {
+        ...newMedication,
+        id: Date.now(),
+        adherence: 1.0
+      };
+      
+      // Crea una copia dell'array per evitare problemi di riferimento
+      const updatedMedications = [newMedicationWithId, ...(medications || [])];
+      
+      // Aggiorna lo stato
+      setMedications(updatedMedications);
+      setFilteredMedications(updatedMedications);
+      
+      // Salva nel localStorage per persistenza
+      localStorage.setItem('medications', JSON.stringify(updatedMedications));
+      
+      console.log("Farmaco salvato con successo:", newMedicationWithId);
+      
+      // Resetta il form
+      setNewMedication({
+        name: '',
+        dosage: '',
+        unit: 'mg',
+        frequency: 'daily',
+        time: [],
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: '',
+        notes: '',
+        status: 'active'
+      });
+      
+      // Chiudi modale
+      setIsAddModalOpen(false);
+      
+    } catch (error) {
+      console.error("Errore durante il salvataggio del farmaco:", error);
+      alert("Si è verificato un errore durante il salvataggio. Riprova.");
+    }
   };
 
   // Visualizza dettaglio farmaco
@@ -154,20 +190,46 @@ const MedicationTracker = ({ userId }) => {
 
   // Elimina farmaco
   const handleDeleteMedication = (id) => {
-    const updatedMedications = medications.filter(m => m.id !== id);
-    setMedications(updatedMedications);
-    setFilteredMedications(updatedMedications);
-    setIsDetailModalOpen(false);
+    try {
+      console.log("Eliminazione farmaco:", id);
+      const updatedMedications = medications.filter(m => m.id !== id);
+      
+      // Aggiorna lo stato
+      setMedications(updatedMedications);
+      setFilteredMedications(updatedMedications);
+      
+      // Aggiorna anche nel localStorage
+      localStorage.setItem('medications', JSON.stringify(updatedMedications));
+      
+      console.log("Farmaco eliminato con successo");
+      setIsDetailModalOpen(false);
+    } catch (error) {
+      console.error("Errore durante l'eliminazione del farmaco:", error);
+      alert("Si è verificato un errore durante l'eliminazione. Riprova.");
+    }
   };
 
   // Cambia stato del farmaco
   const handleStatusChange = (id, newStatus) => {
-    const updatedMedications = medications.map(m => 
-      m.id === id ? { ...m, status: newStatus } : m
-    );
-    setMedications(updatedMedications);
-    setFilteredMedications(updatedMedications);
-    setIsDetailModalOpen(false);
+    try {
+      console.log(`Cambio stato farmaco ${id} a ${newStatus}`);
+      const updatedMedications = medications.map(m => 
+        m.id === id ? { ...m, status: newStatus } : m
+      );
+      
+      // Aggiorna lo stato
+      setMedications(updatedMedications);
+      setFilteredMedications(updatedMedications);
+      
+      // Aggiorna anche nel localStorage
+      localStorage.setItem('medications', JSON.stringify(updatedMedications));
+      
+      console.log("Stato farmaco aggiornato con successo");
+      setIsDetailModalOpen(false);
+    } catch (error) {
+      console.error("Errore durante l'aggiornamento dello stato del farmaco:", error);
+      alert("Si è verificato un errore durante l'aggiornamento dello stato. Riprova.");
+    }
   };
 
   // Formatta la data

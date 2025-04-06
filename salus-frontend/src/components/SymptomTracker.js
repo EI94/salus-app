@@ -41,8 +41,26 @@ const SymptomTracker = ({ userId }) => {
   useEffect(() => {
     // Simuliamo il caricamento dei dati
     setTimeout(() => {
-      setSymptoms(mockSymptoms);
-      setFilteredSymptoms(mockSymptoms);
+      try {
+        // Verifica se ci sono dati nel localStorage
+        const storedSymptoms = localStorage.getItem('symptoms');
+        
+        if (storedSymptoms) {
+          console.log("Trovati sintomi salvati nel localStorage");
+          const parsedSymptoms = JSON.parse(storedSymptoms);
+          setSymptoms(parsedSymptoms);
+          setFilteredSymptoms(parsedSymptoms);
+        } else {
+          console.log("Nessun sintomo trovato nel localStorage, utilizzo array vuoto");
+          setSymptoms(mockSymptoms);
+          setFilteredSymptoms(mockSymptoms);
+        }
+      } catch (error) {
+        console.error("Errore nel caricamento dei sintomi dal localStorage:", error);
+        setSymptoms(mockSymptoms);
+        setFilteredSymptoms(mockSymptoms);
+      }
+      
       setCategories(predefinedCategories);
       setLoading(false);
     }, 400); // Ridotto tempo di caricamento per un'esperienza più veloce
@@ -184,32 +202,53 @@ const SymptomTracker = ({ userId }) => {
       return;
     }
     
-    const newSymptomWithId = {
-      ...newSymptom,
-      id: Date.now(), // Genera un ID unico
-      intensity: parseInt(newSymptom.intensity, 10)
-    };
+    console.log("Salvataggio sintomo in corso...", newSymptom);
     
-    const updatedSymptoms = [newSymptomWithId, ...symptoms];
-    setSymptoms(updatedSymptoms);
-    setFilteredSymptoms(updatedSymptoms);
-    
-    // Aggiungi la categoria se è nuova
-    if (!categories.includes(newSymptom.category)) {
-      setCategories([...categories, newSymptom.category]);
+    try {
+      const newSymptomWithId = {
+        ...newSymptom,
+        id: Date.now(), // Genera un ID unico
+        intensity: parseInt(newSymptom.intensity, 10)
+      };
+      
+      // Crea una copia dell'array per evitare problemi di riferimento
+      const updatedSymptoms = [newSymptomWithId, ...(symptoms || [])];
+      
+      // Aggiorna lo stato
+      setSymptoms(updatedSymptoms);
+      setFilteredSymptoms(updatedSymptoms);
+      
+      // Salva nel localStorage per persistenza
+      localStorage.setItem('symptoms', JSON.stringify(updatedSymptoms));
+      
+      console.log("Sintomo salvato con successo:", newSymptomWithId);
+      
+      // Aggiungi la categoria se è nuova
+      if (!categories.some(cat => cat.name === newSymptom.category)) {
+        // Trova la categoria predefinita o usa una generica
+        const existingCategory = predefinedCategories.find(cat => cat.name === newSymptom.category);
+        if (existingCategory) {
+          setCategories([...categories, existingCategory]);
+        }
+      }
+      
+      // Reset form
+      setNewSymptom({
+        name: '',
+        intensity: 5,
+        category: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toTimeString().split(' ')[0].substring(0, 5)
+      });
+      
+      // Chiudi modale
+      setIsAddModalOpen(false);
+      
+    } catch (error) {
+      console.error("Errore durante il salvataggio del sintomo:", error);
+      alert("Si è verificato un errore durante il salvataggio. Riprova.");
     }
-    
-    // Reset
-    setNewSymptom({
-      name: '',
-      intensity: 5,
-      category: '',
-      description: '',
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().split(' ')[0].substring(0, 5)
-    });
-    
-    setIsAddModalOpen(false);
   };
 
   // Visualizza dettaglio sintomo
@@ -543,10 +582,23 @@ const SymptomTracker = ({ userId }) => {
               <button 
                 className="delete-button" 
                 onClick={() => {
-                  const updatedSymptoms = symptoms.filter(s => s.id !== selectedSymptom.id);
-                  setSymptoms(updatedSymptoms);
-                  setFilteredSymptoms(updatedSymptoms);
-                  setIsDetailModalOpen(false);
+                  try {
+                    console.log("Eliminazione sintomo:", selectedSymptom.id);
+                    const updatedSymptoms = symptoms.filter(s => s.id !== selectedSymptom.id);
+                    
+                    // Aggiorna lo stato
+                    setSymptoms(updatedSymptoms);
+                    setFilteredSymptoms(updatedSymptoms);
+                    
+                    // Aggiorna anche nel localStorage
+                    localStorage.setItem('symptoms', JSON.stringify(updatedSymptoms));
+                    
+                    console.log("Sintomo eliminato con successo");
+                    setIsDetailModalOpen(false);
+                  } catch (error) {
+                    console.error("Errore durante l'eliminazione del sintomo:", error);
+                    alert("Si è verificato un errore durante l'eliminazione. Riprova.");
+                  }
                 }}
               >
                 <i className="fas fa-trash"></i> Elimina
