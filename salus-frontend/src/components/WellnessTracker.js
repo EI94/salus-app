@@ -107,14 +107,20 @@ const WellnessTracker = ({ userId }) => {
     
     // Simula chiamata API per recuperare i dati
     setTimeout(() => {
-      // Controlla se ci sono dati nel localStorage
-      const storedData = localStorage.getItem('wellnessData');
-      
-      if (storedData) {
-        const parsedData = JSON.parse(storedData);
-        setWellnessData(parsedData);
-      } else {
-        // Se non ci sono dati, usa un array vuoto
+      try {
+        // Controlla se ci sono dati nel localStorage
+        const storedData = localStorage.getItem('wellnessData');
+        
+        if (storedData) {
+          console.log("Trovati dati di benessere salvati nel localStorage");
+          const parsedData = JSON.parse(storedData);
+          setWellnessData(parsedData);
+        } else {
+          console.log("Nessun dato di benessere trovato nel localStorage, utilizzo array vuoto");
+          setWellnessData([]);
+        }
+      } catch (error) {
+        console.error("Errore nel caricamento dei dati di benessere dal localStorage:", error);
         setWellnessData([]);
       }
       
@@ -127,41 +133,56 @@ const WellnessTracker = ({ userId }) => {
     e.preventDefault();
     setSubmitting(true);
     
-    // Crea un nuovo record di benessere
-    const newRecord = {
-      id: Date.now(),
-      ...formData
-    };
+    console.log("Salvataggio dati di benessere in corso...", formData);
     
-    // Simula richiesta API
-    setTimeout(() => {
-      // Aggiorna lo stato locale
-      const updatedData = [...wellnessData, newRecord];
-      setWellnessData(updatedData);
+    try {
+      // Crea un nuovo record di benessere
+      const newRecord = {
+        id: Date.now(),
+        ...formData
+      };
       
-      // Salva nel localStorage
-      localStorage.setItem('wellnessData', JSON.stringify(updatedData));
-      
-      // Reset del form
-      setFormData({
-        date: formatDate(new Date()),
-        mood: 3,
-        sleepQuality: 3,
-        energyLevel: 3,
-        stressLevel: 3,
-        physicalActivity: false,
-        notes: ''
-      });
-      
-      setSubmitting(false);
-      setShowForm(false);
-      setSuccessMessage('Dati salvati con successo!');
-      
-      // Nascondi il messaggio dopo 3 secondi
+      // Attendi un momento prima di aggiornare lo stato (per simulare operazione asincrona)
       setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
-    }, 500);
+        try {
+          // Aggiorna lo stato locale
+          const updatedData = [...wellnessData, newRecord];
+          setWellnessData(updatedData);
+          
+          // Salva nel localStorage
+          localStorage.setItem('wellnessData', JSON.stringify(updatedData));
+          console.log("Dati di benessere salvati con successo nel localStorage");
+          
+          // Reset del form
+          setFormData({
+            date: formatDate(new Date()),
+            mood: 3,
+            sleepQuality: 3,
+            energyLevel: 3,
+            stressLevel: 3,
+            physicalActivity: false,
+            notes: ''
+          });
+          
+          setSubmitting(false);
+          setShowForm(false);
+          setSuccessMessage('Dati salvati con successo!');
+          
+          // Nascondi il messaggio dopo 3 secondi
+          setTimeout(() => {
+            setSuccessMessage('');
+          }, 3000);
+        } catch (innerError) {
+          console.error("Errore durante il salvataggio dei dati:", innerError);
+          alert("Si è verificato un errore durante il salvataggio. Riprova.");
+          setSubmitting(false);
+        }
+      }, 500);
+    } catch (error) {
+      console.error("Errore durante la preparazione dei dati di benessere:", error);
+      alert("Si è verificato un errore. Riprova.");
+      setSubmitting(false);
+    }
   };
 
   // Formatta la data per la visualizzazione
