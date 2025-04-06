@@ -246,7 +246,12 @@ const MedicationTracker = ({ userId }) => {
       <p>Aggiungi i tuoi farmaci per ricevere promemoria e monitorare l'aderenza</p>
       <button 
         className="add-button" 
-        onClick={() => setIsAddModalOpen(true)}
+        onClick={(e) => {
+          e.preventDefault(); 
+          console.log("Apertura modale farmaco");
+          setIsAddModalOpen(true);
+        }}
+        type="button"
       >
         <i className="fas fa-plus"></i> Aggiungi farmaco
       </button>

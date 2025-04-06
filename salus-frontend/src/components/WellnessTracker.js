@@ -90,7 +90,11 @@ const WellnessTracker = ({ userId }) => {
       
       <button 
         className="add-wellness-button-large"
-        onClick={() => setShowForm(true)}
+        onClick={() => {
+          console.log("Apertura form benessere");
+          setShowForm(true);
+        }}
+        type="button"
       >
         <i className="fas fa-plus-circle"></i> Registra il tuo primo dato di benessere
       </button>

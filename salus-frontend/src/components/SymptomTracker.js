@@ -160,7 +160,12 @@ const SymptomTracker = ({ userId }) => {
       
       <button 
         className="add-symptom-button-large"
-        onClick={() => setIsAddModalOpen(true)}
+        onClick={(e) => {
+          e.preventDefault();
+          console.log("Apertura modale sintomi");
+          setIsAddModalOpen(true);
+        }}
+        type="button"
       >
         <i className="fas fa-plus-circle"></i> Registra il tuo primo sintomo
       </button>
