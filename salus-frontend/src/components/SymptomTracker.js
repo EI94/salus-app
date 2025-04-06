@@ -42,6 +42,45 @@ const SymptomTracker = ({ userId }) => {
     }
   }, [isAddModalOpen]);
 
+  // Inizializzazione - crea la modale direttamente
+  useEffect(() => {
+    console.log("🔄 Inizializzazione SymptomTracker - Creazione modale...");
+    
+    // Verifica se esiste già il container modale
+    let modalContainer = document.getElementById('symptom-add-modal');
+    
+    // Se non esiste, crealo manualmente
+    if (!modalContainer) {
+      console.log("⚙️ Creazione manuale modale sintomi");
+      
+      // Crea il container della modale
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'symptom-add-modal';
+      modalContainer.className = 'modal-overlay';
+      modalContainer.style.display = 'none';
+      modalContainer.style.position = 'fixed';
+      modalContainer.style.top = '0';
+      modalContainer.style.left = '0';
+      modalContainer.style.width = '100%';
+      modalContainer.style.height = '100%';
+      modalContainer.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      modalContainer.style.zIndex = '1000';
+      
+      // Appendi la modale al body del documento
+      document.body.appendChild(modalContainer);
+      console.log("✅ Modale sintomi creata e aggiunta al DOM");
+    } else {
+      console.log("✅ Modale sintomi già presente nel DOM");
+    }
+    
+    // Pulizia al momento dello smontaggio del componente
+    return () => {
+      console.log("🧹 Pulizia SymptomTracker");
+      // Opzionalmente, rimuovi la modale dal DOM allo smontaggio
+      // document.body.removeChild(modalContainer);
+    };
+  }, []);
+
   // Dati di esempio - sostituiti con array vuoto
   const mockSymptoms = [];
 
@@ -213,18 +252,47 @@ const SymptomTracker = ({ userId }) => {
 
   // Funzione alternativa per aprire la modale tramite metodo DOM diretto
   const openAddModal = (e) => {
-    if (e) e.preventDefault();
-    console.log("Apertura modale sintomi con metodo alternativo");
-    
-    // Usa direttamente il DOM per aprire la modale
-    const modal = document.getElementById('symptom-add-modal');
-    if (modal) {
-      modal.style.display = 'block';
-      document.body.style.overflow = 'hidden'; // Blocca lo scroll
+    try {
+      if (e) e.preventDefault();
+      console.log("⚠️ Apertura modale sintomi con metodo dom diretto", Date.now());
+      
+      // Usa direttamente il DOM per aprire la modale
+      const modal = document.getElementById('symptom-add-modal');
+      if (modal) {
+        console.log("✅ Modale trovata, cambiando stile", modal);
+        modal.style.display = 'flex';
+        modal.classList.add('show-modal');
+        document.body.style.overflow = 'hidden'; // Blocca lo scroll
+      } else {
+        console.error("❌ Modale non trovata!");
+      }
+      
+      // Aggiorna anche lo stato React per consistenza
+      setIsAddModalOpen(true);
+    } catch (error) {
+      console.error("Errore nell'apertura della modale:", error);
     }
-    
-    // Aggiorna anche lo stato React per consistenza
-    setIsAddModalOpen(true);
+  };
+
+  // Funzione per chiudere la modale
+  const closeAddModal = (e) => {
+    try {
+      if (e) e.preventDefault();
+      console.log("⚠️ Chiusura modale sintomi");
+      
+      // Manipolazione DOM diretta
+      const modal = document.getElementById('symptom-add-modal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show-modal');
+        document.body.style.overflow = 'auto';
+      }
+      
+      // Aggiorna lo stato React
+      setIsAddModalOpen(false);
+    } catch (error) {
+      console.error("Errore nella chiusura della modale:", error);
+    }
   };
 
   const handleAddSymptom = (e) => {
@@ -480,12 +548,25 @@ const SymptomTracker = ({ userId }) => {
         <EmptyState />
       )}
       
-      {/* Modal per aggiungere un sintomo - con ID specifico */}
-      <div id="symptom-add-modal" className="modal-overlay" style={{display: 'none'}}>
+      {/* Modal per aggiungere un sintomo - con ID specifico e stile in linea */}
+      <div 
+        id="symptom-add-modal" 
+        className="modal-overlay" 
+        style={{
+          display: 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 1000
+        }}
+      >
         <div className="modal-content">
           <div className="modal-header">
             <h2>Aggiungi nuovo sintomo</h2>
-            <button className="close-button" onClick={() => setIsAddModalOpen(false)} type="button">
+            <button className="close-button" onClick={closeAddModal} type="button">
               <i className="fas fa-times"></i>
             </button>
           </div>
@@ -574,14 +655,14 @@ const SymptomTracker = ({ userId }) => {
           <div className="modal-footer">
             <button 
               className="cancel-button" 
-              onClick={() => setIsAddModalOpen(false)}
-                type="button"
+              onClick={closeAddModal}
+              type="button"
             >
               Annulla
             </button>
             <button 
               className="save-button" 
-                type="submit"
+              type="submit"
             >
               Salva sintomo
             </button>

@@ -15,7 +15,7 @@
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" type="application/manifest+json" />
-    <title>Salus - Monitoraggio Salute</title>
+    <title>Salus Health Tracker</title>
     
     <!-- Font Awesome per icone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -214,5 +214,138 @@
     </div>
     
     <div id="root"></div>
+    
+    <script>
+      // Script per assicurarsi che gli SVG siano accessibili globalmente
+      document.addEventListener('DOMContentLoaded', function() {
+        // Creiamo una versione pubblica degli SVG incorporati
+        const svgElements = {
+          // SVG per lo stato vuoto dei sintomi
+          symptomEmpty: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="180" height="180">
+            <path fill="#7B96FF" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>`,
+          
+          // SVG per lo stato vuoto dei farmaci
+          medicationEmpty: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="180" height="180">
+            <path fill="#FF9D6C" d="M6 3h12v2H6V3zm11 3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 9h-2.5v2.5h-3V15H8v-3h2.5V9.5h3V12H16v3z"/>
+          </svg>`,
+          
+          // SVG per lo stato vuoto del benessere
+          wellnessEmpty: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="180" height="180">
+            <path fill="#4FC1E9" d="M12,2C6.47,2 2,6.47 2,12C2,17.53 6.47,22 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M16.18,7.76L15.12,8.82L14.06,7.76L13,8.82L14.06,9.88L13,10.94L14.06,12L15.12,10.94L16.18,12L17.24,10.94L16.18,9.88L17.24,8.82L16.18,7.76M7.82,12L8.88,10.94L9.94,12L11,10.94L9.94,9.88L11,8.82L9.94,7.76L8.88,8.82L7.82,7.76L6.76,8.82L7.82,9.88L6.76,10.94L7.82,12M12,14C9.67,14 7.69,15.46 6.89,17.5H17.11C16.31,15.46 14.33,14 12,14Z"/>
+          </svg>`
+        };
+        
+        // Creiamo una funzione per gestire le richieste di SVG
+        // e ridirle al dataset in memoria senza fare richieste HTTP
+        function handleSvgRequests() {
+          const originalFetch = window.fetch;
+          
+          window.fetch = function(url, options) {
+            if (typeof url === 'string') {
+              // Intercetta richieste per wellness-empty.svg
+              if (url.includes('wellness-empty.svg')) {
+                console.log('Intercettata richiesta per wellness-empty.svg');
+                
+                // Crea una risposta finta che contenga l'SVG
+                const svgBlob = new Blob([svgElements.wellnessEmpty], {type: 'image/svg+xml'});
+                const response = new Response(svgBlob, {
+                  status: 200,
+                  statusText: 'OK',
+                  headers: new Headers({
+                    'Content-Type': 'image/svg+xml',
+                    'Content-Length': String(svgElements.wellnessEmpty.length)
+                  })
+                });
+                
+                // Restituisci una promise con la risposta finta
+                return Promise.resolve(response);
+              }
+              
+              // Intercetta richieste per symptom-empty.svg
+              if (url.includes('symptom-empty.svg')) {
+                console.log('Intercettata richiesta per symptom-empty.svg');
+                
+                const svgBlob = new Blob([svgElements.symptomEmpty], {type: 'image/svg+xml'});
+                return Promise.resolve(new Response(svgBlob, {
+                  status: 200,
+                  statusText: 'OK',
+                  headers: new Headers({'Content-Type': 'image/svg+xml'})
+                }));
+              }
+              
+              // Intercetta richieste per medication-empty.svg
+              if (url.includes('medication-empty.svg')) {
+                console.log('Intercettata richiesta per medication-empty.svg');
+                
+                const svgBlob = new Blob([svgElements.medicationEmpty], {type: 'image/svg+xml'});
+                return Promise.resolve(new Response(svgBlob, {
+                  status: 200,
+                  statusText: 'OK',
+                  headers: new Headers({'Content-Type': 'image/svg+xml'})
+                }));
+              }
+            }
+            
+            // Per tutte le altre richieste, usa il fetch originale
+            return originalFetch.call(this, url, options);
+          };
+        }
+        
+        // Inizializza il gestore delle richieste SVG
+        handleSvgRequests();
+        console.log('✅ Gestore SVG inizializzato - Gli SVG verranno serviti localmente');
+      });
+    </script>
+    
+    <!-- Script per gestire SVG direttamente nel browser -->
+    <script>
+      // Esegui questo codice quando il DOM è completamente caricato
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log("🔄 Inizializzazione SVG Handler...");
+        
+        // Definisci gli SVG che potrebbero essere richiesti dall'app
+        const svgs = {
+          'symptom-empty': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="180" height="180">
+            <path fill="#4a90e2" d="M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256s256-114.6 256-256S397.4 0 256 0zM256 400c-18 0-32-14-32-32s13.1-32 32-32c17.1 0 32 14 32 32S273.1 400 256 400zM325.1 258L280 286V288c0 13-11 24-24 24S232 301 232 288V272c0-8 4-16 12-21l57-34C308 213 312 206 312 196c0-19-15-34-34-34c-17 0-30 12-33 28c-2 9-10 16-19 16c-11 0-21-9-21-20c0-34 27-61 61-61c36 0 64 29 64 65C330 222 341 235 325.1 258z"/>
+          </svg>`,
+          'medication-empty': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="180" height="180">
+            <path fill="#4a90e2" d="M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.9c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391l-19.9 107.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121l19.9-107.9c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6z"/>
+          </svg>`,
+          'wellness-empty': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="180" height="180">
+            <path fill="#4a90e2" d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"/>
+          </svg>`
+        };
+        
+        // Intercetta le richieste fetch per servire SVG localmente
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+          const urlString = url.toString();
+          
+          // Verifica se la richiesta è per uno degli SVG che vogliamo gestire
+          for (let svgName in svgs) {
+            if (urlString.includes(`${svgName}.svg`)) {
+              console.log(`🔍 Intercettata richiesta per ${svgName}.svg, servendo dal browser`);
+              
+              // Crea una risposta fake con l'SVG
+              const svgBlob = new Blob([svgs[svgName]], {type: 'image/svg+xml'});
+              const response = new Response(svgBlob, {
+                status: 200,
+                statusText: 'OK',
+                headers: new Headers({'Content-Type': 'image/svg+xml'})
+              });
+              
+              // Restituisci una Promise che risolve con la risposta
+              return Promise.resolve(response);
+            }
+          }
+          
+          // Per tutte le altre richieste, usa il fetch originale
+          return originalFetch.apply(this, arguments);
+        };
+        
+        console.log("✅ SVG Handler inizializzato con successo");
+      });
+    </script>
   </body>
 </html> 

@@ -48,59 +48,21 @@ const WellnessTracker = ({ userId }) => {
   };
 
   // Componente per stato vuoto
-  const EmptyState = () => (
-    <div className="empty-state">
-      <div className="empty-illustration">
-        <i className="fas fa-smile-beam" style={{ fontSize: '180px', color: 'var(--primary-color-light)' }}></i>
-      </div>
-      <h2>Non hai ancora registrato dati sul benessere</h2>
-      <p>Tieni traccia del tuo benessere giornaliero per scoprire pattern e migliorare il tuo stile di vita</p>
-      
-      <div className="benefits-list">
-        <div className="benefit-item">
-          <div className="benefit-icon">
-            <i className="fas fa-brain"></i>
-          </div>
-          <div className="benefit-text">
-            <h3>Monitora il tuo umore</h3>
-            <p>Identifica cosa influenza positivamente il tuo stato emotivo</p>
-          </div>
+  const EmptyState = ({ onAddClick }) => {
+    return (
+      <div className="wellness-empty-state">
+        <div className="empty-state-icon">
+          <i className="fas fa-heartbeat fa-4x" style={{ color: '#4a90e2' }}></i>
         </div>
-        
-        <div className="benefit-item">
-          <div className="benefit-icon">
-            <i className="fas fa-bed"></i>
-          </div>
-          <div className="benefit-text">
-            <h3>Migliora il tuo sonno</h3>
-            <p>Analizza le abitudini che influenzano la qualità del riposo</p>
-          </div>
-        </div>
-        
-        <div className="benefit-item">
-          <div className="benefit-icon">
-            <i className="fas fa-running"></i>
-          </div>
-          <div className="benefit-text">
-            <h3>Ottimizza l'energia</h3>
-            <p>Scopri come gestire al meglio i tuoi livelli di energia durante il giorno</p>
-          </div>
-        </div>
-      </div>
-      
-      <button 
-        className="add-wellness-button-large"
-        onClick={(e) => {
+        <h3>Non hai ancora registrato alcun dato sul tuo benessere</h3>
+        <p>Inizia a tenere traccia di come ti senti.</p>
+        <button className="add-btn" onClick={(e) => { 
           e.preventDefault();
-          console.log("Apertura form benessere");
-          setShowForm(true);
-        }}
-        type="button"
-      >
-        <i className="fas fa-plus-circle"></i> Registra il tuo primo dato di benessere
-      </button>
-    </div>
-  );
+          onAddClick();
+        }}>Aggiungi dati benessere</button>
+      </div>
+    );
+  };
 
   // Carica i dati esistenti
   useEffect(() => {
@@ -127,6 +89,45 @@ const WellnessTracker = ({ userId }) => {
       
       setLoading(false);
     }, 400);
+  }, []);
+
+  // Aggiungi questa inizializzazione dopo gli hook useEffect esistenti
+  useEffect(() => {
+    console.log("🔄 Inizializzazione WellnessTracker - Creazione modale...");
+    
+    // Verifica se esiste già il container modale
+    let modalContainer = document.getElementById('wellness-add-modal');
+    
+    // Se non esiste, crealo manualmente
+    if (!modalContainer) {
+      console.log("⚙️ Creazione manuale modale benessere");
+      
+      // Crea il container della modale
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'wellness-add-modal';
+      modalContainer.className = 'modal-overlay';
+      modalContainer.style.display = 'none';
+      modalContainer.style.position = 'fixed';
+      modalContainer.style.top = '0';
+      modalContainer.style.left = '0';
+      modalContainer.style.width = '100%';
+      modalContainer.style.height = '100%';
+      modalContainer.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      modalContainer.style.zIndex = '1000';
+      
+      // Appendi la modale al body del documento
+      document.body.appendChild(modalContainer);
+      console.log("✅ Modale benessere creata e aggiunta al DOM");
+    } else {
+      console.log("✅ Modale benessere già presente nel DOM");
+    }
+    
+    // Pulizia al momento dello smontaggio del componente
+    return () => {
+      console.log("🧹 Pulizia WellnessTracker");
+      // Opzionalmente, rimuovi la modale dal DOM allo smontaggio
+      // document.body.removeChild(modalContainer);
+    };
   }, []);
 
   // Gestione invio del form
@@ -800,7 +801,7 @@ const WellnessTracker = ({ userId }) => {
               </form>
           </div>
           ) : (
-            <EmptyState />
+            <EmptyState onAddClick={() => setShowForm(true)} />
           )}
         </>
         )}

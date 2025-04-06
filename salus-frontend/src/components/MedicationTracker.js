@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/MedicationTracker.css';
+import { useNavigate } from 'react-router-dom';
 
 const MedicationTracker = ({ userId }) => {
-  // Stati per la gestione dei dati e dell'interfaccia
-  const [loading, setLoading] = useState(true);
+  // Stati e hooks
   const [medications, setMedications] = useState([]);
-  const [filteredMedications, setFilteredMedications] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedMedication, setSelectedMedication] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   
@@ -16,61 +17,75 @@ const MedicationTracker = ({ userId }) => {
   const [newMedication, setNewMedication] = useState({
     name: '',
     dosage: '',
-    unit: 'mg',
-    frequency: 'daily',
-    time: [],
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
+    frequency: '',
+    time: '',
     notes: '',
     status: 'active'
   });
-
-  // Questo effetto gestisce l'apertura e chiusura della modale 
-  // direttamente quando cambia isAddModalOpen
+  
+  // Inizializzazione - crea la modale direttamente
   useEffect(() => {
-    if (isAddModalOpen) {
-      // Trova la modale per id
-      const modal = document.getElementById('medication-add-modal');
-      if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden'; // Blocca lo scroll
-      }
+    console.log("🔄 Inizializzazione MedicationTracker - Creazione modale...");
+    
+    // Verifica se esiste già il container modale
+    let modalContainer = document.getElementById('medication-add-modal');
+    
+    // Se non esiste, crealo manualmente
+    if (!modalContainer) {
+      console.log("⚙️ Creazione manuale modale farmaci");
+      
+      // Crea il container della modale
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'medication-add-modal';
+      modalContainer.className = 'modal-overlay';
+      modalContainer.style.display = 'none';
+      modalContainer.style.position = 'fixed';
+      modalContainer.style.top = '0';
+      modalContainer.style.left = '0';
+      modalContainer.style.width = '100%';
+      modalContainer.style.height = '100%';
+      modalContainer.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      modalContainer.style.zIndex = '1000';
+      
+      // Appendi la modale al body del documento
+      document.body.appendChild(modalContainer);
+      console.log("✅ Modale farmaci creata e aggiunta al DOM");
     } else {
-      const modal = document.getElementById('medication-add-modal');
-      if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto'; // Ripristina lo scroll
-      }
+      console.log("✅ Modale farmaci già presente nel DOM");
     }
-  }, [isAddModalOpen]);
+    
+    // Pulizia al momento dello smontaggio del componente
+    return () => {
+      console.log("🧹 Pulizia MedicationTracker");
+      // Opzionalmente, rimuovi la modale dal DOM allo smontaggio
+      // document.body.removeChild(modalContainer);
+    };
+  }, []);
 
-  // Tempi predefiniti
-  const timeOptions = [
+  // Stati per la gestione dei dati e dell'interfaccia
+  const [loading, setLoading] = useState(true);
+  const [filteredMedications, setFilteredMedications] = useState([]);
+  const [selectedMedication, setSelectedMedication] = useState(null);
+  const [timeOptions, setTimeOptions] = useState([
     { label: 'Mattina', value: 'morning', time: '08:00' },
     { label: 'Pranzo', value: 'lunch', time: '13:00' },
     { label: 'Cena', value: 'dinner', time: '20:00' },
     { label: 'Prima di dormire', value: 'bedtime', time: '22:00' }
-  ];
-  
-  // Unità predefinite
-  const unitOptions = ['mg', 'g', 'ml', 'compresse', 'gocce', 'unità'];
-  
-  // Frequenze predefinite
-  const frequencyOptions = [
+  ]);
+  const [unitOptions, setUnitOptions] = useState(['mg', 'g', 'ml', 'compresse', 'gocce', 'unità']);
+  const [frequencyOptions, setFrequencyOptions] = useState([
     { value: 'daily', label: 'Ogni giorno' },
     { value: 'twice', label: '2 volte al giorno' },
     { value: 'three-times', label: '3 volte al giorno' },
     { value: 'weekly', label: 'Settimanale' },
     { value: 'monthly', label: 'Mensile' },
     { value: 'as-needed', label: 'Al bisogno' }
-  ];
-  
-  // Stati predefiniti
-  const statusOptions = [
+  ]);
+  const [statusOptions, setStatusOptions] = useState([
     { value: 'active', label: 'Attivo' },
     { value: 'completed', label: 'Completato' },
     { value: 'paused', label: 'In pausa' }
-  ];
+  ]);
 
   // Mock dati farmaci - sostituito con array vuoto
   const mockMedications = [];
@@ -217,24 +232,53 @@ const MedicationTracker = ({ userId }) => {
 
   // Funzione alternativa per aprire la modale tramite metodo DOM diretto
   const openAddModal = (e) => {
-    e.preventDefault();
-    console.log("Apertura modale farmaco con metodo alternativo");
-    
-    // Usa direttamente il DOM per aprire la modale
-    const modal = document.getElementById('medication-add-modal');
-    if (modal) {
-      modal.style.display = 'block';
-      document.body.style.overflow = 'hidden'; // Blocca lo scroll
+    try {
+      if (e) e.preventDefault();
+      console.log("⚠️ Apertura modale farmaci con metodo DOM diretto", Date.now());
+      
+      // Usa direttamente il DOM per aprire la modale
+      const modal = document.getElementById('medication-add-modal');
+      if (modal) {
+        console.log("✅ Modale farmaci trovata, cambiando stile", modal);
+        modal.style.display = 'flex';
+        modal.classList.add('show-modal');
+        document.body.style.overflow = 'hidden'; // Blocca lo scroll
+      } else {
+        console.error("❌ Modale farmaci non trovata!");
+      }
+      
+      // Aggiorna anche lo stato React per consistenza
+      setIsAddModalOpen(true);
+    } catch (error) {
+      console.error("Errore nell'apertura della modale farmaci:", error);
     }
-    
-    // Aggiorna anche lo stato React per consistenza
-    setIsAddModalOpen(true);
+  };
+
+  // Funzione per chiudere la modale
+  const closeAddModal = (e) => {
+    try {
+      if (e) e.preventDefault();
+      console.log("⚠️ Chiusura modale farmaci");
+      
+      // Manipolazione DOM diretta
+      const modal = document.getElementById('medication-add-modal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show-modal');
+        document.body.style.overflow = 'auto';
+      }
+      
+      // Aggiorna lo stato React
+      setIsAddModalOpen(false);
+    } catch (error) {
+      console.error("Errore nella chiusura della modale farmaci:", error);
+    }
   };
 
   // Visualizza dettaglio farmaco
   const handleMedicationClick = (medication) => {
     setSelectedMedication(medication);
-    setIsDetailModalOpen(true);
+    setIsEditModalOpen(true);
   };
 
   // Elimina farmaco
@@ -251,7 +295,7 @@ const MedicationTracker = ({ userId }) => {
       localStorage.setItem('medications', JSON.stringify(updatedMedications));
       
       console.log("Farmaco eliminato con successo");
-    setIsDetailModalOpen(false);
+    setIsEditModalOpen(false);
     } catch (error) {
       console.error("Errore durante l'eliminazione del farmaco:", error);
       alert("Si è verificato un errore durante l'eliminazione. Riprova.");
@@ -274,7 +318,7 @@ const MedicationTracker = ({ userId }) => {
       localStorage.setItem('medications', JSON.stringify(updatedMedications));
       
       console.log("Stato farmaco aggiornato con successo");
-    setIsDetailModalOpen(false);
+    setIsEditModalOpen(false);
     } catch (error) {
       console.error("Errore durante l'aggiornamento dello stato del farmaco:", error);
       alert("Si è verificato un errore durante l'aggiornamento dello stato. Riprova.");
@@ -545,12 +589,25 @@ const MedicationTracker = ({ userId }) => {
         <EmptyState />
       )}
       
-      {/* Modal per aggiungere un farmaco - con ID specifico */}
-      <div id="medication-add-modal" className="modal-overlay" style={{display: 'none'}}>
+      {/* Modal per aggiungere un farmaco - con ID specifico e stile in linea */}
+      <div 
+        id="medication-add-modal" 
+        className="modal-overlay" 
+        style={{
+          display: 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 1000
+        }}
+      >
         <div className="modal-content">
           <div className="modal-header">
             <h2>Aggiungi nuovo farmaco</h2>
-            <button className="close-button" onClick={() => setIsAddModalOpen(false)} type="button">
+            <button className="close-button" onClick={closeAddModal} type="button">
               <i className="fas fa-times"></i>
             </button>
           </div>
@@ -679,7 +736,7 @@ const MedicationTracker = ({ userId }) => {
           <div className="modal-footer">
             <button 
               className="cancel-button" 
-              onClick={() => setIsAddModalOpen(false)}
+              onClick={closeAddModal}
                 type="button"
             >
               Annulla
@@ -696,12 +753,12 @@ const MedicationTracker = ({ userId }) => {
       </div>
       
       {/* Modal per visualizzare dettaglio */}
-      {isDetailModalOpen && selectedMedication && (
+      {isEditModalOpen && selectedMedication && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
               <h2>{selectedMedication.name}</h2>
-              <button className="close-button" onClick={() => setIsDetailModalOpen(false)}>
+              <button className="close-button" onClick={() => setIsEditModalOpen(false)}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
@@ -803,7 +860,7 @@ const MedicationTracker = ({ userId }) => {
               
               <button 
                 className="close-detail-button" 
-                onClick={() => setIsDetailModalOpen(false)}
+                onClick={() => setIsEditModalOpen(false)}
               >
                 Chiudi
               </button>
