@@ -199,12 +199,14 @@ const SymptomTracker = ({ userId }) => {
   const handleAddSymptom = (e) => {
     if (e) e.preventDefault();
     
+    console.log("Button clicked - handleAddSymptom called");
+    
     if (!newSymptom.name || !newSymptom.category) {
       alert('Inserisci nome e categoria del sintomo');
       return;
     }
     
-    console.log("Salvataggio sintomo in corso...", newSymptom);
+    console.log("Validation passed, salvataggio sintomo in corso...", newSymptom);
     
     try {
       // Crea un ID unico
@@ -220,6 +222,7 @@ const SymptomTracker = ({ userId }) => {
       
       // Crea una copia dell'array in modo sicuro
       let currentSymptoms = Array.isArray(symptoms) ? [...symptoms] : [];
+      console.log("Array attuale:", currentSymptoms);
       let updatedSymptoms = [newSymptomWithId, ...currentSymptoms];
       
       console.log("Array aggiornato:", updatedSymptoms);
@@ -231,7 +234,8 @@ const SymptomTracker = ({ userId }) => {
       // Salva nel localStorage per persistenza
       localStorage.setItem('symptoms', JSON.stringify(updatedSymptoms));
       
-      console.log("Sintomo salvato con successo:", newSymptomWithId);
+      console.log("Sintomo salvato con successo nel localStorage!", newSymptomWithId);
+      console.log("Verifica localStorage:", localStorage.getItem('symptoms'));
       
       // Aggiungi la categoria se è nuova
       if (!categories.some(cat => cat.name === newSymptom.category)) {
@@ -537,12 +541,14 @@ const SymptomTracker = ({ userId }) => {
               <button 
                 className="cancel-button" 
                 onClick={() => setIsAddModalOpen(false)}
+                type="button"
               >
                 Annulla
               </button>
               <button 
                 className="save-button" 
-                onClick={handleAddSymptom}
+                onClick={(e) => handleAddSymptom(e)}
+                type="button"
               >
                 Salva sintomo
               </button>

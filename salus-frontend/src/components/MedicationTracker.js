@@ -136,12 +136,14 @@ const MedicationTracker = ({ userId }) => {
   const handleAddMedication = (e) => {
     if (e) e.preventDefault();
     
+    console.log("Button clicked - handleAddMedication called");
+    
     if (!newMedication.name || !newMedication.dosage) {
       alert('Inserisci nome e dosaggio del farmaco');
       return;
     }
     
-    console.log("Salvataggio farmaco in corso...", newMedication);
+    console.log("Validation passed, salvataggio farmaco in corso...", newMedication);
     
     try {
       // Crea un ID unico
@@ -157,6 +159,7 @@ const MedicationTracker = ({ userId }) => {
       
       // Crea una copia dell'array in modo sicuro
       let currentMedications = Array.isArray(medications) ? [...medications] : [];
+      console.log("Array attuale:", currentMedications);
       let updatedMedications = [newMedicationWithId, ...currentMedications];
       
       console.log("Array aggiornato:", updatedMedications);
@@ -168,7 +171,8 @@ const MedicationTracker = ({ userId }) => {
       // Salva nel localStorage per persistenza
       localStorage.setItem('medications', JSON.stringify(updatedMedications));
       
-      console.log("Farmaco salvato con successo:", newMedicationWithId);
+      console.log("Farmaco salvato con successo nel localStorage!", newMedicationWithId);
+      console.log("Verifica localStorage:", localStorage.getItem('medications'));
       
       // Resetta il form
       setNewMedication({
@@ -642,12 +646,14 @@ const MedicationTracker = ({ userId }) => {
               <button 
                 className="cancel-button" 
                 onClick={() => setIsAddModalOpen(false)}
+                type="button"
               >
                 Annulla
               </button>
               <button 
                 className="save-button" 
-                onClick={handleAddMedication}
+                onClick={(e) => handleAddMedication(e)}
+                type="button"
               >
                 Salva farmaco
               </button>
