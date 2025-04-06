@@ -712,8 +712,8 @@
 /* Pulsanti */
 .save-button, 
 .cancel-button, 
-.delete-button,
-.edit-button,
+.delete-button, 
+.edit-button, 
 .close-detail-button {
   padding: var(--space-sm) var(--space-lg);
   border-radius: var(--radius-md);
@@ -861,11 +861,11 @@ input[type="range"]::-moz-range-thumb {
   .symptom-tracker {
     background-color: var(--bg-secondary-dark);
   }
-
+  
   .symptom-title h1 {
     color: var(--text-primary-dark);
   }
-
+  
   .symptom-title p {
     color: var(--text-secondary-dark);
   }
@@ -895,23 +895,23 @@ input[type="range"]::-moz-range-thumb {
   .stat-card {
     background-color: var(--card-bg-dark);
   }
-
+  
   .stat-value {
     color: var(--primary-color-light);
   }
-
+  
   .stat-label {
     color: var(--text-secondary-dark);
   }
-
+  
   .symptom-card {
     background-color: var(--card-bg-dark);
   }
-
+  
   .symptom-name h3 {
     color: var(--text-primary-dark);
   }
-
+  
   .symptom-category {
     background-color: var(--bg-tertiary-dark);
   }
@@ -919,11 +919,11 @@ input[type="range"]::-moz-range-thumb {
   .symptom-category span {
     color: var(--text-secondary-dark);
   }
-
+  
   .symptom-description {
     color: var(--text-secondary-dark);
   }
-
+  
   .symptom-date {
     color: var(--text-tertiary-dark);
   }
@@ -940,33 +940,33 @@ input[type="range"]::-moz-range-thumb {
   .no-results p {
     color: var(--text-secondary-dark);
   }
-
+  
   .modal-content {
     background-color: var(--card-bg-dark);
   }
-
+  
   .modal-header {
     border-color: var(--border-color-dark);
     background-color: var(--bg-tertiary-dark);
   }
-
+  
   .modal-header h2 {
     color: var(--text-primary-dark);
   }
-
+  
   .modal-footer {
     border-color: var(--border-color-dark);
     background-color: var(--bg-tertiary-dark);
   }
-
+  
   .form-group label {
     color: var(--text-secondary-dark);
   }
-
+  
   .detail-label {
     color: var(--text-secondary-dark);
   }
-
+  
   .detail-value {
     color: var(--text-primary-dark);
   }
@@ -985,7 +985,7 @@ input[type="range"]::-moz-range-thumb {
     background-color: var(--bg-tertiary-dark);
     color: var(--text-secondary-dark);
   }
-
+  
   .cancel-button:hover, 
   .close-detail-button:hover {
     color: var(--text-primary-dark);
@@ -1000,25 +1000,25 @@ input[type="range"]::-moz-range-thumb {
     gap: var(--space-md);
     margin-bottom: var(--space-lg);
   }
-
+  
   .add-symptom-button {
     width: 100%;
   }
-
+  
   .symptom-filters {
     flex-direction: column;
     align-items: stretch;
   }
-
+  
   .form-row {
     flex-direction: column;
     gap: var(--space-md);
   }
-
+  
   .symptom-card {
     flex-direction: column;
   }
-
+  
   .symptom-severity {
     width: 100%;
     padding: var(--space-sm);
@@ -1027,20 +1027,20 @@ input[type="range"]::-moz-range-thumb {
   .symptoms-list {
     grid-template-columns: 1fr;
   }
-
+  
   .intensity-indicator {
     margin-bottom: var(--space-sm);
   }
-
+  
   .modal-content {
     max-width: 100%;
     border-radius: var(--radius-md);
   }
-
+  
   .modal-footer {
     flex-wrap: wrap;
   }
-
+  
   .delete-button, .edit-button, .close-detail-button {
     flex: 1 0 100%;
     margin-bottom: var(--space-sm);

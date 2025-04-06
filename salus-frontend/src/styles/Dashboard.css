@@ -698,13 +698,13 @@ body.dark-mode .modal-footer,
   .dashboard-container {
     padding: 1rem;
   }
-  
+
   .quick-stats,
   .quick-actions,
   .tracking-sections {
     grid-template-columns: 1fr;
   }
-  
+
   .today-summary {
     flex-direction: column;
   }

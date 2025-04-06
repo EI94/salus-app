@@ -135,7 +135,7 @@ const WellnessTracker = ({ userId }) => {
     setSubmitting(true);
     
     console.log("Form inviato! Salvataggio dati di benessere in corso...", formData);
-    
+
     try {
       // Crea un nuovo record di benessere
       const newRecord = {
@@ -160,11 +160,11 @@ const WellnessTracker = ({ userId }) => {
         console.error("Errore nel parsing dei dati salvati:", parseError);
         currentData = [];
       }
-      
+
       // Aggiorna lo stato locale
       const updatedData = [...currentData, newRecord];
       setWellnessData(updatedData);
-      
+
       // Salva nel localStorage
       localStorage.setItem('wellnessData', JSON.stringify(updatedData));
       console.log("Dati di benessere salvati con successo nel localStorage:", updatedData);
@@ -475,15 +475,15 @@ const WellnessTracker = ({ userId }) => {
         </div>
         
         {wellnessData.length > 0 && !showForm && (
-          <button 
+        <button 
             className="add-wellness-button" 
             onClick={() => setShowForm(true)}
-          >
+        >
             <i className="fas fa-plus"></i> Nuovo Report
-          </button>
+        </button>
         )}
       </div>
-      
+
       {successMessage && (
         <div className="success-message">
           <i className="fas fa-check-circle"></i> {successMessage}
@@ -497,141 +497,141 @@ const WellnessTracker = ({ userId }) => {
               <WellnessStats />
               <WellnessLogHistory />
             </>
-          )}
-          
-          {showForm && (
-            <div className="wellness-form-container">
+      )}
+
+      {showForm && (
+        <div className="wellness-form-container">
               <h2>Inserisci i dati di oggi</h2>
-              <form onSubmit={handleSubmit} className="wellness-form">
-                <div className="form-group">
-                  <label htmlFor="date">Data</label>
-                  <input
-                    type="date"
-                    id="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                
-                <div className="form-group range-group">
+          <form onSubmit={handleSubmit} className="wellness-form">
+            <div className="form-group">
+              <label htmlFor="date">Data</label>
+              <input
+                type="date"
+                id="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group range-group">
                   <label htmlFor="mood">
                     <i className={`fas ${getMoodIcon(formData.mood)}`} style={{color: getMoodColor(formData.mood)}}></i>
                     Umore: <span>{getMoodLabel(formData.mood)}</span>
                   </label>
-                  <input
-                    type="range"
-                    id="mood"
-                    name="mood"
-                    min="1"
-                    max="5"
-                    value={formData.mood}
-                    onChange={handleChange}
-                    className="range-slider"
-                  />
+                <input
+                  type="range"
+                  id="mood"
+                  name="mood"
+                  min="1"
+                  max="5"
+                  value={formData.mood}
+                  onChange={handleChange}
+                  className="range-slider"
+                />
                   <div className="range-labels">
                     <span>Molto triste</span>
                     <span>Molto felice</span>
-                  </div>
-                </div>
-                
-                <div className="form-group range-group">
+              </div>
+            </div>
+
+            <div className="form-group range-group">
                   <label htmlFor="sleepQuality">
                     <i className="fas fa-bed"></i>
                     Qualità del sonno: <span>{formData.sleepQuality}/5</span>
                   </label>
-                  <input
-                    type="range"
-                    id="sleepQuality"
-                    name="sleepQuality"
-                    min="1"
-                    max="5"
-                    value={formData.sleepQuality}
-                    onChange={handleChange}
-                    className="range-slider"
-                  />
+                <input
+                  type="range"
+                  id="sleepQuality"
+                  name="sleepQuality"
+                  min="1"
+                  max="5"
+                  value={formData.sleepQuality}
+                  onChange={handleChange}
+                  className="range-slider"
+                />
                   <div className="range-labels">
                     <span>Scarsa</span>
                     <span>Eccellente</span>
-                  </div>
-                </div>
-                
-                <div className="form-group range-group">
+              </div>
+            </div>
+
+            <div className="form-group range-group">
                   <label htmlFor="energyLevel">
                     <i className="fas fa-bolt"></i>
                     Livello di energia: <span>{formData.energyLevel}/5</span>
                   </label>
-                  <input
-                    type="range"
-                    id="energyLevel"
-                    name="energyLevel"
-                    min="1"
-                    max="5"
-                    value={formData.energyLevel}
-                    onChange={handleChange}
-                    className="range-slider"
-                  />
+                <input
+                  type="range"
+                  id="energyLevel"
+                  name="energyLevel"
+                  min="1"
+                  max="5"
+                  value={formData.energyLevel}
+                  onChange={handleChange}
+                  className="range-slider"
+                />
                   <div className="range-labels">
                     <span>Basso</span>
                     <span>Alto</span>
-                  </div>
-                </div>
-                
-                <div className="form-group range-group">
+              </div>
+            </div>
+
+            <div className="form-group range-group">
                   <label htmlFor="stressLevel">
                     <i className="fas fa-wind"></i>
                     Livello di stress: <span>{formData.stressLevel}/5</span>
                   </label>
-                  <input
-                    type="range"
-                    id="stressLevel"
-                    name="stressLevel"
-                    min="1"
-                    max="5"
-                    value={formData.stressLevel}
-                    onChange={handleChange}
-                    className="range-slider"
-                  />
+                <input
+                  type="range"
+                  id="stressLevel"
+                  name="stressLevel"
+                  min="1"
+                  max="5"
+                  value={formData.stressLevel}
+                  onChange={handleChange}
+                  className="range-slider"
+                />
                   <div className="range-labels">
                     <span>Basso</span>
                     <span>Alto</span>
-                  </div>
-                </div>
-                
+              </div>
+            </div>
+
                 <div className="form-group checkbox-group">
                   <label htmlFor="physicalActivity" className="checkbox-label">
-                    <input
+                <input
                       type="checkbox"
-                      id="physicalActivity"
-                      name="physicalActivity"
+                  id="physicalActivity"
+                  name="physicalActivity"
                       checked={formData.physicalActivity}
-                      onChange={handleChange}
-                    />
+                  onChange={handleChange}
+                />
                     <i className="fas fa-running"></i> Hai fatto attività fisica oggi?
                   </label>
-                </div>
-                
-                <div className="form-group">
+            </div>
+
+            <div className="form-group">
                   <label htmlFor="notes">Note aggiuntive</label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
+              <textarea
+                id="notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleChange}
                     placeholder="Aggiungi note sul tuo benessere di oggi..."
-                    rows="3"
-                  ></textarea>
-                </div>
-                
-                <div className="form-actions">
+                rows="3"
+              ></textarea>
+            </div>
+
+            <div className="form-actions">
                   <button 
                     type="button" 
                     className="cancel-button"
                     onClick={() => setShowForm(false)}
                   >
-                    Annulla
-                  </button>
+                Annulla
+              </button>
                   <button 
                     type="submit" 
                     className="save-button"
@@ -643,11 +643,11 @@ const WellnessTracker = ({ userId }) => {
                         Salvataggio...
                       </>
                     ) : 'Salva'}
-                  </button>
-                </div>
-              </form>
+              </button>
             </div>
-          )}
+          </form>
+        </div>
+      )}
         </>
       ) : (
         <>
@@ -686,11 +686,11 @@ const WellnessTracker = ({ userId }) => {
                     <span>Molto triste</span>
                     <span>Molto felice</span>
                   </div>
-                </div>
-                
+                    </div>
+                    
                 <div className="form-group range-group">
                   <label htmlFor="sleepQuality">
-                    <i className="fas fa-bed"></i>
+                      <i className="fas fa-bed"></i>
                     Qualità del sonno: <span>{formData.sleepQuality}/5</span>
                   </label>
                   <input
@@ -707,11 +707,11 @@ const WellnessTracker = ({ userId }) => {
                     <span>Scarsa</span>
                     <span>Eccellente</span>
                   </div>
-                </div>
-                
+                    </div>
+                    
                 <div className="form-group range-group">
                   <label htmlFor="energyLevel">
-                    <i className="fas fa-bolt"></i>
+                      <i className="fas fa-bolt"></i>
                     Livello di energia: <span>{formData.energyLevel}/5</span>
                   </label>
                   <input
@@ -727,9 +727,9 @@ const WellnessTracker = ({ userId }) => {
                   <div className="range-labels">
                     <span>Basso</span>
                     <span>Alto</span>
-                  </div>
-                </div>
-                
+                    </div>
+                    </div>
+                    
                 <div className="form-group range-group">
                   <label htmlFor="stressLevel">
                     <i className="fas fa-wind"></i>
@@ -749,7 +749,7 @@ const WellnessTracker = ({ userId }) => {
                     <span>Basso</span>
                     <span>Alto</span>
                   </div>
-                </div>
+                    </div>
                 
                 <div className="form-group checkbox-group">
                   <label htmlFor="physicalActivity" className="checkbox-label">
@@ -762,8 +762,8 @@ const WellnessTracker = ({ userId }) => {
                     />
                     <i className="fas fa-running"></i> Hai fatto attività fisica oggi?
                   </label>
-                </div>
-                
+                  </div>
+                  
                 <div className="form-group">
                   <label htmlFor="notes">Note aggiuntive</label>
                   <textarea
@@ -774,7 +774,7 @@ const WellnessTracker = ({ userId }) => {
                     placeholder="Aggiungi note sul tuo benessere di oggi..."
                     rows="3"
                   ></textarea>
-                </div>
+                    </div>
                 
                 <div className="form-actions">
                   <button 
@@ -798,12 +798,12 @@ const WellnessTracker = ({ userId }) => {
                   </button>
                 </div>
               </form>
-            </div>
+          </div>
           ) : (
             <EmptyState />
           )}
         </>
-      )}
+        )}
     </div>
   );
 };

@@ -853,11 +853,11 @@
   .medication-tracker {
     background-color: var(--bg-secondary-dark);
   }
-
+  
   .medication-title h1 {
     color: var(--text-primary-dark);
   }
-
+  
   .medication-title p {
     color: var(--text-secondary-dark);
   }
@@ -950,29 +950,29 @@
     gap: var(--space-md);
     margin-bottom: var(--space-lg);
   }
-
+  
   .add-medication-button {
     width: 100%;
   }
-
+  
   .medication-filters {
     flex-direction: column;
     align-items: stretch;
   }
-
+  
   .form-row {
     flex-direction: column;
     gap: var(--space-md);
   }
-
+  
   .time-options {
     flex-direction: column;
   }
-
+  
   .medication-card {
     flex-direction: column;
   }
-
+  
   .medication-adherence {
     width: 100%;
     margin-top: var(--space-md);
@@ -980,21 +980,21 @@
     align-items: center;
     justify-content: flex-start;
   }
-
+  
   .adherence-gauge {
     width: 60px;
     margin-right: var(--space-md);
   }
-
+  
   .modal-content {
     max-width: 100%;
     border-radius: var(--radius-md);
   }
-
+  
   .detail-group {
     flex-direction: column;
   }
-
+  
   .detail-label {
     flex: none;
     margin-bottom: var(--space-xs);

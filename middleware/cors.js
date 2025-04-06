@@ -10,7 +10,7 @@ let allowedOrigins = [];
 if (process.env.CORS_ORIGIN) {
   allowedOrigins = process.env.CORS_ORIGIN.split(',');
   console.log('Domini CORS consentiti dalle variabili d\'ambiente:', allowedOrigins);
-} else {
+    } else {
   // Domini predefiniti se non definiti nella variabile d'ambiente
   allowedOrigins = [
     'http://localhost:3000',

@@ -191,14 +191,14 @@ const Dashboard = () => {
     <div className={`tracking-card ${emptyState ? 'empty' : ''}`}>
       <div className="card-header">
         <div className="card-icon">
-          <i className={`fas ${icon}`}></i>
+        <i className={`fas ${icon}`}></i>
         </div>
         <h3 className="card-title">{title}</h3>
       </div>
       
       <div className="card-content">
         {emptyState ? (
-          <p className="empty-state-description">{description}</p>
+      <p className="empty-state-description">{description}</p>
         ) : (
           <div className="card-data">
             {/* Qui verrebbero mostrati i dati se ce ne fossero */}
@@ -210,7 +210,7 @@ const Dashboard = () => {
       <div className="card-actions">
         <Link to={to} className="card-button">
           <i className="fas fa-arrow-right"></i> {buttonText}
-        </Link>
+    </Link>
         
         <button 
           className="add-button" 
@@ -374,8 +374,8 @@ const Dashboard = () => {
       
       <div className="tracking-sections">
         <TrackingCard
-          icon="fa-heartbeat"
-          title={t('symptoms')}
+            icon="fa-heartbeat"
+            title={t('symptoms')}
           description={t('noSymptomsDescription', 'Registra i tuoi sintomi per tenere traccia della tua salute nel tempo')}
           buttonText={t('viewSymptoms', 'Visualizza sintomi')}
           to="/sintomi"
@@ -384,8 +384,8 @@ const Dashboard = () => {
         />
         
         <TrackingCard
-          icon="fa-pills"
-          title={t('medications')}
+            icon="fa-pills"
+            title={t('medications')}
           description={t('noMedicationsDescription', 'Aggiungi i tuoi farmaci per ricevere promemoria e monitorare l\'assunzione')}
           buttonText={t('viewMedications', 'Visualizza farmaci')}
           to="/farmaci"
@@ -394,8 +394,8 @@ const Dashboard = () => {
         />
         
         <TrackingCard
-          icon="fa-smile"
-          title={t('wellness')}
+            icon="fa-smile"
+            title={t('wellness')}
           description={t('noWellnessDescription', 'Tieni traccia del tuo umore, sonno e attività fisica')}
           buttonText={t('viewWellness', 'Visualizza benessere')}
           to="/benessere"
