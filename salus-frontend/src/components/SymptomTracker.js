@@ -455,104 +455,108 @@ const SymptomTracker = ({ userId }) => {
           <div className="modal-content">
             <div className="modal-header">
               <h2>Aggiungi nuovo sintomo</h2>
-              <button className="close-button" onClick={() => setIsAddModalOpen(false)}>
+              <button className="close-button" onClick={() => setIsAddModalOpen(false)} type="button">
                 <i className="fas fa-times"></i>
               </button>
             </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Nome del sintomo *</label>
-                <input 
-                  type="text" 
-                  name="name" 
-                  value={newSymptom.name}
-                  onChange={handleInputChange}
-                  placeholder="Es. Mal di testa, Tosse, ecc."
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Categoria *</label>
-                <select 
-                  name="category" 
-                  value={newSymptom.category}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Seleziona categoria</option>
-                  {predefinedCategories.map((cat, index) => (
-                    <option key={index} value={cat.name}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label>Intensità: {newSymptom.intensity}</label>
-                <input 
-                  type="range" 
-                  name="intensity" 
-                  min="1" 
-                  max="10" 
-                  value={newSymptom.intensity}
-                  onChange={handleInputChange}
-                />
-                <div className="range-labels">
-                  <span>Lieve</span>
-                  <span>Moderata</span>
-                  <span>Intensa</span>
-                </div>
-              </div>
-              
-              <div className="form-row">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleAddSymptom(e);
+            }}>
+              <div className="modal-body">
                 <div className="form-group">
-                  <label>Data</label>
+                  <label>Nome del sintomo *</label>
                   <input 
-                    type="date" 
-                    name="date" 
-                    value={newSymptom.date}
+                    type="text" 
+                    name="name" 
+                    value={newSymptom.name}
                     onChange={handleInputChange}
+                    placeholder="Es. Mal di testa, Tosse, ecc."
+                    required
                   />
                 </div>
                 
                 <div className="form-group">
-                  <label>Ora</label>
+                  <label>Categoria *</label>
+                  <select 
+                    name="category" 
+                    value={newSymptom.category}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Seleziona categoria</option>
+                    {predefinedCategories.map((cat, index) => (
+                      <option key={index} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label>Intensità: {newSymptom.intensity}</label>
                   <input 
-                    type="time" 
-                    name="time" 
-                    value={newSymptom.time}
+                    type="range" 
+                    name="intensity" 
+                    min="1" 
+                    max="10" 
+                    value={newSymptom.intensity}
                     onChange={handleInputChange}
                   />
+                  <div className="range-labels">
+                    <span>Lieve</span>
+                    <span>Moderata</span>
+                    <span>Intensa</span>
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Data</label>
+                    <input 
+                      type="date" 
+                      name="date" 
+                      value={newSymptom.date}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Ora</label>
+                    <input 
+                      type="time" 
+                      name="time" 
+                      value={newSymptom.time}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Descrizione</label>
+                  <textarea 
+                    name="description" 
+                    value={newSymptom.description}
+                    onChange={handleInputChange}
+                    placeholder="Descrivi come ti senti..."
+                    rows="3"
+                  ></textarea>
                 </div>
               </div>
-              
-              <div className="form-group">
-                <label>Descrizione</label>
-                <textarea 
-                  name="description" 
-                  value={newSymptom.description}
-                  onChange={handleInputChange}
-                  placeholder="Descrivi come ti senti..."
-                  rows="3"
-                ></textarea>
+              <div className="modal-footer">
+                <button 
+                  className="cancel-button" 
+                  onClick={() => setIsAddModalOpen(false)}
+                  type="button"
+                >
+                  Annulla
+                </button>
+                <button 
+                  className="save-button"
+                  type="submit"
+                >
+                  Salva sintomo
+                </button>
               </div>
-            </div>
-            <div className="modal-footer">
-              <button 
-                className="cancel-button" 
-                onClick={() => setIsAddModalOpen(false)}
-                type="button"
-              >
-                Annulla
-              </button>
-              <button 
-                className="save-button" 
-                onClick={(e) => handleAddSymptom(e)}
-                type="button"
-              >
-                Salva sintomo
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}

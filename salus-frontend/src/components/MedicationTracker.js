@@ -520,144 +520,148 @@ const MedicationTracker = ({ userId }) => {
           <div className="modal-content">
             <div className="modal-header">
               <h2>Aggiungi nuovo farmaco</h2>
-              <button className="close-button" onClick={() => setIsAddModalOpen(false)}>
+              <button className="close-button" onClick={() => setIsAddModalOpen(false)} type="button">
                 <i className="fas fa-times"></i>
               </button>
             </div>
-            <div className="modal-body">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Nome del farmaco *</label>
-                  <input 
-                    type="text" 
-                    name="name" 
-                    value={newMedication.name}
-                    onChange={handleInputChange}
-                    placeholder="Es. Paracetamolo"
-                    required
-                  />
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleAddMedication(e);
+            }}>
+              <div className="modal-body">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Nome del farmaco *</label>
+                    <input 
+                      type="text" 
+                      name="name" 
+                      value={newMedication.name}
+                      onChange={handleInputChange}
+                      placeholder="Es. Paracetamolo"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Stato</label>
+                    <select 
+                      name="status" 
+                      value={newMedication.status}
+                      onChange={handleInputChange}
+                    >
+                      {statusOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Dosaggio *</label>
+                    <input 
+                      type="text" 
+                      name="dosage" 
+                      value={newMedication.dosage}
+                      onChange={handleInputChange}
+                      placeholder="Es. 1000"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Unità</label>
+                    <select 
+                      name="unit" 
+                      value={newMedication.unit}
+                      onChange={handleInputChange}
+                    >
+                      {unitOptions.map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 
                 <div className="form-group">
-                  <label>Stato</label>
+                  <label>Frequenza</label>
                   <select 
-                    name="status" 
-                    value={newMedication.status}
+                    name="frequency" 
+                    value={newMedication.frequency}
                     onChange={handleInputChange}
                   >
-                    {statusOptions.map(option => (
+                    {frequencyOptions.map(option => (
                       <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
                   </select>
                 </div>
-              </div>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Dosaggio *</label>
-                  <input 
-                    type="text" 
-                    name="dosage" 
-                    value={newMedication.dosage}
-                    onChange={handleInputChange}
-                    placeholder="Es. 1000"
-                    required
-                  />
-                </div>
                 
                 <div className="form-group">
-                  <label>Unità</label>
-                  <select 
-                    name="unit" 
-                    value={newMedication.unit}
-                    onChange={handleInputChange}
-                  >
-                    {unitOptions.map(option => (
-                      <option key={option} value={option}>{option}</option>
+                  <label>Orari di assunzione</label>
+                  <div className="time-options">
+                    {timeOptions.map(option => (
+                      <div key={option.value} className="time-option">
+                        <input 
+                          type="checkbox" 
+                          id={`time-${option.value}`}
+                          checked={newMedication.time.includes(option.time)}
+                          onChange={(e) => handleTimeChange(option.value, e.target.checked)}
+                        />
+                        <label htmlFor={`time-${option.value}`}>{option.label} ({option.time})</label>
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="form-group">
-                <label>Frequenza</label>
-                <select 
-                  name="frequency" 
-                  value={newMedication.frequency}
-                  onChange={handleInputChange}
-                >
-                  {frequencyOptions.map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label>Orari di assunzione</label>
-                <div className="time-options">
-                  {timeOptions.map(option => (
-                    <div key={option.value} className="time-option">
-                      <input 
-                        type="checkbox" 
-                        id={`time-${option.value}`}
-                        checked={newMedication.time.includes(option.time)}
-                        onChange={(e) => handleTimeChange(option.value, e.target.checked)}
-                      />
-                      <label htmlFor={`time-${option.value}`}>{option.label} ({option.time})</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Data inizio</label>
-                  <input 
-                    type="date" 
-                    name="startDate" 
-                    value={newMedication.startDate}
-                    onChange={handleInputChange}
-                  />
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Data inizio</label>
+                    <input 
+                      type="date" 
+                      name="startDate" 
+                      value={newMedication.startDate}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Data fine (opzionale)</label>
+                    <input 
+                      type="date" 
+                      name="endDate" 
+                      value={newMedication.endDate}
+                      onChange={handleInputChange}
+                    />
+                  </div>
                 </div>
                 
                 <div className="form-group">
-                  <label>Data fine (opzionale)</label>
-                  <input 
-                    type="date" 
-                    name="endDate" 
-                    value={newMedication.endDate}
+                  <label>Note</label>
+                  <textarea 
+                    name="notes" 
+                    value={newMedication.notes}
                     onChange={handleInputChange}
-                  />
+                    placeholder="Informazioni aggiuntive, istruzioni speciali..."
+                    rows="3"
+                  ></textarea>
                 </div>
               </div>
-              
-              <div className="form-group">
-                <label>Note</label>
-                <textarea 
-                  name="notes" 
-                  value={newMedication.notes}
-                  onChange={handleInputChange}
-                  placeholder="Informazioni aggiuntive, istruzioni speciali..."
-                  rows="3"
-                ></textarea>
+              <div className="modal-footer">
+                <button 
+                  className="cancel-button" 
+                  onClick={() => setIsAddModalOpen(false)}
+                  type="button"
+                >
+                  Annulla
+                </button>
+                <button 
+                  className="save-button"
+                  type="submit"
+                >
+                  Salva farmaco
+                </button>
               </div>
-            </div>
-            <div className="modal-footer">
-              <button 
-                className="cancel-button" 
-                onClick={() => setIsAddModalOpen(false)}
-                type="button"
-              >
-                Annulla
-              </button>
-              <button 
-                className="save-button" 
-                onClick={(e) => handleAddMedication(e)}
-                type="button"
-              >
-                Salva farmaco
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
