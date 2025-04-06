@@ -142,14 +142,22 @@ const MedicationTracker = ({ userId }) => {
     console.log("Salvataggio farmaco in corso...", newMedication);
     
     try {
+      // Crea un ID unico
+      const id = Date.now();
+      
       const newMedicationWithId = {
         ...newMedication,
-        id: Date.now(),
+        id: id,
         adherence: 1.0
       };
       
-      // Crea una copia dell'array per evitare problemi di riferimento
-      const updatedMedications = [newMedicationWithId, ...(medications || [])];
+      console.log("Nuovo farmaco con ID:", newMedicationWithId);
+      
+      // Crea una copia dell'array in modo sicuro
+      let currentMedications = [...(medications || [])];
+      let updatedMedications = [newMedicationWithId, ...currentMedications];
+      
+      console.log("Array aggiornato:", updatedMedications);
       
       // Aggiorna lo stato
       setMedications(updatedMedications);

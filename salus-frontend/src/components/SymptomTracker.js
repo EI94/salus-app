@@ -205,14 +205,22 @@ const SymptomTracker = ({ userId }) => {
     console.log("Salvataggio sintomo in corso...", newSymptom);
     
     try {
+      // Crea un ID unico
+      const id = Date.now();
+      
       const newSymptomWithId = {
         ...newSymptom,
-        id: Date.now(), // Genera un ID unico
+        id: id, // Genera un ID unico
         intensity: parseInt(newSymptom.intensity, 10)
       };
       
-      // Crea una copia dell'array per evitare problemi di riferimento
-      const updatedSymptoms = [newSymptomWithId, ...(symptoms || [])];
+      console.log("Nuovo sintomo con ID:", newSymptomWithId);
+      
+      // Crea una copia dell'array in modo sicuro
+      let currentSymptoms = Array.isArray(symptoms) ? [...symptoms] : [];
+      let updatedSymptoms = [newSymptomWithId, ...currentSymptoms];
+      
+      console.log("Array aggiornato:", updatedSymptoms);
       
       // Aggiorna lo stato
       setSymptoms(updatedSymptoms);
@@ -224,12 +232,9 @@ const SymptomTracker = ({ userId }) => {
       console.log("Sintomo salvato con successo:", newSymptomWithId);
       
       // Aggiungi la categoria se è nuova
-      if (!categories.some(cat => cat.name === newSymptom.category)) {
-        // Trova la categoria predefinita o usa una generica
-        const existingCategory = predefinedCategories.find(cat => cat.name === newSymptom.category);
-        if (existingCategory) {
-          setCategories([...categories, existingCategory]);
-        }
+      if (!categories.some(cat => cat === newSymptom.category)) {
+        let updatedCategories = [...categories, newSymptom.category];
+        setCategories(updatedCategories);
       }
       
       // Reset form
