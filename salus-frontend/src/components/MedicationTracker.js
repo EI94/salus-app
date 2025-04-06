@@ -133,7 +133,9 @@ const MedicationTracker = ({ userId }) => {
   };
 
   // Aggiungi nuovo farmaco
-  const handleAddMedication = () => {
+  const handleAddMedication = (e) => {
+    if (e) e.preventDefault();
+    
     if (!newMedication.name || !newMedication.dosage) {
       alert('Inserisci nome e dosaggio del farmaco');
       return;
@@ -154,7 +156,7 @@ const MedicationTracker = ({ userId }) => {
       console.log("Nuovo farmaco con ID:", newMedicationWithId);
       
       // Crea una copia dell'array in modo sicuro
-      let currentMedications = [...(medications || [])];
+      let currentMedications = Array.isArray(medications) ? [...medications] : [];
       let updatedMedications = [newMedicationWithId, ...currentMedications];
       
       console.log("Array aggiornato:", updatedMedications);

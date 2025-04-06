@@ -143,11 +143,29 @@ const WellnessTracker = ({ userId }) => {
         ...formData
       };
       
+      console.log("Nuovo record di benessere creato:", newRecord);
+      
       // Attendi un momento prima di aggiornare lo stato (per simulare operazione asincrona)
       setTimeout(() => {
         try {
+          // Verifica se ci sono dati esistenti
+          let currentData = [];
+          try {
+            const storedData = localStorage.getItem('wellnessData');
+            if (storedData) {
+              currentData = JSON.parse(storedData);
+              if (!Array.isArray(currentData)) {
+                console.warn("Dati in localStorage non validi, utilizzo array vuoto");
+                currentData = [];
+              }
+            }
+          } catch (parseError) {
+            console.error("Errore nel parsing dei dati salvati:", parseError);
+            currentData = [];
+          }
+          
           // Aggiorna lo stato locale
-          const updatedData = [...wellnessData, newRecord];
+          const updatedData = [...currentData, newRecord];
           setWellnessData(updatedData);
           
           // Salva nel localStorage

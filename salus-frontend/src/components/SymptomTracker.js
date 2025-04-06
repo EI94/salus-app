@@ -196,7 +196,9 @@ const SymptomTracker = ({ userId }) => {
     setNewSymptom(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAddSymptom = () => {
+  const handleAddSymptom = (e) => {
+    if (e) e.preventDefault();
+    
     if (!newSymptom.name || !newSymptom.category) {
       alert('Inserisci nome e categoria del sintomo');
       return;
@@ -232,8 +234,13 @@ const SymptomTracker = ({ userId }) => {
       console.log("Sintomo salvato con successo:", newSymptomWithId);
       
       // Aggiungi la categoria se è nuova
-      if (!categories.some(cat => cat === newSymptom.category)) {
-        let updatedCategories = [...categories, newSymptom.category];
+      if (!categories.some(cat => cat.name === newSymptom.category)) {
+        const newCategory = {
+          id: Date.now(),
+          name: newSymptom.category,
+          icon: 'fa-notes-medical'
+        };
+        let updatedCategories = [...categories, newCategory];
         setCategories(updatedCategories);
       }
       
