@@ -250,120 +250,105 @@ const SymptomTracker = ({ userId }) => {
     setNewSymptom(prev => ({ ...prev, [name]: value }));
   };
 
-  // Funzione alternativa per aprire la modale tramite metodo DOM diretto
-  const openAddModal = (e) => {
-    try {
-      if (e) e.preventDefault();
-      console.log("⚠️ Apertura modale sintomi con metodo dom diretto", Date.now());
-      
-      // Usa direttamente il DOM per aprire la modale
-      const modal = document.getElementById('symptom-add-modal');
-      if (modal) {
-        console.log("✅ Modale trovata, cambiando stile", modal);
-        modal.style.display = 'flex';
-        modal.classList.add('show-modal');
-        document.body.style.overflow = 'hidden'; // Blocca lo scroll
-      } else {
-        console.error("❌ Modale non trovata!");
-      }
-      
-      // Aggiorna anche lo stato React per consistenza
-      setIsAddModalOpen(true);
-    } catch (error) {
-      console.error("Errore nell'apertura della modale:", error);
-    }
-  };
-
-  // Funzione per chiudere la modale
-  const closeAddModal = (e) => {
-    try {
-      if (e) e.preventDefault();
-      console.log("⚠️ Chiusura modale sintomi");
-      
-      // Manipolazione DOM diretta
-      const modal = document.getElementById('symptom-add-modal');
-      if (modal) {
-        modal.style.display = 'none';
-        modal.classList.remove('show-modal');
-        document.body.style.overflow = 'auto';
-      }
-      
-      // Aggiorna lo stato React
-      setIsAddModalOpen(false);
-    } catch (error) {
-      console.error("Errore nella chiusura della modale:", error);
-    }
-  };
-
+  // Funzione per aggiungere un sintomo - completamente riscritta
   const handleAddSymptom = (e) => {
     if (e) e.preventDefault();
     
-    console.log("Button clicked - handleAddSymptom called");
-    
-    if (!newSymptom.name || !newSymptom.category) {
-      alert('Inserisci nome e categoria del sintomo');
-      return;
-    }
-    
-    console.log("Validation passed, salvataggio sintomo in corso...", newSymptom);
+    console.log("🔄 handleAddSymptom chiamata", Date.now());
     
     try {
-      // Crea un ID unico
-      const id = Date.now();
-    
-    const newSymptomWithId = {
-      ...newSymptom,
-        id: id, // Genera un ID unico
-      intensity: parseInt(newSymptom.intensity, 10)
-    };
-    
-      console.log("Nuovo sintomo con ID:", newSymptomWithId);
+      // Validazione base
+      if (!newSymptom.name || !newSymptom.category) {
+        alert('Inserisci nome e categoria del sintomo');
+        return;
+      }
       
-      // Crea una copia dell'array in modo sicuro
-      let currentSymptoms = Array.isArray(symptoms) ? [...symptoms] : [];
-      console.log("Array attuale:", currentSymptoms);
-      let updatedSymptoms = [newSymptomWithId, ...currentSymptoms];
+      console.log("✅ Validazione passata, sintomo:", newSymptom);
       
-      console.log("Array aggiornato:", updatedSymptoms);
+      // Crea un ID univoco
+      const id = Date.now().toString();
       
-      // Aggiorna lo stato
-    setSymptoms(updatedSymptoms);
-    setFilteredSymptoms(updatedSymptoms);
+      // Prepara il nuovo sintomo completo di ID
+      const symptomToAdd = {
+        ...newSymptom,
+        id,
+        intensity: parseInt(newSymptom.intensity, 10) || 5
+      };
       
-      // Salva nel localStorage per persistenza
+      console.log("📦 Nuovo sintomo da salvare:", symptomToAdd);
+      
+      // Recupera i sintomi esistenti dal localStorage
+      let existingSymptoms = [];
+      const storedSymptoms = localStorage.getItem('symptoms');
+      
+      if (storedSymptoms) {
+        try {
+          existingSymptoms = JSON.parse(storedSymptoms);
+          if (!Array.isArray(existingSymptoms)) {
+            console.warn("⚠️ I sintomi nel localStorage non sono un array, reset necessario");
+            existingSymptoms = [];
+          }
+        } catch (error) {
+          console.error("❌ Errore nel parsing dei sintomi dal localStorage:", error);
+          existingSymptoms = [];
+        }
+      }
+      
+      console.log("📋 Sintomi esistenti:", existingSymptoms.length);
+      
+      // Aggiungi il nuovo sintomo all'inizio dell'array
+      const updatedSymptoms = [symptomToAdd, ...existingSymptoms];
+      
+      // Salva nel localStorage
       localStorage.setItem('symptoms', JSON.stringify(updatedSymptoms));
+      console.log("💾 Sintomi salvati nel localStorage, nuova lunghezza:", updatedSymptoms.length);
       
-      console.log("Sintomo salvato con successo nel localStorage!", newSymptomWithId);
-      console.log("Verifica localStorage:", localStorage.getItem('symptoms'));
-    
-    // Aggiungi la categoria se è nuova
+      // Aggiorna lo stato di React
+      setSymptoms(updatedSymptoms);
+      setFilteredSymptoms(updatedSymptoms);
+      
+      // Aggiungi la categoria se è nuova
       if (!categories.some(cat => cat.name === newSymptom.category)) {
         const newCategory = {
           id: Date.now(),
           name: newSymptom.category,
           icon: 'fa-notes-medical'
         };
-        let updatedCategories = [...categories, newCategory];
-        setCategories(updatedCategories);
+        setCategories(prevCategories => [...prevCategories, newCategory]);
       }
       
-      // Reset form
-    setNewSymptom({
-      name: '',
-      intensity: 5,
-      category: '',
-      description: '',
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().split(' ')[0].substring(0, 5)
-    });
-    
-      // Chiudi modale
-    setIsAddModalOpen(false);
+      // Reset del form
+      setNewSymptom({
+        name: '',
+        intensity: 5,
+        category: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toTimeString().split(' ')[0].substring(0, 5)
+      });
+      
+      // Chiudi la modale
+      closeAddModal();
+      
+      console.log("✅ Sintomo aggiunto con successo!");
+      alert("Sintomo registrato con successo!");
       
     } catch (error) {
-      console.error("Errore durante il salvataggio del sintomo:", error);
-      alert("Si è verificato un errore durante il salvataggio. Riprova.");
+      console.error("❌ Errore durante il salvataggio del sintomo:", error);
+      alert("Si è verificato un errore durante il salvataggio: " + error.message);
     }
+  };
+
+  // Funzione ultrasemplificata per l'apertura della modale
+  const openAddModal = () => {
+    console.log("⚠️ ULTRASEMPLICE: Apertura modale sintomi", Date.now());
+    setIsAddModalOpen(true); // Questo è tutto ciò che serve
+  };
+
+  // Funzione ultrasemplificata per la chiusura della modale
+  const closeAddModal = () => {
+    console.log("⚠️ ULTRASEMPLICE: Chiusura modale sintomi", Date.now());
+    setIsAddModalOpen(false); // Questo è tutto ciò che serve
   };
 
   // Visualizza dettaglio sintomo
@@ -401,17 +386,16 @@ const SymptomTracker = ({ userId }) => {
       <div className="symptom-header">
         <div className="symptom-title">
           <h1>I Tuoi Sintomi</h1>
-          <p>Monitora e analizza i tuoi sintomi nel tempo</p>
+          <p>Monitora e gestisci i tuoi sintomi</p>
         </div>
         
-        {symptoms.length > 0 && (
         <button 
           className="add-symptom-button" 
           onClick={openAddModal}
+          type="button"
         >
           <i className="fas fa-plus"></i> Nuovo Sintomo
         </button>
-        )}
       </div>
       
       {symptoms.length > 0 ? (
@@ -548,128 +532,114 @@ const SymptomTracker = ({ userId }) => {
         <EmptyState />
       )}
       
-      {/* Modal per aggiungere un sintomo - con ID specifico e stile in linea */}
-      <div 
-        id="symptom-add-modal" 
-        className="modal-overlay" 
-        style={{
-          display: 'none',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          zIndex: 1000
-        }}
-      >
-        <div className="modal-content">
-          <div className="modal-header">
-            <h2>Aggiungi nuovo sintomo</h2>
-            <button className="close-button" onClick={closeAddModal} type="button">
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handleAddSymptom(e);
-          }}>
-          <div className="modal-body">
-            <div className="form-group">
-              <label>Nome del sintomo *</label>
-              <input 
-                type="text" 
-                name="name" 
-                value={newSymptom.name}
-                onChange={handleInputChange}
-                placeholder="Es. Mal di testa, Tosse, ecc."
-                required
-              />
+      {/* Modale ultrasemplificata */}
+      {isAddModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Aggiungi nuovo sintomo</h2>
+              <button className="close-button" onClick={closeAddModal} type="button">
+                <i className="fas fa-times"></i>
+              </button>
             </div>
-            
-            <div className="form-group">
-              <label>Categoria *</label>
-              <select 
-                name="category" 
-                value={newSymptom.category}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Seleziona categoria</option>
-                {predefinedCategories.map((cat, index) => (
-                    <option key={index} value={cat.name}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="form-group">
-              <label>Intensità: {newSymptom.intensity}</label>
-              <input 
-                type="range" 
-                name="intensity" 
-                min="1" 
-                max="10" 
-                value={newSymptom.intensity}
-                onChange={handleInputChange}
-              />
-              <div className="range-labels">
-                <span>Lieve</span>
-                <span>Moderata</span>
-                <span>Intensa</span>
+            <form onSubmit={handleAddSymptom}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Nome del sintomo *</label>
+                  <input 
+                    type="text" 
+                    name="name" 
+                    value={newSymptom.name}
+                    onChange={handleInputChange}
+                    placeholder="Es. Mal di testa, Tosse, ecc."
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Categoria *</label>
+                  <select 
+                    name="category" 
+                    value={newSymptom.category}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Seleziona categoria</option>
+                    {predefinedCategories.map((cat, index) => (
+                      <option key={index} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label>Intensità: {newSymptom.intensity}</label>
+                  <input 
+                    type="range" 
+                    name="intensity" 
+                    min="1" 
+                    max="10" 
+                    value={newSymptom.intensity}
+                    onChange={handleInputChange}
+                  />
+                  <div className="range-labels">
+                    <span>Lieve</span>
+                    <span>Moderata</span>
+                    <span>Intensa</span>
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Data</label>
+                    <input 
+                      type="date" 
+                      name="date" 
+                      value={newSymptom.date}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Ora</label>
+                    <input 
+                      type="time" 
+                      name="time" 
+                      value={newSymptom.time}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Descrizione</label>
+                  <textarea 
+                    name="description" 
+                    value={newSymptom.description}
+                    onChange={handleInputChange}
+                    placeholder="Descrivi come ti senti..."
+                    rows="3"
+                  ></textarea>
+                </div>
               </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Data</label>
-                <input 
-                  type="date" 
-                  name="date" 
-                  value={newSymptom.date}
-                  onChange={handleInputChange}
-                />
+              <div className="modal-footer">
+                <button 
+                  className="cancel-button" 
+                  onClick={closeAddModal}
+                  type="button"
+                >
+                  Annulla
+                </button>
+                <button 
+                  className="save-button" 
+                  type="submit"
+                >
+                  Salva sintomo
+                </button>
               </div>
-              
-              <div className="form-group">
-                <label>Ora</label>
-                <input 
-                  type="time" 
-                  name="time" 
-                  value={newSymptom.time}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-            
-            <div className="form-group">
-              <label>Descrizione</label>
-              <textarea 
-                name="description" 
-                value={newSymptom.description}
-                onChange={handleInputChange}
-                placeholder="Descrivi come ti senti..."
-                rows="3"
-              ></textarea>
-            </div>
+            </form>
           </div>
-          <div className="modal-footer">
-            <button 
-              className="cancel-button" 
-              onClick={closeAddModal}
-              type="button"
-            >
-              Annulla
-            </button>
-            <button 
-              className="save-button" 
-              type="submit"
-            >
-              Salva sintomo
-            </button>
-          </div>
-          </form>
         </div>
-      </div>
+      )}
       
       {/* Modal per visualizzare dettaglio */}
       {isDetailModalOpen && selectedSymptom && (

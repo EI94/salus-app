@@ -166,113 +166,98 @@ const MedicationTracker = ({ userId }) => {
     }
   };
 
-  // Aggiungi nuovo farmaco
+  // Funzione per aggiungere un farmaco - completamente riscritta
   const handleAddMedication = (e) => {
     if (e) e.preventDefault();
     
-    console.log("Button clicked - handleAddMedication called");
-    
-    if (!newMedication.name || !newMedication.dosage) {
-      alert('Inserisci nome e dosaggio del farmaco');
-      return;
-    }
-    
-    console.log("Validation passed, salvataggio farmaco in corso...", newMedication);
+    console.log("🔄 handleAddMedication chiamata", Date.now());
     
     try {
-      // Crea un ID unico
-      const id = Date.now();
-    
-    const newMedicationWithId = {
-      ...newMedication,
-        id: id,
-      adherence: 1.0
-    };
-    
-      console.log("Nuovo farmaco con ID:", newMedicationWithId);
+      // Validazione base
+      if (!newMedication.name || !newMedication.dosage) {
+        alert('Inserisci nome e dosaggio del farmaco');
+        return;
+      }
       
-      // Crea una copia dell'array in modo sicuro
-      let currentMedications = Array.isArray(medications) ? [...medications] : [];
-      console.log("Array attuale:", currentMedications);
-      let updatedMedications = [newMedicationWithId, ...currentMedications];
+      console.log("✅ Validazione passata, farmaco:", newMedication);
       
-      console.log("Array aggiornato:", updatedMedications);
+      // Crea un ID univoco
+      const id = Date.now().toString();
       
-      // Aggiorna lo stato
-    setMedications(updatedMedications);
-    setFilteredMedications(updatedMedications);
+      // Prepara il nuovo farmaco completo di ID
+      const medicationToAdd = {
+        ...newMedication,
+        id,
+        adherence: 1.0
+      };
       
-      // Salva nel localStorage per persistenza
+      console.log("📦 Nuovo farmaco da salvare:", medicationToAdd);
+      
+      // Recupera i farmaci esistenti dal localStorage
+      let existingMedications = [];
+      const storedMedications = localStorage.getItem('medications');
+      
+      if (storedMedications) {
+        try {
+          existingMedications = JSON.parse(storedMedications);
+          if (!Array.isArray(existingMedications)) {
+            console.warn("⚠️ I farmaci nel localStorage non sono un array, reset necessario");
+            existingMedications = [];
+          }
+        } catch (error) {
+          console.error("❌ Errore nel parsing dei farmaci dal localStorage:", error);
+          existingMedications = [];
+        }
+      }
+      
+      console.log("📋 Farmaci esistenti:", existingMedications.length);
+      
+      // Aggiungi il nuovo farmaco all'inizio dell'array
+      const updatedMedications = [medicationToAdd, ...existingMedications];
+      
+      // Salva nel localStorage
       localStorage.setItem('medications', JSON.stringify(updatedMedications));
+      console.log("💾 Farmaci salvati nel localStorage, nuova lunghezza:", updatedMedications.length);
       
-      console.log("Farmaco salvato con successo nel localStorage!", newMedicationWithId);
-      console.log("Verifica localStorage:", localStorage.getItem('medications'));
-    
-    // Resetta il form
-    setNewMedication({
-      name: '',
-      dosage: '',
-      unit: 'mg',
-      frequency: 'daily',
-      time: [],
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: '',
-      notes: '',
-      status: 'active'
-    });
-    
-      // Chiudi modale
-    setIsAddModalOpen(false);
+      // Aggiorna lo stato di React
+      setMedications(updatedMedications);
+      setFilteredMedications(updatedMedications);
+      
+      // Reset del form
+      setNewMedication({
+        name: '',
+        dosage: '',
+        unit: 'mg',
+        frequency: 'daily',
+        time: [],
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: '',
+        notes: '',
+        status: 'active'
+      });
+      
+      // Chiudi la modale
+      closeAddModal();
+      
+      console.log("✅ Farmaco aggiunto con successo!");
+      alert("Farmaco registrato con successo!");
       
     } catch (error) {
-      console.error("Errore durante il salvataggio del farmaco:", error);
-      alert("Si è verificato un errore durante il salvataggio. Riprova.");
+      console.error("❌ Errore durante il salvataggio del farmaco:", error);
+      alert("Si è verificato un errore durante il salvataggio: " + error.message);
     }
   };
 
-  // Funzione alternativa per aprire la modale tramite metodo DOM diretto
-  const openAddModal = (e) => {
-    try {
-      if (e) e.preventDefault();
-      console.log("⚠️ Apertura modale farmaci con metodo DOM diretto", Date.now());
-      
-      // Usa direttamente il DOM per aprire la modale
-      const modal = document.getElementById('medication-add-modal');
-      if (modal) {
-        console.log("✅ Modale farmaci trovata, cambiando stile", modal);
-        modal.style.display = 'flex';
-        modal.classList.add('show-modal');
-        document.body.style.overflow = 'hidden'; // Blocca lo scroll
-      } else {
-        console.error("❌ Modale farmaci non trovata!");
-      }
-      
-      // Aggiorna anche lo stato React per consistenza
-      setIsAddModalOpen(true);
-    } catch (error) {
-      console.error("Errore nell'apertura della modale farmaci:", error);
-    }
+  // Funzione ultrasemplificata per l'apertura della modale
+  const openAddModal = () => {
+    console.log("⚠️ ULTRASEMPLICE: Apertura modale farmaci", Date.now());
+    setIsAddModalOpen(true); // Questo è tutto ciò che serve
   };
 
-  // Funzione per chiudere la modale
-  const closeAddModal = (e) => {
-    try {
-      if (e) e.preventDefault();
-      console.log("⚠️ Chiusura modale farmaci");
-      
-      // Manipolazione DOM diretta
-      const modal = document.getElementById('medication-add-modal');
-      if (modal) {
-        modal.style.display = 'none';
-        modal.classList.remove('show-modal');
-        document.body.style.overflow = 'auto';
-      }
-      
-      // Aggiorna lo stato React
-      setIsAddModalOpen(false);
-    } catch (error) {
-      console.error("Errore nella chiusura della modale farmaci:", error);
-    }
+  // Funzione ultrasemplificata per la chiusura della modale
+  const closeAddModal = () => {
+    console.log("⚠️ ULTRASEMPLICE: Chiusura modale farmaci", Date.now());
+    setIsAddModalOpen(false); // Questo è tutto ciò che serve
   };
 
   // Visualizza dettaglio farmaco
@@ -430,14 +415,13 @@ const MedicationTracker = ({ userId }) => {
           <p>Gestisci e monitora l'assunzione di farmaci</p>
         </div>
         
-        {medications.length > 0 && (
         <button 
           className="add-medication-button" 
           onClick={openAddModal}
+          type="button"
         >
           <i className="fas fa-plus"></i> Nuovo Farmaco
         </button>
-        )}
       </div>
       
       {medications.length > 0 ? (
@@ -589,168 +573,154 @@ const MedicationTracker = ({ userId }) => {
         <EmptyState />
       )}
       
-      {/* Modal per aggiungere un farmaco - con ID specifico e stile in linea */}
-      <div 
-        id="medication-add-modal" 
-        className="modal-overlay" 
-        style={{
-          display: 'none',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          zIndex: 1000
-        }}
-      >
-        <div className="modal-content">
-          <div className="modal-header">
-            <h2>Aggiungi nuovo farmaco</h2>
-            <button className="close-button" onClick={closeAddModal} type="button">
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handleAddMedication(e);
-          }}>
-          <div className="modal-body">
-            <div className="form-row">
-              <div className="form-group">
-                <label>Nome del farmaco *</label>
-                <input 
-                  type="text" 
-                  name="name" 
-                  value={newMedication.name}
-                  onChange={handleInputChange}
-                  placeholder="Es. Paracetamolo"
-                  required
-                />
+      {/* Modale ultrasemplificata */}
+      {isAddModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Aggiungi nuovo farmaco</h2>
+              <button className="close-button" onClick={closeAddModal} type="button">
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <form onSubmit={handleAddMedication}>
+            <div className="modal-body">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Nome del farmaco *</label>
+                  <input 
+                    type="text" 
+                    name="name" 
+                    value={newMedication.name}
+                    onChange={handleInputChange}
+                    placeholder="Es. Paracetamolo"
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Stato</label>
+                  <select 
+                    name="status" 
+                    value={newMedication.status}
+                    onChange={handleInputChange}
+                  >
+                    {statusOptions.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Dosaggio *</label>
+                  <input 
+                    type="text" 
+                    name="dosage" 
+                    value={newMedication.dosage}
+                    onChange={handleInputChange}
+                    placeholder="Es. 1000"
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Unità</label>
+                  <select 
+                    name="unit" 
+                    value={newMedication.unit}
+                    onChange={handleInputChange}
+                  >
+                    {unitOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               
               <div className="form-group">
-                <label>Stato</label>
+                <label>Frequenza</label>
                 <select 
-                  name="status" 
-                  value={newMedication.status}
+                  name="frequency" 
+                  value={newMedication.frequency}
                   onChange={handleInputChange}
                 >
-                  {statusOptions.map(option => (
+                  {frequencyOptions.map(option => (
                     <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
               </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Dosaggio *</label>
-                <input 
-                  type="text" 
-                  name="dosage" 
-                  value={newMedication.dosage}
-                  onChange={handleInputChange}
-                  placeholder="Es. 1000"
-                  required
-                />
-              </div>
               
               <div className="form-group">
-                <label>Unità</label>
-                <select 
-                  name="unit" 
-                  value={newMedication.unit}
-                  onChange={handleInputChange}
-                >
-                  {unitOptions.map(option => (
-                    <option key={option} value={option}>{option}</option>
+                <label>Orari di assunzione</label>
+                <div className="time-options">
+                  {timeOptions.map(option => (
+                    <div key={option.value} className="time-option">
+                      <input 
+                        type="checkbox" 
+                        id={`time-${option.value}`}
+                        checked={newMedication.time.includes(option.time)}
+                        onChange={(e) => handleTimeChange(option.value, e.target.checked)}
+                      />
+                      <label htmlFor={`time-${option.value}`}>{option.label} ({option.time})</label>
+                    </div>
                   ))}
-                </select>
+                </div>
               </div>
-            </div>
-            
-            <div className="form-group">
-              <label>Frequenza</label>
-              <select 
-                name="frequency" 
-                value={newMedication.frequency}
-                onChange={handleInputChange}
-              >
-                {frequencyOptions.map(option => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="form-group">
-              <label>Orari di assunzione</label>
-              <div className="time-options">
-                {timeOptions.map(option => (
-                  <div key={option.value} className="time-option">
-                    <input 
-                      type="checkbox" 
-                      id={`time-${option.value}`}
-                      checked={newMedication.time.includes(option.time)}
-                      onChange={(e) => handleTimeChange(option.value, e.target.checked)}
-                    />
-                    <label htmlFor={`time-${option.value}`}>{option.label} ({option.time})</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Data inizio</label>
-                <input 
-                  type="date" 
-                  name="startDate" 
-                  value={newMedication.startDate}
-                  onChange={handleInputChange}
-                />
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Data inizio</label>
+                  <input 
+                    type="date" 
+                    name="startDate" 
+                    value={newMedication.startDate}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Data fine (opzionale)</label>
+                  <input 
+                    type="date" 
+                    name="endDate" 
+                    value={newMedication.endDate}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
               
               <div className="form-group">
-                <label>Data fine (opzionale)</label>
-                <input 
-                  type="date" 
-                  name="endDate" 
-                  value={newMedication.endDate}
+                <label>Note</label>
+                <textarea 
+                  name="notes" 
+                  value={newMedication.notes}
                   onChange={handleInputChange}
-                />
+                  placeholder="Informazioni aggiuntive, istruzioni speciali..."
+                  rows="3"
+                ></textarea>
               </div>
             </div>
-            
-            <div className="form-group">
-              <label>Note</label>
-              <textarea 
-                name="notes" 
-                value={newMedication.notes}
-                onChange={handleInputChange}
-                placeholder="Informazioni aggiuntive, istruzioni speciali..."
-                rows="3"
-              ></textarea>
-            </div>
-          </div>
-          <div className="modal-footer">
-            <button 
-              className="cancel-button" 
-              onClick={closeAddModal}
+            <div className="modal-footer">
+              <button 
+                className="cancel-button" 
+                onClick={closeAddModal}
                 type="button"
-            >
-              Annulla
-            </button>
-            <button 
-              className="save-button" 
+              >
+                Annulla
+              </button>
+              <button 
+                className="save-button" 
                 type="submit"
-            >
-              Salva farmaco
-            </button>
+              >
+                Salva farmaco
+              </button>
+            </div>
+            </form>
           </div>
-          </form>
         </div>
-      </div>
+      )}
       
       {/* Modal per visualizzare dettaglio */}
       {isEditModalOpen && selectedMedication && (
