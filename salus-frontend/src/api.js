@@ -63,6 +63,49 @@ api.interceptors.response.use(
   }
 );
 
+// Funzione per inviare un messaggio all'AI Assistant
+export const sendMessageToAI = async (message) => {
+  try {
+    console.log('Invio messaggio all\'assistente AI');
+    
+    // Verifica token nei diversi metodi di storage
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+    
+    // Se nessun token o userId è disponibile, restituisci una risposta offline
+    if (!token && !userId) {
+      console.log('Utente non autenticato, utilizzando risposta di fallback');
+      return {
+        reply: "Per utilizzare l'assistente AI devi effettuare l'accesso. Accedi o registrati per continuare.",
+        offline: true
+      };
+    }
+    
+    // Tentativo di richiesta API
+    try {
+      const response = await api.post('/ai/chat', { message });
+      console.log('Risposta AI ricevuta con successo');
+      return response.data;
+    } catch (apiError) {
+      console.error('Errore nella chiamata API AI:', apiError);
+      
+      // Restituisci una risposta offline in caso di errore
+      return {
+        reply: "Mi dispiace, in questo momento non riesco a connettermi al servizio AI. Riprova più tardi o contatta assistenza.",
+        offline: true,
+        error: apiError.message
+      };
+    }
+  } catch (error) {
+    console.error('Errore generale nel servizio AI:', error);
+    return {
+      reply: "Si è verificato un problema con l'assistente AI. Riprova più tardi.",
+      offline: true,
+      error: error.message
+    };
+  }
+};
+
 // Funzione di utilità per il localStorage con gestione errori
 export const localStorageService = {
   getItem: (key) => {
