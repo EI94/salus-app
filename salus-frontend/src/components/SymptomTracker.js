@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/SymptomTracker.css';
 import api from '../api';
+import { localStorageService } from '../api';
 
 const SymptomTracker = ({ userId }) => {
   // Stati per la gestione dei dati e dell'interfaccia
@@ -13,6 +14,7 @@ const SymptomTracker = ({ userId }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSymptom, setSelectedSymptom] = useState(null);
+  const [saveMethod, setSaveMethod] = useState('api'); // 'api' o 'local'
   
   // Form per nuovo sintomo
   const [newSymptom, setNewSymptom] = useState({
@@ -35,15 +37,15 @@ const SymptomTracker = ({ userId }) => {
     { id: 7, name: 'Altro', icon: 'fa-notes-medical' }
   ];
 
-  // Funzione molto semplice per aprire la modale
+  // Funzione per aprire la modale
   const openAddModal = () => {
-    console.log("APERTURA MODALE SINTOMI ESTREMA", Date.now());
+    console.log("Apertura modale", Date.now());
     setIsAddModalOpen(true);
   };
 
-  // Funzione molto semplice per chiudere la modale
+  // Funzione per chiudere la modale
   const closeAddModal = () => {
-    console.log("CHIUSURA MODALE SINTOMI ESTREMA", Date.now());
+    console.log("Chiusura modale", Date.now());
     setIsAddModalOpen(false);
   };
 
@@ -52,28 +54,55 @@ const SymptomTracker = ({ userId }) => {
     loadSymptoms();
   }, [userId]);
 
-  // Funzione per caricare i sintomi da API
+  // Funzione per caricare i sintomi
   const loadSymptoms = async () => {
     setLoading(true);
+    
     try {
-      // Recupera i sintomi dall'API
-      const response = await api.get('/api/symptoms');
+      // Prima tentiamo di caricare da API
+      const response = await api.get('/symptoms');
+      console.log("Risposta API sintomi:", response);
+      
       if (response.data && Array.isArray(response.data)) {
         console.log("Sintomi caricati da API:", response.data.length);
         setSymptoms(response.data);
         setFilteredSymptoms(response.data);
+        setSaveMethod('api');
       } else {
-        console.log("Formato dati non valido dall'API");
-        setSymptoms([]);
-        setFilteredSymptoms([]);
+        throw new Error("Formato dati API non valido");
       }
     } catch (error) {
-      console.error("Errore nel caricamento dei sintomi:", error);
-      setSymptoms([]);
-      setFilteredSymptoms([]);
+      console.error("Errore API, utilizzo localStorage:", error);
+      
+      try {
+        // Fallback a localStorage
+        const localSymptoms = localStorageService.getItem('symptoms');
+        if (localSymptoms) {
+          const parsedSymptoms = JSON.parse(localSymptoms);
+          if (Array.isArray(parsedSymptoms)) {
+            console.log("Sintomi caricati da localStorage:", parsedSymptoms.length);
+            setSymptoms(parsedSymptoms);
+            setFilteredSymptoms(parsedSymptoms);
+            setSaveMethod('local');
+          } else {
+            throw new Error("Formato localStorage non valido");
+          }
+        } else {
+          console.log("Nessun dato in localStorage, inizializzazione array vuoto");
+          setSymptoms([]);
+          setFilteredSymptoms([]);
+          setSaveMethod('local');
+        }
+      } catch (localError) {
+        console.error("Errore anche con localStorage:", localError);
+        setSymptoms([]);
+        setFilteredSymptoms([]);
+        setSaveMethod('local');
+      }
+    } finally {
+      setCategories(predefinedCategories);
+      setLoading(false);
     }
-    setCategories(predefinedCategories);
-    setLoading(false);
   };
 
   // Filtra i sintomi quando cambiano i filtri
@@ -106,12 +135,12 @@ const SymptomTracker = ({ userId }) => {
     setNewSymptom(prev => ({ ...prev, [name]: value }));
   };
 
-  // Funzione per aggiungere un sintomo - salvataggio su API
+  // Funzione per aggiungere un sintomo
   const handleAddSymptom = async (e) => {
     if (e) e.preventDefault();
     
-    console.log("handleAddSymptom chiamata", Date.now());
-    console.log("Dati form sintomo:", newSymptom);
+    console.log("Aggiunta sintomo, metodo:", saveMethod);
+    console.log("Dati sintomo:", newSymptom);
     
     if (!newSymptom.name || !newSymptom.category) {
       alert('Inserisci nome e categoria del sintomo');
@@ -119,40 +148,88 @@ const SymptomTracker = ({ userId }) => {
     }
     
     try {
-      // Chiamata API per salvare il sintomo
       const symptomToAdd = {
         ...newSymptom,
-        userId,
+        userId: userId || 'anonymous',
         intensity: parseInt(newSymptom.intensity, 10) || 5,
+        id: Date.now().toString(), // ID locale per localStorage
       };
       
-      console.log("Invio sintomo all'API:", symptomToAdd);
-      
-      const response = await api.post('/api/symptoms', symptomToAdd);
-      console.log("Risposta API:", response.data);
-      
-      if (response.data) {
-        // Aggiorna la lista
-        loadSymptoms();
-        
-        // Reset del form
-        setNewSymptom({
-          name: '',
-          intensity: 5,
-          category: '',
-          description: '',
-          date: new Date().toISOString().split('T')[0],
-          time: new Date().toTimeString().split(' ')[0].substring(0, 5)
-        });
-        
-        // Chiudi la modale
-        closeAddModal();
-        
-        alert("Sintomo registrato con successo!");
+      if (saveMethod === 'api') {
+        // Salvataggio su API
+        try {
+          console.log("Tentativo salvataggio su API");
+          const response = await api.post('/symptoms', symptomToAdd);
+          
+          if (response.data) {
+            console.log("Sintomo salvato su API con successo");
+            await loadSymptoms(); // Ricarica i sintomi dall'API
+          } else {
+            throw new Error("Risposta API vuota");
+          }
+        } catch (apiError) {
+          console.error("Errore API durante il salvataggio:", apiError);
+          
+          // Fallback a localStorage
+          saveToLocalStorage(symptomToAdd);
+        }
+      } else {
+        // Salvataggio diretto su localStorage
+        saveToLocalStorage(symptomToAdd);
       }
+      
+      // Reset del form
+      setNewSymptom({
+        name: '',
+        intensity: 5,
+        category: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toTimeString().split(' ')[0].substring(0, 5)
+      });
+      
+      // Chiudi la modale
+      closeAddModal();
+      
+      alert("Sintomo registrato con successo!");
     } catch (error) {
       console.error("Errore durante il salvataggio:", error);
-      alert("Si è verificato un errore durante il salvataggio: " + (error.response?.data?.message || error.message));
+      alert("Si è verificato un errore durante il salvataggio. Riprova.");
+    }
+  };
+  
+  // Funzione per salvare in localStorage
+  const saveToLocalStorage = (symptomToAdd) => {
+    try {
+      // Ottieni i sintomi esistenti
+      const existingSymptoms = localStorageService.getItem('symptoms');
+      let updatedSymptoms = [];
+      
+      if (existingSymptoms) {
+        try {
+          const parsed = JSON.parse(existingSymptoms);
+          updatedSymptoms = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          console.error("Errore parsing localStorage:", e);
+          updatedSymptoms = [];
+        }
+      }
+      
+      // Aggiungi il nuovo sintomo
+      updatedSymptoms = [symptomToAdd, ...updatedSymptoms];
+      
+      // Salva nel localStorage
+      localStorageService.setItem('symptoms', JSON.stringify(updatedSymptoms));
+      
+      // Aggiorna lo stato
+      setSymptoms(updatedSymptoms);
+      setFilteredSymptoms(updatedSymptoms);
+      setSaveMethod('local');
+      
+      console.log("Sintomo salvato in localStorage con successo");
+    } catch (error) {
+      console.error("Errore salvataggio localStorage:", error);
+      throw error;
     }
   };
 
@@ -184,7 +261,7 @@ const SymptomTracker = ({ userId }) => {
           <div className="symptom-header">
             <div className="symptom-title">
               <h1>I Tuoi Sintomi</h1>
-              <p>Monitora e gestisci i tuoi sintomi</p>
+              <p>Monitora e gestisci i tuoi sintomi {saveMethod === 'local' ? '(salvati localmente)' : ''}</p>
             </div>
             
             <button 
@@ -233,6 +310,10 @@ const SymptomTracker = ({ userId }) => {
                 <div 
                   key={symptom._id || symptom.id} 
                   className="symptom-card"
+                  onClick={() => {
+                    setSelectedSymptom(symptom);
+                    setIsDetailModalOpen(true);
+                  }}
                 >
                   <div className="symptom-icon">
                     <i className={`fas ${getCategoryIcon(symptom.category)}`}></i>
@@ -258,7 +339,7 @@ const SymptomTracker = ({ userId }) => {
             </div>
           )}
 
-          {/* MODALE SUPER BASICA */}
+          {/* Modale per aggiungere sintomo */}
           {isAddModalOpen && (
             <div 
               className="modal-overlay" 
@@ -272,7 +353,7 @@ const SymptomTracker = ({ userId }) => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                zIndex: 9999999
+                zIndex: 9999
               }}
             >
               <div 
@@ -283,7 +364,7 @@ const SymptomTracker = ({ userId }) => {
                   borderRadius: '8px',
                   width: '90%',
                   maxWidth: '500px',
-                  maxHeight: '80vh',
+                  maxHeight: '90vh',
                   overflow: 'auto'
                 }}
               >
@@ -368,20 +449,29 @@ const SymptomTracker = ({ userId }) => {
                     ></textarea>
                   </div>
                   
-                  <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px'}}>
-                    <button 
-                      type="button" 
-                      onClick={closeAddModal}
-                      style={{padding: '10px 15px', background: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
-                    >
-                      Annulla
-                    </button>
-                    <button 
-                      type="submit"
-                      style={{padding: '10px 15px', background: '#4A90E2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
-                    >
-                      Salva sintomo
-                    </button>
+                  <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '20px'}}>
+                    <div>
+                      <span style={{fontSize: '12px', color: saveMethod === 'api' ? 'green' : 'orange'}}>
+                        {saveMethod === 'api' 
+                          ? 'Salvataggio su database' 
+                          : 'Salvataggio in locale (offline)'}
+                      </span>
+                    </div>
+                    <div style={{display: 'flex', gap: '10px'}}>
+                      <button 
+                        type="button" 
+                        onClick={closeAddModal}
+                        style={{padding: '10px 15px', background: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+                      >
+                        Annulla
+                      </button>
+                      <button 
+                        type="submit"
+                        style={{padding: '10px 15px', background: '#4A90E2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+                      >
+                        Salva sintomo
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>
@@ -390,11 +480,40 @@ const SymptomTracker = ({ userId }) => {
           
           {/* Modal per visualizzare dettaglio */}
           {isDetailModalOpen && selectedSymptom && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <div className="modal-header">
+            <div 
+              className="modal-overlay" 
+              style={{
+                position: 'fixed', 
+                top: 0, 
+                left: 0, 
+                right: 0, 
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.7)', 
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 9999
+              }}
+            >
+              <div 
+                className="modal-content"
+                style={{
+                  backgroundColor: 'white', 
+                  padding: '20px',
+                  borderRadius: '8px',
+                  width: '90%',
+                  maxWidth: '500px',
+                  maxHeight: '90vh',
+                  overflow: 'auto'
+                }}
+              >
+                <div className="modal-header" style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
                   <h2>Dettaglio sintomo</h2>
-                  <button className="close-button" onClick={() => setIsDetailModalOpen(false)}>
+                  <button 
+                    onClick={() => setIsDetailModalOpen(false)} 
+                    type="button"
+                    style={{background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer'}}
+                  >
                     <i className="fas fa-times"></i>
                   </button>
                 </div>
@@ -407,6 +526,14 @@ const SymptomTracker = ({ userId }) => {
                   {selectedSymptom.description && (
                     <p><strong>Descrizione:</strong> {selectedSymptom.description}</p>
                   )}
+                </div>
+                <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px'}}>
+                  <button 
+                    onClick={() => setIsDetailModalOpen(false)}
+                    style={{padding: '10px 15px', background: '#4A90E2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+                  >
+                    Chiudi
+                  </button>
                 </div>
               </div>
             </div>

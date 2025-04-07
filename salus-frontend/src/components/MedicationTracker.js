@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../styles/MedicationTracker.css';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { localStorageService } from '../api';
 
 const MedicationTracker = ({ userId }) => {
   // Stati e hooks
@@ -17,6 +18,7 @@ const MedicationTracker = ({ userId }) => {
   const [loading, setLoading] = useState(true);
   const [filteredMedications, setFilteredMedications] = useState([]);
   const [selectedMedication, setSelectedMedication] = useState(null);
+  const [saveMethod, setSaveMethod] = useState('api'); // 'api' o 'local'
   
   // Form per nuovo farmaco
   const [newMedication, setNewMedication] = useState({
@@ -56,12 +58,12 @@ const MedicationTracker = ({ userId }) => {
 
   // Funzioni per la modale
   const openAddModal = () => {
-    console.log("APERTURA MODALE FARMACI ESTREMA", Date.now());
+    console.log("Apertura modale farmaci", Date.now());
     setIsAddModalOpen(true);
   };
 
   const closeAddModal = () => {
-    console.log("CHIUSURA MODALE FARMACI ESTREMA", Date.now());
+    console.log("Chiusura modale farmaci", Date.now());
     setIsAddModalOpen(false);
   };
 
@@ -70,28 +72,54 @@ const MedicationTracker = ({ userId }) => {
     loadMedications();
   }, [userId]);
 
-  // Funzione per caricare i farmaci da API
+  // Funzione per caricare i farmaci
   const loadMedications = async () => {
     setLoading(true);
+    
     try {
-      // Recupera i farmaci dall'API
-      const response = await api.get('/api/medications');
+      // Prima tentiamo di caricare da API
+      const response = await api.get('/medications');
+      console.log("Risposta API farmaci:", response);
       
       if (response.data && Array.isArray(response.data)) {
         console.log("Farmaci caricati da API:", response.data.length);
         setMedications(response.data);
         setFilteredMedications(response.data);
+        setSaveMethod('api');
       } else {
-        console.log("Formato dati non valido dall'API");
-        setMedications([]);
-        setFilteredMedications([]);
+        throw new Error("Formato dati API non valido");
       }
     } catch (error) {
-      console.error("Errore nel caricamento dei farmaci:", error);
-      setMedications([]);
-      setFilteredMedications([]);
+      console.error("Errore API, utilizzo localStorage:", error);
+      
+      try {
+        // Fallback a localStorage
+        const localMedications = localStorageService.getItem('medications');
+        if (localMedications) {
+          const parsedMedications = JSON.parse(localMedications);
+          if (Array.isArray(parsedMedications)) {
+            console.log("Farmaci caricati da localStorage:", parsedMedications.length);
+            setMedications(parsedMedications);
+            setFilteredMedications(parsedMedications);
+            setSaveMethod('local');
+          } else {
+            throw new Error("Formato localStorage non valido");
+          }
+        } else {
+          console.log("Nessun dato in localStorage, inizializzazione array vuoto");
+          setMedications([]);
+          setFilteredMedications([]);
+          setSaveMethod('local');
+        }
+      } catch (localError) {
+        console.error("Errore anche con localStorage:", localError);
+        setMedications([]);
+        setFilteredMedications([]);
+        setSaveMethod('local');
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // Filtra i farmaci quando cambiano i filtri
@@ -124,12 +152,12 @@ const MedicationTracker = ({ userId }) => {
     setNewMedication(prev => ({ ...prev, [name]: value }));
   };
 
-  // Funzione per aggiungere un farmaco - salvataggio su API
+  // Funzione per aggiungere un farmaco
   const handleAddMedication = async (e) => {
     if (e) e.preventDefault();
     
-    console.log("handleAddMedication chiamata", Date.now());
-    console.log("Dati form farmaco:", newMedication);
+    console.log("Aggiunta farmaco, metodo:", saveMethod);
+    console.log("Dati farmaco:", newMedication);
     
     if (!newMedication.name || !newMedication.dosage) {
       alert('Inserisci nome e dosaggio del farmaco');
@@ -137,40 +165,88 @@ const MedicationTracker = ({ userId }) => {
     }
     
     try {
-      // Chiamata API per salvare il farmaco
       const medicationToAdd = {
         ...newMedication,
-        userId,
+        userId: userId || 'anonymous',
+        id: Date.now().toString(), // ID locale per localStorage
       };
       
-      console.log("Invio farmaco all'API:", medicationToAdd);
-      
-      const response = await api.post('/api/medications', medicationToAdd);
-      console.log("Risposta API:", response.data);
-      
-      if (response.data) {
-        // Aggiorna la lista
-        loadMedications();
-        
-        // Reset del form
-        setNewMedication({
-          name: '',
-          dosage: '',
-          frequency: 'daily',
-          unit: 'mg',
-          time: '',
-          notes: '',
-          status: 'active'
-        });
-        
-        // Chiudi la modale
-        closeAddModal();
-        
-        alert("Farmaco registrato con successo!");
+      if (saveMethod === 'api') {
+        // Salvataggio su API
+        try {
+          console.log("Tentativo salvataggio su API");
+          const response = await api.post('/medications', medicationToAdd);
+          
+          if (response.data) {
+            console.log("Farmaco salvato su API con successo");
+            await loadMedications(); // Ricarica i farmaci dall'API
+          } else {
+            throw new Error("Risposta API vuota");
+          }
+        } catch (apiError) {
+          console.error("Errore API durante il salvataggio:", apiError);
+          
+          // Fallback a localStorage
+          saveToLocalStorage(medicationToAdd);
+        }
+      } else {
+        // Salvataggio diretto su localStorage
+        saveToLocalStorage(medicationToAdd);
       }
+      
+      // Reset del form
+      setNewMedication({
+        name: '',
+        dosage: '',
+        frequency: 'daily',
+        unit: 'mg',
+        time: '',
+        notes: '',
+        status: 'active'
+      });
+      
+      // Chiudi la modale
+      closeAddModal();
+      
+      alert("Farmaco registrato con successo!");
     } catch (error) {
       console.error("Errore durante il salvataggio:", error);
-      alert("Si è verificato un errore durante il salvataggio: " + (error.response?.data?.message || error.message));
+      alert("Si è verificato un errore durante il salvataggio. Riprova.");
+    }
+  };
+  
+  // Funzione per salvare in localStorage
+  const saveToLocalStorage = (medicationToAdd) => {
+    try {
+      // Ottieni i farmaci esistenti
+      const existingMedications = localStorageService.getItem('medications');
+      let updatedMedications = [];
+      
+      if (existingMedications) {
+        try {
+          const parsed = JSON.parse(existingMedications);
+          updatedMedications = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          console.error("Errore parsing localStorage:", e);
+          updatedMedications = [];
+        }
+      }
+      
+      // Aggiungi il nuovo farmaco
+      updatedMedications = [medicationToAdd, ...updatedMedications];
+      
+      // Salva nel localStorage
+      localStorageService.setItem('medications', JSON.stringify(updatedMedications));
+      
+      // Aggiorna lo stato
+      setMedications(updatedMedications);
+      setFilteredMedications(updatedMedications);
+      setSaveMethod('local');
+      
+      console.log("Farmaco salvato in localStorage con successo");
+    } catch (error) {
+      console.error("Errore salvataggio localStorage:", error);
+      throw error;
     }
   };
 
@@ -201,7 +277,7 @@ const MedicationTracker = ({ userId }) => {
           <div className="medication-header">
             <div className="medication-title">
               <h1>I Tuoi Farmaci</h1>
-              <p>Gestisci e monitora l'assunzione di farmaci</p>
+              <p>Gestisci e monitora l'assunzione di farmaci {saveMethod === 'local' ? '(salvati localmente)' : ''}</p>
             </div>
             
             <button 
@@ -250,6 +326,10 @@ const MedicationTracker = ({ userId }) => {
                 <div 
                   key={medication._id || medication.id} 
                   className="medication-card"
+                  onClick={() => {
+                    setSelectedMedication(medication);
+                    setIsEditModalOpen(true);
+                  }}
                 >
                   <div className={`status-indicator ${medication.status}`}></div>
                   <div className="medication-details">
@@ -269,7 +349,7 @@ const MedicationTracker = ({ userId }) => {
             </div>
           )}
           
-          {/* MODALE SUPER BASICA */}
+          {/* Modale per aggiungere farmaco */}
           {isAddModalOpen && (
             <div 
               className="modal-overlay" 
@@ -283,7 +363,7 @@ const MedicationTracker = ({ userId }) => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                zIndex: 9999999
+                zIndex: 9999
               }}
             >
               <div 
@@ -294,7 +374,7 @@ const MedicationTracker = ({ userId }) => {
                   borderRadius: '8px',
                   width: '90%',
                   maxWidth: '500px',
-                  maxHeight: '80vh',
+                  maxHeight: '90vh',
                   overflow: 'auto'
                 }}
               >
@@ -398,22 +478,94 @@ const MedicationTracker = ({ userId }) => {
                     ></textarea>
                   </div>
                   
-                  <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px'}}>
-                    <button 
-                      type="button" 
-                      onClick={closeAddModal}
-                      style={{padding: '10px 15px', background: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
-                    >
-                      Annulla
-                    </button>
-                    <button 
-                      type="submit"
-                      style={{padding: '10px 15px', background: '#4A90E2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
-                    >
-                      Salva farmaco
-                    </button>
+                  <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '20px'}}>
+                    <div>
+                      <span style={{fontSize: '12px', color: saveMethod === 'api' ? 'green' : 'orange'}}>
+                        {saveMethod === 'api' 
+                          ? 'Salvataggio su database' 
+                          : 'Salvataggio in locale (offline)'}
+                      </span>
+                    </div>
+                    <div style={{display: 'flex', gap: '10px'}}>
+                      <button 
+                        type="button" 
+                        onClick={closeAddModal}
+                        style={{padding: '10px 15px', background: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+                      >
+                        Annulla
+                      </button>
+                      <button 
+                        type="submit"
+                        style={{padding: '10px 15px', background: '#4A90E2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+                      >
+                        Salva farmaco
+                      </button>
+                    </div>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+          
+          {/* Modale per dettaglio farmaco */}
+          {isEditModalOpen && selectedMedication && (
+            <div 
+              className="modal-overlay" 
+              style={{
+                position: 'fixed', 
+                top: 0, 
+                left: 0, 
+                right: 0, 
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.7)', 
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 9999
+              }}
+            >
+              <div 
+                className="modal-content"
+                style={{
+                  backgroundColor: 'white', 
+                  padding: '20px',
+                  borderRadius: '8px',
+                  width: '90%',
+                  maxWidth: '500px',
+                  maxHeight: '90vh',
+                  overflow: 'auto'
+                }}
+              >
+                <div className="modal-header" style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
+                  <h2>Dettaglio farmaco</h2>
+                  <button 
+                    onClick={() => setIsEditModalOpen(false)} 
+                    type="button"
+                    style={{background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer'}}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <h3>{selectedMedication.name}</h3>
+                  <p><strong>Dosaggio:</strong> {selectedMedication.dosage} {selectedMedication.unit}</p>
+                  <p><strong>Frequenza:</strong> {frequencyOptions.find(f => f.value === selectedMedication.frequency)?.label || selectedMedication.frequency}</p>
+                  <p><strong>Stato:</strong> {statusOptions.find(s => s.value === selectedMedication.status)?.label || selectedMedication.status}</p>
+                  {selectedMedication.time && (
+                    <p><strong>Orario:</strong> {selectedMedication.time}</p>
+                  )}
+                  {selectedMedication.notes && (
+                    <p><strong>Note:</strong> {selectedMedication.notes}</p>
+                  )}
+                </div>
+                <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px'}}>
+                  <button 
+                    onClick={() => setIsEditModalOpen(false)}
+                    style={{padding: '10px 15px', background: '#4A90E2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+                  >
+                    Chiudi
+                  </button>
+                </div>
               </div>
             </div>
           )}
