@@ -3,6 +3,22 @@ import axios from 'axios';
 // URL di base per l'API
 export const apiUrl = process.env.REACT_APP_API_URL || 'https://salus-backend.onrender.com/api';
 
+// Funzione semplificata per normalizzare i percorsi API
+export const normalizePath = (path) => {
+  // Rimuovi slash iniziale se presente nel path e l'URL base termina già con uno slash
+  if (path.startsWith('/') && apiUrl.endsWith('/')) {
+    return path.substring(1);
+  }
+  
+  // Aggiungi slash iniziale se né il path né l'URL base terminano con slash
+  if (!path.startsWith('/') && !apiUrl.endsWith('/')) {
+    return '/' + path;
+  }
+  
+  // Altrimenti restituisci il path così com'è
+  return path;
+};
+
 // Configurazione istanza Axios con opzioni di base
 const api = axios.create({
   baseURL: apiUrl,
