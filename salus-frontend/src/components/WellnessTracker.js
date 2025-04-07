@@ -399,135 +399,29 @@ const WellnessTracker = () => {
     return colors[value - 1] || '#94a3b8';
   };
 
-  // Calcola le statistiche dai dati
-  const calculateStats = (data) => {
-    if (!data || data.length === 0) {
-      return generateMockWellnessStats();
-    }
-    
-    const total = data.length;
-    
-    // Calcola medie
-    const averageMood = data.reduce((sum, item) => sum + parseInt(item.mood), 0) / total;
-    const averageSleep = data.reduce((sum, item) => sum + parseInt(item.sleepQuality), 0) / total;
-    const averageEnergy = data.reduce((sum, item) => sum + parseInt(item.energyLevel), 0) / total;
-    const averageStress = data.reduce((sum, item) => sum + parseInt(item.stressLevel), 0) / total;
-    
-    // Calcola giorni di attività fisica
-    const physicalActivityDays = data.filter(item => item.physicalActivity).length;
-    
-    // Calcola tendenza ultima settimana
-    const lastWeek = data.filter(item => {
-      const itemDate = new Date(item.date);
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return itemDate >= weekAgo;
-    });
-    
-    let lastWeekTrend = 'stable';
-    if (lastWeek.length > 2) {
-      const recentMoods = lastWeek.map(item => parseInt(item.mood));
-      const firstHalf = recentMoods.slice(0, Math.floor(recentMoods.length / 2));
-      const secondHalf = recentMoods.slice(Math.floor(recentMoods.length / 2));
-      
-      const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-      const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-      
-      if (secondAvg > firstAvg + 0.5) lastWeekTrend = 'improving';
-      else if (secondAvg < firstAvg - 0.5) lastWeekTrend = 'declining';
-    }
-    
-    return {
-      averageMood,
-      averageSleep,
-      averageEnergy,
-      averageStress,
-      physicalActivityDays,
-      totalLogs: total,
-      lastWeekTrend
-    };
-  };
-
   // Componente per mostrare le statistiche
   const WellnessStats = () => {
-    const stats = calculateStats(wellnessData);
+    if (wellnessData.length === 0) return null;
     
-    // Se non ci sono dati sufficienti, non mostrare le statistiche
-    if (wellnessData.length === 0) {
-      return null;
-    }
+    const calculateStats = () => {
+      // Implementazione reale delle statistiche basata sui dati wellnessData
+      return {
+        averageMood: calculateAverage(wellnessData, 'mood') || 0,
+        averageSleep: calculateAverage(wellnessData, 'sleep') || 0,
+        averageEnergy: calculateAverage(wellnessData, 'energy') || 0,
+        averageStress: calculateAverage(wellnessData, 'stress') || 0,
+        totalLogs: wellnessData.length,
+      };
+    };
     
-    return (
-      <div className="wellness-stats">
-        <h2>Riepilogo del benessere</h2>
-        
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">
-              <i className="fas fa-smile-beam"></i>
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.averageMood.toFixed(1)}</div>
-              <div className="stat-label">Umore medio</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <i className="fas fa-bed"></i>
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.averageSleep.toFixed(1)}</div>
-              <div className="stat-label">Qualità sonno media</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <i className="fas fa-bolt"></i>
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.averageEnergy.toFixed(1)}</div>
-              <div className="stat-label">Energia media</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <i className="fas fa-wind"></i>
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.averageStress.toFixed(1)}</div>
-              <div className="stat-label">Stress medio</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <i className="fas fa-running"></i>
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.physicalActivityDays}</div>
-              <div className="stat-label">Giorni di attività fisica</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <i className={`fas ${stats.lastWeekTrend === 'improving' ? 'fa-arrow-up' : 
-                                  stats.lastWeekTrend === 'declining' ? 'fa-arrow-down' : 'fa-equals'}`}></i>
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">
-                {stats.lastWeekTrend === 'improving' ? 'In miglioramento' : 
-                 stats.lastWeekTrend === 'declining' ? 'In peggioramento' : 'Stabile'}
-              </div>
-              <div className="stat-label">Tendenza umore ultima settimana</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return calculateStats();
+  };
+  
+  // Funzione utility per calcolare la media
+  const calculateAverage = (data, field) => {
+    if (!data || !data.length) return 0;
+    const sum = data.reduce((acc, item) => acc + (parseInt(item[field]) || 0), 0);
+    return Math.round((sum / data.length) * 10) / 10; // Arrotonda a 1 decimale
   };
 
   if (loading) {
