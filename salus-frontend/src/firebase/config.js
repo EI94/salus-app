@@ -1,6 +1,7 @@
 // Configurazione Firebase per Salus App
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 // Configurazione Firebase
 // Usiamo direttamente la chiave API fornita
@@ -18,4 +19,6 @@ const app = initializeApp(firebaseConfig);
 
 // Esporta l'oggetto Auth per l'utilizzo in altri file
 export const auth = getAuth(app);
+// Esporta l'oggetto Firestore per l'utilizzo in altri file
+export const db = getFirestore(app);
 export default app; 

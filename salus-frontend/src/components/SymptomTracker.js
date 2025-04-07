@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/SymptomTracker.css';
-import api from '../api';
 import { localStorageService } from '../api';
+import { loadUserSymptoms, addSymptom, deleteSymptom } from '../firebase/firestore';
+import { auth } from '../firebase/config';
+import { onAuthStateChange } from '../firebase/auth';
 
-const SymptomTracker = ({ userId }) => {
+const SymptomTracker = () => {
   // Stati per la gestione dei dati e dell'interfaccia
   const [loading, setLoading] = useState(true);
   const [symptoms, setSymptoms] = useState([]);
@@ -14,7 +16,8 @@ const SymptomTracker = ({ userId }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSymptom, setSelectedSymptom] = useState(null);
-  const [saveMethod, setSaveMethod] = useState('api'); // 'api' o 'local'
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!auth.currentUser);
   
   // Form per nuovo sintomo
   const [newSymptom, setNewSymptom] = useState({
@@ -48,59 +51,83 @@ const SymptomTracker = ({ userId }) => {
     console.log("Chiusura modale", Date.now());
     setIsAddModalOpen(false);
   };
+  
+  // Verifica lo stato di connessione
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log("Connessione online rilevata");
+      setIsOnline(true);
+      // Ricarica i dati quando torniamo online
+      loadSymptoms();
+    };
+    
+    const handleOffline = () => {
+      console.log("Connessione offline rilevata");
+      setIsOnline(false);
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+  
+  // Monitora lo stato di autenticazione
+  useEffect(() => {
+    const unsubscribe = onAuthStateChange((user) => {
+      setIsAuthenticated(!!user);
+      if (user) {
+        loadSymptoms();
+      } else {
+        setSymptoms([]);
+        setFilteredSymptoms([]);
+      }
+    });
+    
+    return () => unsubscribe();
+  }, []);
 
   // Caricamento iniziale dei dati
   useEffect(() => {
     loadSymptoms();
-  }, [userId]);
+    setCategories(predefinedCategories);
+  }, []);
 
   // Funzione per caricare i sintomi
   const loadSymptoms = async () => {
     setLoading(true);
-    
     try {
-      // Prima tentiamo di caricare da API
-      const response = await api.get('/symptoms');
-      console.log("Risposta API sintomi:", response);
+      // Utilizza il servizio Firestore
+      const symptomsData = await loadUserSymptoms();
       
-      if (response.data && Array.isArray(response.data)) {
-        console.log("Sintomi caricati da API:", response.data.length);
-        setSymptoms(response.data);
-        setFilteredSymptoms(response.data);
-        setSaveMethod('api');
-      } else {
-        throw new Error("Formato dati API non valido");
-      }
+      console.log("Sintomi caricati:", symptomsData.length);
+      setSymptoms(symptomsData);
+      setFilteredSymptoms(symptomsData);
     } catch (error) {
-      console.error("Errore API, utilizzo localStorage:", error);
+      console.error("Errore nel caricamento dei sintomi:", error);
       
+      // Se c'è un errore, tenta di caricare da localStorage
       try {
-        // Fallback a localStorage
-        const localSymptoms = localStorageService.getItem('symptoms');
-        if (localSymptoms) {
-          const parsedSymptoms = JSON.parse(localSymptoms);
-          if (Array.isArray(parsedSymptoms)) {
-            console.log("Sintomi caricati da localStorage:", parsedSymptoms.length);
-            setSymptoms(parsedSymptoms);
-            setFilteredSymptoms(parsedSymptoms);
-            setSaveMethod('local');
-          } else {
-            throw new Error("Formato localStorage non valido");
-          }
+        const localSymptomsJson = localStorageService.getItem('symptoms');
+        if (localSymptomsJson) {
+          const localSymptoms = JSON.parse(localSymptomsJson);
+          console.log("Sintomi caricati da localStorage:", localSymptoms.length);
+          setSymptoms(localSymptoms);
+          setFilteredSymptoms(localSymptoms);
         } else {
-          console.log("Nessun dato in localStorage, inizializzazione array vuoto");
+          console.log("Nessun sintomo trovato in localStorage");
           setSymptoms([]);
           setFilteredSymptoms([]);
-          setSaveMethod('local');
         }
       } catch (localError) {
-        console.error("Errore anche con localStorage:", localError);
+        console.error("Errore nel caricamento da localStorage:", localError);
         setSymptoms([]);
         setFilteredSymptoms([]);
-        setSaveMethod('local');
       }
     } finally {
-      setCategories(predefinedCategories);
       setLoading(false);
     }
   };
@@ -120,7 +147,7 @@ const SymptomTracker = ({ userId }) => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(s => 
-        s.name.toLowerCase().includes(query) || 
+        s.name?.toLowerCase().includes(query) || 
         s.description?.toLowerCase().includes(query)
       );
     }
@@ -139,7 +166,12 @@ const SymptomTracker = ({ userId }) => {
   const handleAddSymptom = async (e) => {
     if (e) e.preventDefault();
     
-    console.log("Aggiunta sintomo, metodo:", saveMethod);
+    if (!isAuthenticated) {
+      alert('È necessario effettuare l\'accesso per aggiungere sintomi');
+      return;
+    }
+    
+    console.log("Aggiunta sintomo");
     console.log("Dati sintomo:", newSymptom);
     
     if (!newSymptom.name || !newSymptom.category) {
@@ -150,86 +182,78 @@ const SymptomTracker = ({ userId }) => {
     try {
       const symptomToAdd = {
         ...newSymptom,
-        userId: userId || 'anonymous',
         intensity: parseInt(newSymptom.intensity, 10) || 5,
-        id: Date.now().toString(), // ID locale per localStorage
       };
       
-      if (saveMethod === 'api') {
-        // Salvataggio su API
-        try {
-          console.log("Tentativo salvataggio su API");
-          const response = await api.post('/symptoms', symptomToAdd);
-          
-          if (response.data) {
-            console.log("Sintomo salvato su API con successo");
-            await loadSymptoms(); // Ricarica i sintomi dall'API
-          } else {
-            throw new Error("Risposta API vuota");
-          }
-        } catch (apiError) {
-          console.error("Errore API durante il salvataggio:", apiError);
-          
-          // Fallback a localStorage
-          saveToLocalStorage(symptomToAdd);
-        }
+      console.log("Salvando sintomo:", symptomToAdd);
+      
+      // Utilizza il servizio Firestore
+      const result = await addSymptom(symptomToAdd);
+      
+      if (result.success) {
+        console.log("Sintomo aggiunto con successo:", result);
+        
+        // Ricarica i sintomi
+        await loadSymptoms();
+        
+        // Reset del form
+        setNewSymptom({
+          name: '',
+          intensity: 5,
+          category: '',
+          description: '',
+          date: new Date().toISOString().split('T')[0],
+          time: new Date().toTimeString().split(' ')[0].substring(0, 5)
+        });
+        
+        // Chiudi la modale
+        closeAddModal();
+        
+        // Notifica all'utente
+        alert(result.isLocalOnly 
+          ? "Sintomo registrato in modalità offline. Sarà sincronizzato quando sarai online."
+          : "Sintomo registrato con successo!");
       } else {
-        // Salvataggio diretto su localStorage
-        saveToLocalStorage(symptomToAdd);
+        throw new Error(result.error || "Errore durante il salvataggio");
       }
-      
-      // Reset del form
-      setNewSymptom({
-        name: '',
-        intensity: 5,
-        category: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-        time: new Date().toTimeString().split(' ')[0].substring(0, 5)
-      });
-      
-      // Chiudi la modale
-      closeAddModal();
-      
-      alert("Sintomo registrato con successo!");
     } catch (error) {
       console.error("Errore durante il salvataggio:", error);
       alert("Si è verificato un errore durante il salvataggio. Riprova.");
     }
   };
   
-  // Funzione per salvare in localStorage
-  const saveToLocalStorage = (symptomToAdd) => {
-    try {
-      // Ottieni i sintomi esistenti
-      const existingSymptoms = localStorageService.getItem('symptoms');
-      let updatedSymptoms = [];
-      
-      if (existingSymptoms) {
-        try {
-          const parsed = JSON.parse(existingSymptoms);
-          updatedSymptoms = Array.isArray(parsed) ? parsed : [];
-        } catch (e) {
-          console.error("Errore parsing localStorage:", e);
-          updatedSymptoms = [];
+  // Funzione per eliminare un sintomo
+  const handleDeleteSymptom = async (symptomId) => {
+    if (!isAuthenticated) {
+      alert('È necessario effettuare l\'accesso per eliminare sintomi');
+      return;
+    }
+    
+    if (window.confirm('Sei sicuro di voler eliminare questo sintomo?')) {
+      try {
+        // Utilizza il servizio Firestore
+        const result = await deleteSymptom(symptomId);
+        
+        if (result.success) {
+          // Aggiorna la lista locale
+          setSymptoms(prev => prev.filter(s => s.id !== symptomId));
+          setFilteredSymptoms(prev => prev.filter(s => s.id !== symptomId));
+          
+          // Chiudi la modale di dettaglio se aperta
+          if (isDetailModalOpen) {
+            setIsDetailModalOpen(false);
+          }
+          
+          alert(result.isLocalOnly 
+            ? "Sintomo eliminato in modalità offline. Sarà sincronizzato quando sarai online."
+            : "Sintomo eliminato con successo!");
+        } else {
+          throw new Error(result.error || "Errore durante l'eliminazione");
         }
+      } catch (error) {
+        console.error("Errore durante l'eliminazione:", error);
+        alert("Si è verificato un errore durante l'eliminazione. Riprova.");
       }
-      
-      // Aggiungi il nuovo sintomo
-      updatedSymptoms = [symptomToAdd, ...updatedSymptoms];
-      
-      // Salva nel localStorage
-      localStorageService.setItem('symptoms', JSON.stringify(updatedSymptoms));
-      
-      // Aggiorna lo stato
-      setSymptoms(updatedSymptoms);
-      setFilteredSymptoms(updatedSymptoms);
-      setSaveMethod('local');
-      
-      console.log("Sintomo salvato in localStorage con successo");
-    } catch (error) {
-      console.error("Errore salvataggio localStorage:", error);
-      throw error;
     }
   };
 
@@ -241,9 +265,16 @@ const SymptomTracker = ({ userId }) => {
       </div>
       <h2>Nessun sintomo registrato</h2>
       <p>Inizia a tracciare i tuoi sintomi per monitorare la tua salute</p>
-      <button className="add-btn" onClick={openAddModal}>
+      <button 
+        className="add-btn" 
+        onClick={openAddModal}
+        disabled={!isAuthenticated}
+      >
         <i className="fas fa-plus"></i> Aggiungi primo sintomo
       </button>
+      {!isAuthenticated && (
+        <p className="login-prompt">Effettua l'accesso per registrare i tuoi sintomi</p>
+      )}
     </div>
   );
 
@@ -257,17 +288,26 @@ const SymptomTracker = ({ userId }) => {
         </div>
       ) : (
         <>
+          {/* Indicatore di stato connessione */}
+          {!isOnline && (
+            <div className="offline-banner">
+              <i className="fas fa-wifi-slash"></i>
+              Modalità offline - I dati saranno sincronizzati quando tornerai online
+            </div>
+          )}
+          
           {/* Header con filtri */}
           <div className="symptom-header">
             <div className="symptom-title">
               <h1>I Tuoi Sintomi</h1>
-              <p>Monitora e gestisci i tuoi sintomi {saveMethod === 'local' ? '(salvati localmente)' : ''}</p>
+              <p>Monitora e gestisci i tuoi sintomi {!isOnline ? '(Modalità offline)' : ''}</p>
             </div>
             
             <button 
               className="add-symptom-button" 
               onClick={openAddModal}
               type="button"
+              disabled={!isAuthenticated}
             >
               <i className="fas fa-plus"></i> Nuovo Sintomo
             </button>
@@ -302,19 +342,33 @@ const SymptomTracker = ({ userId }) => {
           </div>
           
           {/* Lista sintomi o stato vuoto */}
-          {filteredSymptoms.length === 0 ? (
+          {!isAuthenticated ? (
+            <div className="login-required">
+              <div className="login-illustration">
+                <i className="fas fa-user-lock" style={{ fontSize: '100px', color: 'var(--primary-color-light)' }}></i>
+              </div>
+              <h2>Accesso richiesto</h2>
+              <p>Effettua l'accesso per visualizzare e gestire i tuoi sintomi</p>
+              <a href="/login" className="login-button">Accedi ora</a>
+            </div>
+          ) : filteredSymptoms.length === 0 ? (
             <EmptyState />
           ) : (
             <div className="symptoms-grid">
               {filteredSymptoms.map(symptom => (
                 <div 
-                  key={symptom._id || symptom.id} 
-                  className="symptom-card"
+                  key={symptom.id} 
+                  className={`symptom-card ${symptom.isLocalOnly ? 'local-only' : ''}`}
                   onClick={() => {
                     setSelectedSymptom(symptom);
                     setIsDetailModalOpen(true);
                   }}
                 >
+                  {symptom.isLocalOnly && (
+                    <div className="sync-badge" title="Salvato localmente, in attesa di sincronizzazione">
+                      <i className="fas fa-cloud-upload-alt"></i>
+                    </div>
+                  )}
                   <div className="symptom-icon">
                     <i className={`fas ${getCategoryIcon(symptom.category)}`}></i>
                   </div>
@@ -451,10 +505,10 @@ const SymptomTracker = ({ userId }) => {
                   
                   <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '20px'}}>
                     <div>
-                      <span style={{fontSize: '12px', color: saveMethod === 'api' ? 'green' : 'orange'}}>
-                        {saveMethod === 'api' 
-                          ? 'Salvataggio su database' 
-                          : 'Salvataggio in locale (offline)'}
+                      <span style={{fontSize: '12px', color: isOnline ? 'green' : 'orange'}}>
+                        {isOnline 
+                          ? 'Salvataggio su cloud' 
+                          : 'Salvataggio offline (sincronizzazione automatica)'}
                       </span>
                     </div>
                     <div style={{display: 'flex', gap: '10px'}}>
@@ -518,6 +572,11 @@ const SymptomTracker = ({ userId }) => {
                   </button>
                 </div>
                 <div className="modal-body">
+                  {selectedSymptom.isLocalOnly && (
+                    <div className="sync-status" style={{color: 'orange', marginBottom: '10px'}}>
+                      <i className="fas fa-cloud-upload-alt"></i> Salvato localmente, in attesa di sincronizzazione
+                    </div>
+                  )}
                   <h3>{selectedSymptom.name}</h3>
                   <p><strong>Categoria:</strong> {selectedSymptom.category}</p>
                   <p><strong>Intensità:</strong> {selectedSymptom.intensity}/10</p>
@@ -526,8 +585,17 @@ const SymptomTracker = ({ userId }) => {
                   {selectedSymptom.description && (
                     <p><strong>Descrizione:</strong> {selectedSymptom.description}</p>
                   )}
+                  {selectedSymptom.createdAt && (
+                    <p><strong>Registrato il:</strong> {new Date(selectedSymptom.createdAt).toLocaleString('it-IT')}</p>
+                  )}
                 </div>
-                <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '20px'}}>
+                  <button 
+                    onClick={() => handleDeleteSymptom(selectedSymptom.id)}
+                    style={{padding: '10px 15px', background: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+                  >
+                    <i className="fas fa-trash"></i> Elimina
+                  </button>
                   <button 
                     onClick={() => setIsDetailModalOpen(false)}
                     style={{padding: '10px 15px', background: '#4A90E2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
