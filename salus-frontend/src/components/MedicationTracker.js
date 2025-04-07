@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import '../styles/MedicationTracker.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,6 +14,26 @@ const MedicationTracker = ({ userId }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   
+  // Ref per la modale
+  const modalRef = useRef(null);
+
+  // Componente MODALE diretto, costruito con createPortal
+  const Modal = ({ isOpen, onClose, children }) => {
+    if (!isOpen) return null;
+    
+    // Usa ReactDOM.createPortal per creare la modale direttamente nel body
+    return ReactDOM.createPortal(
+      <div className="modal-overlay" onClick={(e) => {
+        if (e.target.className === 'modal-overlay') onClose();
+      }}>
+        <div className="modal-content" onClick={e => e.stopPropagation()}>
+          {children}
+        </div>
+      </div>,
+      document.body
+    );
+  };
+  
   // Form per nuovo farmaco
   const [newMedication, setNewMedication] = useState({
     name: '',
@@ -23,45 +44,6 @@ const MedicationTracker = ({ userId }) => {
     status: 'active'
   });
   
-  // Inizializzazione - crea la modale direttamente
-  useEffect(() => {
-    console.log("🔄 Inizializzazione MedicationTracker - Creazione modale...");
-    
-    // Verifica se esiste già il container modale
-    let modalContainer = document.getElementById('medication-add-modal');
-    
-    // Se non esiste, crealo manualmente
-    if (!modalContainer) {
-      console.log("⚙️ Creazione manuale modale farmaci");
-      
-      // Crea il container della modale
-      modalContainer = document.createElement('div');
-      modalContainer.id = 'medication-add-modal';
-      modalContainer.className = 'modal-overlay';
-      modalContainer.style.display = 'none';
-      modalContainer.style.position = 'fixed';
-      modalContainer.style.top = '0';
-      modalContainer.style.left = '0';
-      modalContainer.style.width = '100%';
-      modalContainer.style.height = '100%';
-      modalContainer.style.backgroundColor = 'rgba(0,0,0,0.5)';
-      modalContainer.style.zIndex = '1000';
-      
-      // Appendi la modale al body del documento
-      document.body.appendChild(modalContainer);
-      console.log("✅ Modale farmaci creata e aggiunta al DOM");
-    } else {
-      console.log("✅ Modale farmaci già presente nel DOM");
-    }
-    
-    // Pulizia al momento dello smontaggio del componente
-    return () => {
-      console.log("🧹 Pulizia MedicationTracker");
-      // Opzionalmente, rimuovi la modale dal DOM allo smontaggio
-      // document.body.removeChild(modalContainer);
-    };
-  }, []);
-
   // Stati per la gestione dei dati e dell'interfaccia
   const [loading, setLoading] = useState(true);
   const [filteredMedications, setFilteredMedications] = useState([]);
@@ -144,6 +126,7 @@ const MedicationTracker = ({ userId }) => {
   // Gestione del form per nuovo farmaco
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log(`📝 Input cambiato: ${name} = ${value}`);
     setNewMedication(prev => ({ ...prev, [name]: value }));
   };
 
@@ -166,15 +149,17 @@ const MedicationTracker = ({ userId }) => {
     }
   };
 
-  // Funzione per aggiungere un farmaco - completamente riscritta
+  // Funzione per aggiungere un farmaco - con tracciamento dettagliato
   const handleAddMedication = (e) => {
     if (e) e.preventDefault();
     
     console.log("🔄 handleAddMedication chiamata", Date.now());
+    console.log("📋 Dati form farmaco:", JSON.stringify(newMedication, null, 2));
     
     try {
       // Validazione base
       if (!newMedication.name || !newMedication.dosage) {
+        console.error("❌ Validazione fallita: nome o dosaggio mancanti");
         alert('Inserisci nome e dosaggio del farmaco');
         return;
       }
@@ -183,6 +168,7 @@ const MedicationTracker = ({ userId }) => {
       
       // Crea un ID univoco
       const id = Date.now().toString();
+      console.log("🆔 ID generato:", id);
       
       // Prepara il nuovo farmaco completo di ID
       const medicationToAdd = {
@@ -194,12 +180,15 @@ const MedicationTracker = ({ userId }) => {
       console.log("📦 Nuovo farmaco da salvare:", medicationToAdd);
       
       // Recupera i farmaci esistenti dal localStorage
+      console.log("🔍 Verifica localStorage per chiave 'medications'");
       let existingMedications = [];
       const storedMedications = localStorage.getItem('medications');
+      console.log("📦 Contenuto localStorage 'medications':", storedMedications);
       
       if (storedMedications) {
         try {
           existingMedications = JSON.parse(storedMedications);
+          console.log("📊 Farmaci parsati dal localStorage:", existingMedications.length);
           if (!Array.isArray(existingMedications)) {
             console.warn("⚠️ I farmaci nel localStorage non sono un array, reset necessario");
             existingMedications = [];
@@ -208,22 +197,38 @@ const MedicationTracker = ({ userId }) => {
           console.error("❌ Errore nel parsing dei farmaci dal localStorage:", error);
           existingMedications = [];
         }
+      } else {
+        console.log("ℹ️ Nessun farmaco esistente nel localStorage");
       }
       
       console.log("📋 Farmaci esistenti:", existingMedications.length);
       
       // Aggiungi il nuovo farmaco all'inizio dell'array
       const updatedMedications = [medicationToAdd, ...existingMedications];
+      console.log("📊 Nuovi farmaci totali:", updatedMedications.length);
       
       // Salva nel localStorage
-      localStorage.setItem('medications', JSON.stringify(updatedMedications));
-      console.log("💾 Farmaci salvati nel localStorage, nuova lunghezza:", updatedMedications.length);
+      try {
+        const jsonToSave = JSON.stringify(updatedMedications);
+        console.log("💾 Salvataggio in localStorage, dimensione JSON:", jsonToSave.length);
+        localStorage.setItem('medications', jsonToSave);
+        console.log("✅ Salvataggio localStorage completato");
+      } catch (error) {
+        console.error("❌ Errore durante il salvataggio nel localStorage:", error);
+        throw error;
+      }
+      
+      // Verifica che il salvataggio sia avvenuto con successo
+      const verificationCheck = localStorage.getItem('medications');
+      console.log("🔍 Verifica dopo salvataggio - localStorage 'medications' presente:", !!verificationCheck);
       
       // Aggiorna lo stato di React
+      console.log("🔄 Aggiornamento stato React con nuovi farmaci");
       setMedications(updatedMedications);
       setFilteredMedications(updatedMedications);
       
       // Reset del form
+      console.log("🧹 Reset del form");
       setNewMedication({
         name: '',
         dosage: '',
@@ -237,6 +242,7 @@ const MedicationTracker = ({ userId }) => {
       });
       
       // Chiudi la modale
+      console.log("🚪 Chiusura modale");
       closeAddModal();
       
       console.log("✅ Farmaco aggiunto con successo!");
@@ -250,14 +256,18 @@ const MedicationTracker = ({ userId }) => {
 
   // Funzione ultrasemplificata per l'apertura della modale
   const openAddModal = () => {
-    console.log("⚠️ ULTRASEMPLICE: Apertura modale farmaci", Date.now());
-    setIsAddModalOpen(true); // Questo è tutto ciò che serve
+    console.log("⚠️⚠️⚠️ APERTURA MODALE FARMACI EXTRA SEMPLICE", Date.now());
+    console.log("⚠️⚠️⚠️ Stato attuale isAddModalOpen:", isAddModalOpen);
+    setIsAddModalOpen(true);
+    console.log("⚠️⚠️⚠️ Stato dopo modifica:", true);
   };
 
   // Funzione ultrasemplificata per la chiusura della modale
   const closeAddModal = () => {
-    console.log("⚠️ ULTRASEMPLICE: Chiusura modale farmaci", Date.now());
-    setIsAddModalOpen(false); // Questo è tutto ciò che serve
+    console.log("⚠️⚠️⚠️ CHIUSURA MODALE FARMACI EXTRA SEMPLICE", Date.now());
+    console.log("⚠️⚠️⚠️ Stato attuale isAddModalOpen:", isAddModalOpen);
+    setIsAddModalOpen(false);
+    console.log("⚠️⚠️⚠️ Stato dopo modifica:", false);
   };
 
   // Visualizza dettaglio farmaco
@@ -575,7 +585,7 @@ const MedicationTracker = ({ userId }) => {
       
       {/* Modale ultrasemplificata */}
       {isAddModalOpen && (
-        <div className="modal-overlay">
+        <Modal isOpen={isAddModalOpen} onClose={closeAddModal}>
           <div className="modal-content">
             <div className="modal-header">
               <h2>Aggiungi nuovo farmaco</h2>
@@ -719,12 +729,12 @@ const MedicationTracker = ({ userId }) => {
             </div>
             </form>
           </div>
-        </div>
+        </Modal>
       )}
       
       {/* Modal per visualizzare dettaglio */}
       {isEditModalOpen && selectedMedication && (
-        <div className="modal-overlay">
+        <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
           <div className="modal-content">
             <div className="modal-header">
               <h2>{selectedMedication.name}</h2>
@@ -836,7 +846,7 @@ const MedicationTracker = ({ userId }) => {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

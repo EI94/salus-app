@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import '../styles/SymptomTracker.css';
 
 const SymptomTracker = ({ userId }) => {
@@ -23,64 +24,6 @@ const SymptomTracker = ({ userId }) => {
     time: new Date().toTimeString().split(' ')[0].substring(0, 5)
   });
 
-  // Questo effetto gestisce l'apertura e chiusura della modale 
-  // direttamente quando cambia isAddModalOpen
-  useEffect(() => {
-    if (isAddModalOpen) {
-      // Trova la modale per id
-      const modal = document.getElementById('symptom-add-modal');
-      if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden'; // Blocca lo scroll
-      }
-    } else {
-      const modal = document.getElementById('symptom-add-modal');
-      if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto'; // Ripristina lo scroll
-      }
-    }
-  }, [isAddModalOpen]);
-
-  // Inizializzazione - crea la modale direttamente
-  useEffect(() => {
-    console.log("🔄 Inizializzazione SymptomTracker - Creazione modale...");
-    
-    // Verifica se esiste già il container modale
-    let modalContainer = document.getElementById('symptom-add-modal');
-    
-    // Se non esiste, crealo manualmente
-    if (!modalContainer) {
-      console.log("⚙️ Creazione manuale modale sintomi");
-      
-      // Crea il container della modale
-      modalContainer = document.createElement('div');
-      modalContainer.id = 'symptom-add-modal';
-      modalContainer.className = 'modal-overlay';
-      modalContainer.style.display = 'none';
-      modalContainer.style.position = 'fixed';
-      modalContainer.style.top = '0';
-      modalContainer.style.left = '0';
-      modalContainer.style.width = '100%';
-      modalContainer.style.height = '100%';
-      modalContainer.style.backgroundColor = 'rgba(0,0,0,0.5)';
-      modalContainer.style.zIndex = '1000';
-      
-      // Appendi la modale al body del documento
-      document.body.appendChild(modalContainer);
-      console.log("✅ Modale sintomi creata e aggiunta al DOM");
-    } else {
-      console.log("✅ Modale sintomi già presente nel DOM");
-    }
-    
-    // Pulizia al momento dello smontaggio del componente
-    return () => {
-      console.log("🧹 Pulizia SymptomTracker");
-      // Opzionalmente, rimuovi la modale dal DOM allo smontaggio
-      // document.body.removeChild(modalContainer);
-    };
-  }, []);
-
   // Dati di esempio - sostituiti con array vuoto
   const mockSymptoms = [];
 
@@ -94,6 +37,25 @@ const SymptomTracker = ({ userId }) => {
     { id: 6, name: 'Articolare', icon: 'fa-bone' },
     { id: 7, name: 'Altro', icon: 'fa-notes-medical' }
   ];
+
+  const modalRef = useRef(null);
+
+  // Componente MODALE diretto, costruito con createPortal
+  const Modal = ({ isOpen, onClose, children }) => {
+    if (!isOpen) return null;
+    
+    // Usa ReactDOM.createPortal per creare la modale direttamente nel body
+    return ReactDOM.createPortal(
+      <div className="modal-overlay" onClick={(e) => {
+        if (e.target.className === 'modal-overlay') onClose();
+      }}>
+        <div className="modal-content" onClick={e => e.stopPropagation()}>
+          {children}
+        </div>
+      </div>,
+      document.body
+    );
+  };
 
   // Caricamento iniziale dei dati
   useEffect(() => {
@@ -247,18 +209,21 @@ const SymptomTracker = ({ userId }) => {
   // Gestione del nuovo sintomo
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log(`📝 Input cambiato: ${name} = ${value}`);
     setNewSymptom(prev => ({ ...prev, [name]: value }));
   };
 
-  // Funzione per aggiungere un sintomo - completamente riscritta
+  // Funzione per aggiungere un sintomo - con tracciamento dettagliato
   const handleAddSymptom = (e) => {
     if (e) e.preventDefault();
     
     console.log("🔄 handleAddSymptom chiamata", Date.now());
+    console.log("📋 Dati form sintomo:", JSON.stringify(newSymptom, null, 2));
     
     try {
       // Validazione base
       if (!newSymptom.name || !newSymptom.category) {
+        console.error("❌ Validazione fallita: nome o categoria mancanti");
         alert('Inserisci nome e categoria del sintomo');
         return;
       }
@@ -267,6 +232,7 @@ const SymptomTracker = ({ userId }) => {
       
       // Crea un ID univoco
       const id = Date.now().toString();
+      console.log("🆔 ID generato:", id);
       
       // Prepara il nuovo sintomo completo di ID
       const symptomToAdd = {
@@ -278,12 +244,15 @@ const SymptomTracker = ({ userId }) => {
       console.log("📦 Nuovo sintomo da salvare:", symptomToAdd);
       
       // Recupera i sintomi esistenti dal localStorage
+      console.log("🔍 Verifica localStorage per chiave 'symptoms'");
       let existingSymptoms = [];
       const storedSymptoms = localStorage.getItem('symptoms');
+      console.log("📦 Contenuto localStorage 'symptoms':", storedSymptoms);
       
       if (storedSymptoms) {
         try {
           existingSymptoms = JSON.parse(storedSymptoms);
+          console.log("📊 Sintomi parsati dal localStorage:", existingSymptoms.length);
           if (!Array.isArray(existingSymptoms)) {
             console.warn("⚠️ I sintomi nel localStorage non sono un array, reset necessario");
             existingSymptoms = [];
@@ -292,32 +261,38 @@ const SymptomTracker = ({ userId }) => {
           console.error("❌ Errore nel parsing dei sintomi dal localStorage:", error);
           existingSymptoms = [];
         }
+      } else {
+        console.log("ℹ️ Nessun sintomo esistente nel localStorage");
       }
       
       console.log("📋 Sintomi esistenti:", existingSymptoms.length);
       
       // Aggiungi il nuovo sintomo all'inizio dell'array
       const updatedSymptoms = [symptomToAdd, ...existingSymptoms];
+      console.log("📊 Nuovi sintomi totali:", updatedSymptoms.length);
       
       // Salva nel localStorage
-      localStorage.setItem('symptoms', JSON.stringify(updatedSymptoms));
-      console.log("💾 Sintomi salvati nel localStorage, nuova lunghezza:", updatedSymptoms.length);
+      try {
+        const jsonToSave = JSON.stringify(updatedSymptoms);
+        console.log("💾 Salvataggio in localStorage, dimensione JSON:", jsonToSave.length);
+        localStorage.setItem('symptoms', jsonToSave);
+        console.log("✅ Salvataggio localStorage completato");
+      } catch (error) {
+        console.error("❌ Errore durante il salvataggio nel localStorage:", error);
+        throw error;
+      }
+      
+      // Verifica che il salvataggio sia avvenuto con successo
+      const verificationCheck = localStorage.getItem('symptoms');
+      console.log("🔍 Verifica dopo salvataggio - localStorage 'symptoms' presente:", !!verificationCheck);
       
       // Aggiorna lo stato di React
+      console.log("🔄 Aggiornamento stato React con nuovi sintomi");
       setSymptoms(updatedSymptoms);
       setFilteredSymptoms(updatedSymptoms);
       
-      // Aggiungi la categoria se è nuova
-      if (!categories.some(cat => cat.name === newSymptom.category)) {
-        const newCategory = {
-          id: Date.now(),
-          name: newSymptom.category,
-          icon: 'fa-notes-medical'
-        };
-        setCategories(prevCategories => [...prevCategories, newCategory]);
-      }
-      
       // Reset del form
+      console.log("🧹 Reset del form");
       setNewSymptom({
         name: '',
         intensity: 5,
@@ -328,6 +303,7 @@ const SymptomTracker = ({ userId }) => {
       });
       
       // Chiudi la modale
+      console.log("🚪 Chiusura modale");
       closeAddModal();
       
       console.log("✅ Sintomo aggiunto con successo!");
@@ -341,14 +317,18 @@ const SymptomTracker = ({ userId }) => {
 
   // Funzione ultrasemplificata per l'apertura della modale
   const openAddModal = () => {
-    console.log("⚠️ ULTRASEMPLICE: Apertura modale sintomi", Date.now());
-    setIsAddModalOpen(true); // Questo è tutto ciò che serve
+    console.log("⚠️⚠️⚠️ APERTURA MODALE SINTOMI EXTRA SEMPLICE", Date.now());
+    console.log("⚠️⚠️⚠️ Stato attuale isAddModalOpen:", isAddModalOpen);
+    setIsAddModalOpen(true);
+    console.log("⚠️⚠️⚠️ Stato dopo modifica:", true);
   };
 
   // Funzione ultrasemplificata per la chiusura della modale
   const closeAddModal = () => {
-    console.log("⚠️ ULTRASEMPLICE: Chiusura modale sintomi", Date.now());
-    setIsAddModalOpen(false); // Questo è tutto ciò che serve
+    console.log("⚠️⚠️⚠️ CHIUSURA MODALE SINTOMI EXTRA SEMPLICE", Date.now());
+    console.log("⚠️⚠️⚠️ Stato attuale isAddModalOpen:", isAddModalOpen);
+    setIsAddModalOpen(false);
+    console.log("⚠️⚠️⚠️ Stato dopo modifica:", false);
   };
 
   // Visualizza dettaglio sintomo
@@ -532,114 +512,110 @@ const SymptomTracker = ({ userId }) => {
         <EmptyState />
       )}
       
-      {/* Modale ultrasemplificata */}
-      {isAddModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Aggiungi nuovo sintomo</h2>
-              <button className="close-button" onClick={closeAddModal} type="button">
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <form onSubmit={handleAddSymptom}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label>Nome del sintomo *</label>
-                  <input 
-                    type="text" 
-                    name="name" 
-                    value={newSymptom.name}
-                    onChange={handleInputChange}
-                    placeholder="Es. Mal di testa, Tosse, ecc."
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label>Categoria *</label>
-                  <select 
-                    name="category" 
-                    value={newSymptom.category}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Seleziona categoria</option>
-                    {predefinedCategories.map((cat, index) => (
-                      <option key={index} value={cat.name}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="form-group">
-                  <label>Intensità: {newSymptom.intensity}</label>
-                  <input 
-                    type="range" 
-                    name="intensity" 
-                    min="1" 
-                    max="10" 
-                    value={newSymptom.intensity}
-                    onChange={handleInputChange}
-                  />
-                  <div className="range-labels">
-                    <span>Lieve</span>
-                    <span>Moderata</span>
-                    <span>Intensa</span>
-                  </div>
-                </div>
-                
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Data</label>
-                    <input 
-                      type="date" 
-                      name="date" 
-                      value={newSymptom.date}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Ora</label>
-                    <input 
-                      type="time" 
-                      name="time" 
-                      value={newSymptom.time}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                </div>
-                
-                <div className="form-group">
-                  <label>Descrizione</label>
-                  <textarea 
-                    name="description" 
-                    value={newSymptom.description}
-                    onChange={handleInputChange}
-                    placeholder="Descrivi come ti senti..."
-                    rows="3"
-                  ></textarea>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button 
-                  className="cancel-button" 
-                  onClick={closeAddModal}
-                  type="button"
-                >
-                  Annulla
-                </button>
-                <button 
-                  className="save-button" 
-                  type="submit"
-                >
-                  Salva sintomo
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* Utilizzo la nuova modale basata su createPortal */}
+      <Modal isOpen={isAddModalOpen} onClose={closeAddModal}>
+        <div className="modal-header">
+          <h2>Aggiungi nuovo sintomo</h2>
+          <button className="close-button" onClick={closeAddModal} type="button">
+            <i className="fas fa-times"></i>
+          </button>
         </div>
-      )}
+        <form onSubmit={handleAddSymptom}>
+          <div className="modal-body">
+            <div className="form-group">
+              <label>Nome del sintomo *</label>
+              <input 
+                type="text" 
+                name="name" 
+                value={newSymptom.name}
+                onChange={handleInputChange}
+                placeholder="Es. Mal di testa, Tosse, ecc."
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Categoria *</label>
+              <select 
+                name="category" 
+                value={newSymptom.category}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Seleziona categoria</option>
+                {predefinedCategories.map((cat, index) => (
+                  <option key={index} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label>Intensità: {newSymptom.intensity}</label>
+              <input 
+                type="range" 
+                name="intensity" 
+                min="1" 
+                max="10" 
+                value={newSymptom.intensity}
+                onChange={handleInputChange}
+              />
+              <div className="range-labels">
+                <span>Lieve</span>
+                <span>Moderata</span>
+                <span>Intensa</span>
+              </div>
+            </div>
+            
+            <div className="form-row">
+              <div className="form-group">
+                <label>Data</label>
+                <input 
+                  type="date" 
+                  name="date" 
+                  value={newSymptom.date}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Ora</label>
+                <input 
+                  type="time" 
+                  name="time" 
+                  value={newSymptom.time}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label>Descrizione</label>
+              <textarea 
+                name="description" 
+                value={newSymptom.description}
+                onChange={handleInputChange}
+                placeholder="Descrivi come ti senti..."
+                rows="3"
+              ></textarea>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button 
+              className="cancel-button" 
+              onClick={closeAddModal}
+              type="button"
+            >
+              Annulla
+            </button>
+            <button 
+              className="save-button" 
+              type="submit"
+            >
+              Salva sintomo
+            </button>
+          </div>
+        </form>
+      </Modal>
       
       {/* Modal per visualizzare dettaglio */}
       {isDetailModalOpen && selectedSymptom && (
