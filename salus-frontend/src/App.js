@@ -105,7 +105,7 @@ function Layout({ children }) {
               <li>
                 <Link to="/dashboard" className={getActivePageClass('/dashboard')}>
                   <i className="fas fa-home"></i>
-                  <span>{t('dashboard', 'Dashboard')}</span>
+                  <span>Dashboard</span>
                 </Link>
               </li>
               <li>
