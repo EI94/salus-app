@@ -18,7 +18,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db, auth } from './config';
-import { localStorageService } from '../api';
+import { localStorageService } from '../utils/localStorageUtil';
 
 // ----- SINTOMI ----- //
 
