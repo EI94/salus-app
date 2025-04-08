@@ -16,6 +16,9 @@ import { useTranslation } from 'react-i18next';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import { UserProvider, UserContext } from './context/UserContext';
+import MedicationReminder from './components/MedicationReminder';
+import SymptomAnalytics from './components/SymptomAnalytics';
+import AppointmentManager from './components/AppointmentManager';
 
 // Componente per rotte protette (solo per utenti autenticati)
 const ProtectedRoute = ({ children }) => {
@@ -268,6 +271,31 @@ function AppContent() {
         <ProtectedRoute>
           <Layout>
             <AIAssistant />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Aggiungi le nuove rotte */}
+      <Route path="/medication-reminders" element={
+        <ProtectedRoute>
+          <Layout>
+            <MedicationReminder />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/symptom-analytics" element={
+        <ProtectedRoute>
+          <Layout>
+            <SymptomAnalytics />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/appointments" element={
+        <ProtectedRoute>
+          <Layout>
+            <AppointmentManager />
           </Layout>
         </ProtectedRoute>
       } />
