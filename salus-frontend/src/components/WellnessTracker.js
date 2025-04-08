@@ -1,13 +1,12 @@
 // File WellnessTracker Component
 
-import React, { useState, useEffect } from 'react';
-import { saveUserData } from '../utils/dataManager';
+import React, { useState, useEffect, useContext } from 'react';
+import { UserContext } from '../context/UserContext';
+import { collection, addDoc, deleteDoc, doc, getDocs, query, where, serverTimestamp, orderBy, getDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase/config';
+import { localStorageService } from '../utils/localStorageUtil';
 import '../styles/WellnessTracker.css';
-import { localStorageService } from '../api';
-import { auth } from '../firebase/config';
 import { onAuthStateChange } from '../firebase/auth';
-import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
 
 const WellnessTracker = () => {
   const [loading, setLoading] = useState(true);
