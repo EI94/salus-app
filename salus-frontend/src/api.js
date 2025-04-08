@@ -129,13 +129,29 @@ export const sendMessageToAI = async (message, conversationHistory = []) => {
       { role: "user", content: message }
     ];
     
+    // Verifica se la chiave API è disponibile
+    // Prova diverse variabili d'ambiente che potrebbero contenere la chiave API
+    const apiKey = process.env.REACT_APP_OPENAI_API_KEY || 
+                  process.env.OPENAI_API_KEY || 
+                  process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      console.error('API key di OpenAI non trovata nelle variabili d\'ambiente');
+      return {
+        response: "Non è stato possibile connettersi al servizio AI a causa di un problema di configurazione. Contatta l'amministratore.",
+        offline: true,
+        error: "API key non configurata"
+      };
+    }
+    
+    console.log('Chiave API trovata, lunghezza:', apiKey.length);
+    
     // Invia direttamente la richiesta a OpenAI
-    // Nota: process.env.OPENAI_API_KEY viene inserito da Vercel al momento del build
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`
+        "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
