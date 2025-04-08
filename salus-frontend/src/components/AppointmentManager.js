@@ -2,12 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/config';
-import { 
-  loadUserAppointments, 
-  addAppointment, 
-  updateAppointment, 
-  deleteAppointment 
-} from '../firebase/firestore';
+import * as firestore from '../firebase/firestore';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { format, isToday, isSameDay, parseISO, addMinutes } from 'date-fns';
@@ -83,7 +78,7 @@ function AppointmentManager() {
     try {
       setLoading(true);
       // Carica appuntamenti
-      const appointmentsData = await loadUserAppointments();
+      const appointmentsData = await firestore.loadUserAppointments();
       setAppointments(appointmentsData);
     } catch (error) {
       console.error('Errore nel caricamento degli appuntamenti:', error);
@@ -143,12 +138,12 @@ function AppointmentManager() {
         status: 'scheduled'
       };
       
-      const result = await addAppointment(appointmentData);
+      const result = await firestore.addAppointment(appointmentData);
       
       if (result.success) {
         toast.success('Appuntamento aggiunto con successo!');
         // Aggiorna la lista degli appuntamenti
-        const updatedAppointments = await loadUserAppointments();
+        const updatedAppointments = await firestore.loadUserAppointments();
         setAppointments(updatedAppointments);
         resetForm();
       } else {
@@ -163,7 +158,7 @@ function AppointmentManager() {
   // Gestisce l'aggiornamento dello stato di un appuntamento
   const handleAppointmentStatus = async (appointmentId, newStatus) => {
     try {
-      const result = await updateAppointment(appointmentId, { status: newStatus });
+      const result = await firestore.updateAppointment(appointmentId, { status: newStatus });
       
       if (result.success) {
         toast.success(
@@ -173,7 +168,7 @@ function AppointmentManager() {
         );
         
         // Aggiorna la lista degli appuntamenti
-        const updatedAppointments = await loadUserAppointments();
+        const updatedAppointments = await firestore.loadUserAppointments();
         setAppointments(updatedAppointments);
       } else {
         toast.error(result.error || 'Errore durante l\'aggiornamento dello stato.');
@@ -188,7 +183,7 @@ function AppointmentManager() {
   const handleDeleteAppointment = async (appointmentId) => {
     if (window.confirm('Sei sicuro di voler eliminare questo appuntamento?')) {
       try {
-        const result = await deleteAppointment(appointmentId);
+        const result = await firestore.deleteAppointment(appointmentId);
         
         if (result.success) {
           toast.success('Appuntamento eliminato con successo!');
