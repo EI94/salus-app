@@ -1,11 +1,17 @@
 {
   "name": "salus-app",
   "version": 2,
+  "functions": {
+    "api/chat.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1",
-      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      "src": "/api/chat",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/api/chat.js",
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -17,10 +23,6 @@
       "dest": "/index.html"
     }
   ],
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
   "env": {
     "NODE_ENV": "production",
     "REACT_APP_API_URL": "https://salus-backend.onrender.com",
@@ -28,6 +30,10 @@
     "DEPLOYMENT_TIME": "2025-04-04T14:30:00Z",
     "FORCE_NEW_DEPLOYMENT": "true"
   },
+  "rewrites": [
+    { "source": "/api/chat", "destination": "/api/chat.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/service-worker.js",

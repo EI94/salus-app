@@ -128,12 +128,14 @@ export const sendMessageToAI = async (message, conversationHistory = []) => {
     
     console.log('Invio richiesta AI a OpenAI');
     
-    // Scegli tra chiamata diretta o tramite backend
-    let response;
+    // URL del serverless endpoint
+    const SERVERLESS_URL = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')
+      ? 'http://localhost:5000/api/chat'  // URL locale per sviluppo
+      : '/api/chat';  // URL relativo per produzione
     
     try {
-      // Prima prova la chiamata diretta a Vercel
-      response = await axios.post('https://salus-ai-backend.vercel.app/api/chat', 
+      // Invia la richiesta al nostro endpoint serverless
+      const response = await axios.post(SERVERLESS_URL, 
         { messages },
         { 
           headers: { 
@@ -143,34 +145,32 @@ export const sendMessageToAI = async (message, conversationHistory = []) => {
         }
       );
       
-      console.log('Risposta AI ricevuta da Vercel');
-    } catch (vercelError) {
-      console.warn('Errore nella chiamata a Vercel, provo con il proxy:', vercelError);
+      if (response.status !== 200) {
+        throw new Error(`Errore nella risposta: ${response.status}`);
+      }
       
-      // Se la chiamata diretta fallisce, prova attraverso il proxy
-      response = await axios.post('/api/chat', 
-        { messages },
-        { 
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      return {
+        response: response.data.message || response.data.response || response.data.reply || "Non ho capito la tua richiesta, puoi riprovare?",
+        offline: false
+      };
+    } catch (apiError) {
+      console.error('Errore nella chiamata API AI:', apiError);
       
-      console.log('Risposta AI ricevuta tramite proxy');
+      // Fallback a risposta locale
+      if (!navigator.onLine) {
+        console.log('Browser offline, usando risposta offline');
+        return {
+          response: "Sembra che tu sia offline. Riprova quando avrai una connessione a internet.",
+          offline: true
+        };
+      }
+      
+      return {
+        response: "Mi dispiace, in questo momento non riesco a connettermi al servizio AI. Il server potrebbe essere occupato o non disponibile. Riprova più tardi.",
+        offline: true,
+        error: apiError.message
+      };
     }
-    
-    // Verifica e restituisci la risposta
-    if (response.status !== 200) {
-      throw new Error(`Errore nella risposta: ${response.status}`);
-    }
-    
-    return {
-      response: response.data.message || response.data.response || response.data.reply || "Non ho capito la tua richiesta, puoi riprovare?",
-      offline: false
-    };
-    
   } catch (error) {
     console.error('Errore durante la comunicazione con l\'AI:', error);
     
