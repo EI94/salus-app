@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { auth } from './firebase/config';
+import { localStorageService } from './utils/localStorageUtil';
 
 // URL di base per l'API
 export const apiUrl = process.env.REACT_APP_API_URL || 'https://salus-backend.onrender.com/api';
@@ -58,13 +60,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       console.error('Errore API:', error.response.status, error.response.data);
-      
-      // Se il server restituisce un 401 Unauthorized, eseguiamo il logout
+    
+    // Se il server restituisce un 401 Unauthorized, eseguiamo il logout
       if (error.response.status === 401) {
         console.log('Sessione scaduta. Reindirizzamento al login...');
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        localStorage.removeItem('currentUser');
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      localStorage.removeItem('currentUser');
         window.location.href = '/login';
       }
     } else if (error.request) {
@@ -79,79 +81,168 @@ api.interceptors.response.use(
   }
 );
 
-// Funzione per inviare un messaggio all'AI Assistant
-export const sendMessageToAI = async (message) => {
-  try {
-    console.log('Invio messaggio all\'assistente AI');
-    
-    // Verifica token nei diversi metodi di storage
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
-    
-    // Se nessun token o userId è disponibile, restituisci una risposta offline
-    if (!token && !userId) {
-      console.log('Utente non autenticato, utilizzando risposta di fallback');
-      return {
-        reply: "Per utilizzare l'assistente AI devi effettuare l'accesso. Accedi o registrati per continuare.",
-        offline: true
-      };
-    }
-    
-    // Tentativo di richiesta API
+// Funzione per ottenere un token di autorizzazione
+async function getAuthToken() {
     try {
-      const response = await api.post('/ai/chat', { message });
-      console.log('Risposta AI ricevuta con successo');
-      return response.data;
-    } catch (apiError) {
-      console.error('Errore nella chiamata API AI:', apiError);
-      
-      // Restituisci una risposta offline in caso di errore
-      return {
-        reply: "Mi dispiace, in questo momento non riesco a connettermi al servizio AI. Riprova più tardi o contatta assistenza.",
-        offline: true,
-        error: apiError.message
-      };
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error('L\'utente non è autenticato');
+        }
+        const token = await user.getIdToken();
+        return token;
+    } catch (error) {
+        console.error('Errore nel recupero del token:', error);
+        throw error;
     }
-  } catch (error) {
-    console.error('Errore generale nel servizio AI:', error);
-    return {
-      reply: "Si è verificato un problema con l'assistente AI. Riprova più tardi.",
-      offline: true,
-      error: error.message
-    };
-  }
-};
+}
 
-// Funzione di utilità per il localStorage con gestione errori
-export const localStorageService = {
-  getItem: (key) => {
+// Funzione per inviare un messaggio all'assistente AI
+export async function sendMessageToAI(message, conversationHistory = []) {
     try {
-      return localStorage.getItem(key);
+        const token = await getAuthToken();
+        
+        // Prepara il corpo della richiesta con la storia della conversazione
+        const requestBody = {
+            message,
+            conversation: conversationHistory
+        };
+        
+        const response = await fetch(`${apiUrl}/assistant`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Errore nella comunicazione con l\'assistente AI');
+        }
+        
+        return await response.json();
     } catch (error) {
-      console.error(`Errore nella lettura da localStorage (${key}):`, error);
-      return null;
+        console.error('Errore nell\'invio del messaggio all\'AI:', error);
+        
+        // Fallback a risposte locali se offline o errore API
+        try {
+            // Salva la richiesta in attesa per sincronizzazione futura
+            localStorageService.setJson('pendingAIRequests', 
+                [...(localStorageService.getJson('pendingAIRequests') || []), 
+                { message, timestamp: new Date().toISOString() }]);
+                
+            return {
+                response: "Mi dispiace, sono attualmente in modalità offline. Ho salvato la tua richiesta e risponderò appena sarà possibile connettersi nuovamente.",
+                offline: true
+            };
+        } catch (localError) {
+            console.error('Errore nel fallback locale:', localError);
+            throw error;
+        }
     }
-  },
-  
-  setItem: (key, value) => {
+}
+
+// Funzione per analizzare sintomi e trovare correlazioni con farmaci
+export async function analyzeSymptomsMedications(symptoms, medications) {
     try {
-      localStorage.setItem(key, value);
-      return true;
+        const token = await getAuthToken();
+        
+        // Prepara il corpo della richiesta con sintomi e farmaci
+        const requestBody = {
+            symptoms,
+            medications
+        };
+        
+        const response = await fetch(`${apiUrl}/analyze/correlations`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Errore nell\'analisi di sintomi e farmaci');
+        }
+        
+        return await response.json();
     } catch (error) {
-      console.error(`Errore nella scrittura su localStorage (${key}):`, error);
-      return false;
+        console.error('Errore nell\'analisi di sintomi e farmaci:', error);
+        
+        // Fallback a funzionalità di base se offline
+        return {
+            correlations: [],
+            patterns: [],
+            suggestions: [
+                "Funzionalità completa disponibile solo online. Salvataggio locale eseguito."
+            ],
+            offline: true
+        };
     }
-  },
-  
-  removeItem: (key) => {
+}
+
+// Funzione per generare suggerimenti in base ai dati dell'utente
+export async function generateHealthInsights(userData) {
     try {
-      localStorage.removeItem(key);
-      return true;
+        const token = await getAuthToken();
+        
+        const response = await fetch(`${apiUrl}/insights`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Errore nella generazione di suggerimenti di salute');
+        }
+        
+        return await response.json();
     } catch (error) {
-      console.error(`Errore nella rimozione da localStorage (${key}):`, error);
-      return false;
+        console.error('Errore nella generazione di suggerimenti:', error);
+        
+        // Suggerimenti generici in caso di offline
+        return {
+            insights: [
+                "Ricorda di assumere regolarmente i farmaci prescritti",
+                "Mantieni un diario regolare dei tuoi sintomi",
+                "Consulta il tuo medico in caso di sintomi persistenti"
+            ],
+            offline: true
+        };
     }
-  }
-};
+}
+
+// Funzione per esportare dati in formato per i medici
+export async function exportMedicalData(dataType, dateRange) {
+    try {
+        const token = await getAuthToken();
+        
+        const response = await fetch(`${apiUrl}/export/${dataType}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ dateRange })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Errore nell'esportazione dei dati ${dataType}`);
+        }
+        
+        return await response.blob();
+    } catch (error) {
+        console.error('Errore nell\'esportazione dei dati:', error);
+        throw error;
+    }
+}
 
 export default api; 

@@ -3,17 +3,152 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Dashboard.css';
 import '../styles/AdvancedFeatures.css';
+import '../styles/AIAssistant.css';
 import { UserContext } from '../context/UserContext';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { 
   FiActivity, FiCalendar, FiPlusCircle, FiThermometer,
-  FiPieChart, FiFileText, FiHeart, FiTrendingUp, FiBell
+  FiPieChart, FiFileText, FiHeart, FiTrendingUp, FiBell, FiMessageSquare
 } from 'react-icons/fi';
 import { 
   FaPills, FaChartLine, FaSmile, FaClipboardList, 
   FaSun, FaCloudRain, FaMoon, FaLightbulb, FaRobot
 } from 'react-icons/fa';
+import { sendMessageToAI } from '../api';
+
+const DashboardAIAssistant = () => {
+  const { t } = useTranslation();
+  const [messages, setMessages] = useState([
+    {
+      role: 'assistant',
+      content: t('aiWelcomeMessage', 'Ciao! Sono il tuo assistente Salus. Come posso aiutarti con la tua salute oggi?')
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = React.useRef(null);
+  
+  // Ottiene una risposta dall'API di assistenza AI
+  const getAIResponse = async (query) => {
+    try {
+      const response = await sendMessageToAI(query, messages.map(m => ({ role: m.role, content: m.content })));
+      
+      if (response && response.response) {
+        return response.response;
+      } else {
+        throw new Error('Risposta non valida dal servizio AI');
+      }
+    } catch (error) {
+      console.error('Errore nella chiamata API:', error);
+      return t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche.");
+    }
+  };
+
+  // Gestisce l'invio di un nuovo messaggio
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+
+    if (!input.trim()) return;
+
+    // Aggiunge il messaggio dell'utente
+    const userMessage = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      // Ottiene la risposta dall'AI
+      const response = await getAIResponse(input);
+
+      // Aggiunge la risposta dell'assistente
+      const assistantMessage = { role: 'assistant', content: response };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Errore nel processare il messaggio:', error);
+      const errorMessage = { 
+        role: 'assistant', 
+        content: t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche.")
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Scorre automaticamente ai messaggi più recenti
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  return (
+    <div className="dashboard-ai-assistant-card">
+      <div className="ai-assistant-container dashboard-integrated">
+        <div className="ai-assistant-header">
+          <div className="ai-assistant-title">
+            <FaRobot />
+            <h3>{t('aiAssistant', 'Assistente Salus')}</h3>
+          </div>
+        </div>
+
+        <div className="ai-assistant-messages">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`message ${msg.role === 'assistant' ? 'assistant' : 'user'}`}
+            >
+              {msg.role === 'assistant' && (
+                <div className="avatar">
+                  <FaRobot />
+                </div>
+              )}
+              <div className="content">
+                <p>{msg.content}</p>
+              </div>
+              {msg.role === 'user' && (
+                <div className="avatar">
+                  <FiMessageSquare />
+                </div>
+              )}
+            </div>
+          ))}
+          {isLoading && (
+            <div className="message assistant">
+              <div className="avatar">
+                <FaRobot />
+              </div>
+              <div className="content typing">
+                <span className="dot"></span>
+                <span className="dot"></span>
+                <span className="dot"></span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <form className="ai-assistant-input" onSubmit={handleSendMessage}>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={t('writeMessage', 'Scrivi un messaggio...')}
+            disabled={isLoading}
+          />
+          <button
+            type="submit"
+            disabled={isLoading || !input.trim()}
+            title={t('sendMessage', 'Invia messaggio')}
+          >
+            <i className="fa fa-paper-plane"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -499,6 +634,14 @@ const Dashboard = () => {
       </div>
       
       <TodayModal />
+      
+      <div className="dashboard-section ai-assistant-section">
+        <h2>
+          <span className="section-icon"><FaRobot /></span>
+          Assistente AI
+        </h2>
+        <DashboardAIAssistant />
+      </div>
     </div>
   );
 };
