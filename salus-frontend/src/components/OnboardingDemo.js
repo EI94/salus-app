@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  FiHome, FiThermometer, FiPills, FiHeart, FiActivity, 
-  FiCalendar, FiFileText, FiArrowRight, FiX, FiCheckCircle 
+  FiHome, FiThermometer, FiHeart, FiActivity, 
+  FiCalendar, FiFileText, FiArrowRight, FiX, FiCheckCircle, FiPackage
 } from 'react-icons/fi';
-import { FaRobot } from 'react-icons/fa';
+import { FaRobot, FaPills } from 'react-icons/fa';
 import '../styles/Onboarding.css';
 
 const OnboardingDemo = ({ onComplete }) => {
@@ -29,7 +29,7 @@ const OnboardingDemo = ({ onComplete }) => {
     {
       title: "Gestisci i tuoi farmaci",
       content: "Tieni traccia dei tuoi farmaci, imposta promemoria per l'assunzione e non dimenticare mai una dose.",
-      icon: <FiPills size={28} />,
+      icon: <FaPills size={28} />,
       highlight: ".medication-card"
     },
     {
