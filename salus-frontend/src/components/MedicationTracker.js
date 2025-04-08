@@ -361,33 +361,8 @@ const MedicationTracker = () => {
 
           {/* Modale per aggiungere farmaco */}
           {isAddModalOpen && (
-            <div 
-              className="modal-overlay" 
-              style={{
-                position: 'fixed', 
-                top: 0, 
-                left: 0, 
-                right: 0, 
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.7)', 
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 9999
-              }}
-            >
-              <div 
-                className="modal-content"
-                style={{
-                  backgroundColor: 'white', 
-                  padding: '20px',
-                  borderRadius: '8px',
-                  width: '90%',
-                  maxWidth: '500px',
-                  maxHeight: '90vh',
-                  overflow: 'auto'
-                }}
-              >
+            <div className="modal-overlay">
+              <div className="modal-content">
                 <div className="modal-header" style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
                   <h2>Aggiungi nuovo farmaco</h2>
                   <button 
@@ -511,33 +486,8 @@ const MedicationTracker = () => {
           
           {/* Modal per visualizzare dettaglio */}
           {isDetailModalOpen && selectedMedication && (
-            <div 
-              className="modal-overlay" 
-              style={{
-                position: 'fixed', 
-                top: 0, 
-                left: 0, 
-                right: 0, 
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.7)', 
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 9999
-              }}
-            >
-              <div 
-                className="modal-content"
-                style={{
-                  backgroundColor: 'white', 
-                  padding: '20px',
-                  borderRadius: '8px',
-                  width: '90%',
-                  maxWidth: '500px',
-                  maxHeight: '90vh',
-                  overflow: 'auto'
-                }}
-              >
+            <div className="modal-overlay">
+              <div className="modal-content">
                 <div className="modal-header" style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
                   <h2>Dettaglio farmaco</h2>
                   <button 
