@@ -2,7 +2,18 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Dashboard.css';
+import '../styles/AdvancedFeatures.css';
 import { UserContext } from '../context/UserContext';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { 
+  FiActivity, FiCalendar, FiPlusCircle, FiThermometer,
+  FiPieChart, FiFileText, FiHeart, FiTrendingUp, FiBell
+} from 'react-icons/fi';
+import { 
+  FaPills, FaChartLine, FaSmile, FaClipboardList, 
+  FaSun, FaCloudRain, FaMoon, FaLightbulb, FaRobot
+} from 'react-icons/fa';
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -18,6 +29,7 @@ const Dashboard = () => {
   const [healthTip, setHealthTip] = useState('');
   const [weather, setWeather] = useState(null);
   const [showTodayModal, setShowTodayModal] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
   
   // Consigli di salute casuali
   const healthTips = [
@@ -30,6 +42,11 @@ const Dashboard = () => {
   ];
 
   useEffect(() => {
+    // Impostiamo la data corrente e la aggiorniamo ogni minuto
+    const dateInterval = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 60000);
+    
     // Simuliamo il caricamento dei dati
     setTimeout(() => {
       setLoading(false);
@@ -45,6 +62,8 @@ const Dashboard = () => {
         humidity: Math.floor(Math.random() * 40) + 40 // Umidità tra 40-80%
       });
     }, 800);
+    
+    return () => clearInterval(dateInterval);
   }, []);
 
   // Funzione per navigare direttamente alla schermata di aggiunta
@@ -52,12 +71,30 @@ const Dashboard = () => {
     navigate(path, { state: { showAddForm: true, action } });
   };
   
+  // Componente per data e ora corrente
+  const CurrentDateTime = () => (
+    <div className="current-date-time">
+      <div className="date-display">
+        <div className="day-name">{format(currentDate, 'EEEE', { locale: it })}</div>
+        <div className="date-number">
+          <span className="day">{format(currentDate, 'd', { locale: it })}</span>
+          <span className="month-year">
+            {format(currentDate, 'MMMM yyyy', { locale: it })}
+          </span>
+        </div>
+      </div>
+      <div className="time-display">
+        {format(currentDate, 'HH:mm', { locale: it })}
+      </div>
+    </div>
+  );
+  
   // Componente statistiche rapide  
   const QuickStats = () => (
     <div className="quick-stats">
       <div className="stat-item">
         <div className="stat-icon">
-          <i className="fas fa-calendar-check"></i>
+          <FiCalendar />
         </div>
         <div className="stat-data">
           <span className="stat-value">0/3</span>
@@ -67,7 +104,7 @@ const Dashboard = () => {
       
       <div className="stat-item">
         <div className="stat-icon">
-          <i className="fas fa-chart-line"></i>
+          <FiTrendingUp />
         </div>
         <div className="stat-data">
           <span className="stat-value">+2%</span>
@@ -77,7 +114,7 @@ const Dashboard = () => {
       
       <div className="stat-item">
         <div className="stat-icon">
-          <i className="fas fa-bell"></i>
+          <FiBell />
         </div>
         <div className="stat-data">
           <span className="stat-value">2</span>
@@ -91,25 +128,26 @@ const Dashboard = () => {
   const MyDaySection = () => (
     <div className="my-day-section">
       <div className="section-header">
-        <h2>Il mio giorno</h2>
-        <button className="add-today-button" onClick={() => setShowTodayModal(true)}>
-          <i className="fas fa-plus"></i> Aggiorna
+        <h2>
+          <span className="section-icon"><FiActivity /></span>
+          Il mio giorno
+        </h2>
+        <button 
+          className="add-today-button" 
+          onClick={() => setShowTodayModal(true)}
+          aria-label="Aggiorna il mio stato"
+        >
+          <FiPlusCircle /> Aggiorna
         </button>
       </div>
       
       <div className="today-summary">
-        <div className="today-date">
-          <div className="day-number">{new Date().getDate()}</div>
-          <div className="month-year">
-            {new Date().toLocaleString('it-IT', { month: 'long' })}
-            <span className="year">{new Date().getFullYear()}</span>
-          </div>
-        </div>
+        <CurrentDateTime />
         
         <div className="today-cards">
           <div className="today-card">
             <div className="today-card-icon mood">
-              <i className="fas fa-smile"></i>
+              <FaSmile />
             </div>
             <div className="today-card-label">Umore</div>
             <div className="today-card-value">Non registrato</div>
@@ -117,7 +155,7 @@ const Dashboard = () => {
           
           <div className="today-card">
             <div className="today-card-icon sleep">
-              <i className="fas fa-bed"></i>
+              <FaMoon />
             </div>
             <div className="today-card-label">Sonno</div>
             <div className="today-card-value">Non registrato</div>
@@ -125,7 +163,9 @@ const Dashboard = () => {
           
           <div className="today-card">
             <div className="today-card-icon weather">
-              <i className={`fas fa-${weather?.condition === 'Soleggiato' || weather?.condition === 'Sereno' ? 'sun' : weather?.condition === 'Nuvoloso' ? 'cloud' : 'cloud-rain'}`}></i>
+              {weather?.condition === 'Soleggiato' || weather?.condition === 'Sereno' ? 
+                <FaSun /> : weather?.condition === 'Nuvoloso' ? 
+                <FaCloudRain opacity={0.5} /> : <FaCloudRain />}
             </div>
             <div className="today-card-label">Meteo</div>
             <div className="today-card-value">{weather ? `${weather.temp}°C, ${weather.condition}` : 'Caricamento...'}</div>
@@ -138,32 +178,35 @@ const Dashboard = () => {
   // Componente per le azioni rapide
   const QuickActions = () => (
     <div className="quick-actions-section">
-      <h2>Azioni rapide</h2>
+      <h2>
+        <span className="section-icon"><FiPlusCircle /></span>
+        Azioni rapide
+      </h2>
       <div className="quick-actions">
         <button className="action-button" onClick={() => navigateToAdd('/sintomi', 'add')}>
-          <div className="action-icon">
-            <i className="fas fa-heartbeat"></i>
+          <div className="action-icon symptom">
+            <FiThermometer />
           </div>
           <span className="action-label">Registra sintomo</span>
         </button>
         
         <button className="action-button" onClick={() => navigateToAdd('/farmaci', 'add')}>
-          <div className="action-icon">
-            <i className="fas fa-pills"></i>
+          <div className="action-icon medication">
+            <FaPills />
           </div>
           <span className="action-label">Aggiungi farmaco</span>
         </button>
         
         <button className="action-button" onClick={() => navigateToAdd('/benessere', 'add')}>
-          <div className="action-icon">
-            <i className="fas fa-smile"></i>
+          <div className="action-icon wellness">
+            <FiHeart />
           </div>
           <span className="action-label">Aggiorna benessere</span>
         </button>
         
         <button className="action-button" onClick={() => navigate('/assistente')}>
-          <div className="action-icon">
-            <i className="fas fa-robot"></i>
+          <div className="action-icon assistant">
+            <FaRobot />
           </div>
           <span className="action-label">Chiedi all'assistente</span>
         </button>
@@ -174,11 +217,11 @@ const Dashboard = () => {
   // Componente per consigli sulla salute
   const HealthTips = () => (
     <div className="health-tips-section">
-      <h2>Suggerimento del giorno</h2>
+      <h2>
+        <span className="section-icon"><FaLightbulb /></span>
+        Suggerimento del giorno
+      </h2>
       <div className="tip-card">
-        <div className="tip-icon">
-          <i className="fas fa-lightbulb"></i>
-        </div>
         <div className="tip-content">
           <p>{healthTip}</p>
         </div>
@@ -187,18 +230,18 @@ const Dashboard = () => {
   );
   
   // Componente card per le sezioni principali
-  const TrackingCard = ({ icon, title, description, buttonText, to, emptyState = true, data = [] }) => (
-    <div className={`tracking-card ${emptyState ? 'empty' : ''}`}>
+  const TrackingCard = ({ icon, title, description, buttonText, to, emptyState = true, data = [], color }) => (
+    <div className={`tracking-card ${emptyState ? 'empty' : ''} ${color}-card`}>
       <div className="card-header">
         <div className="card-icon">
-        <i className={`fas ${icon}`}></i>
+          {icon}
         </div>
         <h3 className="card-title">{title}</h3>
       </div>
       
       <div className="card-content">
         {emptyState ? (
-      <p className="empty-state-description">{description}</p>
+          <p className="empty-state-description">{description}</p>
         ) : (
           <div className="card-data">
             {/* Qui verrebbero mostrati i dati se ce ne fossero */}
@@ -209,14 +252,15 @@ const Dashboard = () => {
       
       <div className="card-actions">
         <Link to={to} className="card-button">
-          <i className="fas fa-arrow-right"></i> {buttonText}
-    </Link>
+          {buttonText}
+        </Link>
         
         <button 
           className="add-button" 
           onClick={() => navigateToAdd(to, 'add')}
+          aria-label={`Aggiungi nuovo ${title.toLowerCase()}`}
         >
-          <i className="fas fa-plus"></i> Aggiungi
+          <FiPlusCircle /> Aggiungi
         </button>
       </div>
     </div>
@@ -247,8 +291,8 @@ const Dashboard = () => {
     };
     
     return (
-      <div className={`modal-overlay ${showTodayModal ? 'active' : ''}`}>
-        <div className="modal-content">
+      <div className={`modal-overlay ${showTodayModal ? 'active' : ''}`} onClick={() => setShowTodayModal(false)}>
+        <div className="modal-content" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
             <h2>Come ti senti oggi?</h2>
             <button 
@@ -256,7 +300,7 @@ const Dashboard = () => {
               onClick={() => setShowTodayModal(false)}
               aria-label="Chiudi"
             >
-              <i className="fas fa-times"></i>
+              <span aria-hidden="true">&times;</span>
             </button>
           </div>
           
@@ -268,32 +312,36 @@ const Dashboard = () => {
                   className={`mood-option ${selectedMood === 'sad' ? 'selected' : ''}`}
                   onClick={() => setSelectedMood('sad')}
                   type="button"
+                  aria-label="Umore triste"
                 >
-                  <i className="fas fa-sad-tear"></i>
+                  <span className="mood-emoji">😔</span>
                   <span>Triste</span>
                 </button>
                 <button 
                   className={`mood-option ${selectedMood === 'neutral' ? 'selected' : ''}`}
                   onClick={() => setSelectedMood('neutral')}
                   type="button"
+                  aria-label="Umore neutro"
                 >
-                  <i className="fas fa-meh"></i>
+                  <span className="mood-emoji">😐</span>
                   <span>Neutro</span>
                 </button>
                 <button 
                   className={`mood-option ${selectedMood === 'good' ? 'selected' : ''}`}
                   onClick={() => setSelectedMood('good')}
                   type="button"
+                  aria-label="Umore buono"
                 >
-                  <i className="fas fa-smile"></i>
+                  <span className="mood-emoji">😊</span>
                   <span>Bene</span>
                 </button>
                 <button 
                   className={`mood-option ${selectedMood === 'great' ? 'selected' : ''}`}
                   onClick={() => setSelectedMood('great')}
                   type="button"
+                  aria-label="Umore ottimo"
                 >
-                  <i className="fas fa-grin-beam"></i>
+                  <span className="mood-emoji">😄</span>
                   <span>Ottimo</span>
                 </button>
               </div>
@@ -308,6 +356,7 @@ const Dashboard = () => {
                   max="5" 
                   value={sleepQuality}
                   onChange={(e) => setSleepQuality(parseInt(e.target.value))}
+                  aria-label="Seleziona qualità del sonno"
                 />
                 <div className="range-labels">
                   <span>Scarsa</span>
@@ -324,7 +373,7 @@ const Dashboard = () => {
                 onClick={handleAddSymptom}
                 type="button"
               >
-                <i className="fas fa-plus"></i> Aggiungi sintomo
+                <FiPlusCircle /> Aggiungi sintomo
               </button>
             </div>
           </div>
@@ -354,7 +403,7 @@ const Dashboard = () => {
     return (
       <div className="dashboard-loading">
         <div className="loading-spinner"></div>
-        <p>Preparando il tuo dashboard...</p>
+        <p>Preparando la tua dashboard...</p>
       </div>
     );
   }
@@ -374,37 +423,80 @@ const Dashboard = () => {
       
       <div className="tracking-sections">
         <TrackingCard
-            icon="fa-heartbeat"
-            title={t('symptoms')}
+          icon={<FiThermometer />}
+          title={t('symptoms')}
           description={t('noSymptomsDescription', 'Registra i tuoi sintomi per tenere traccia della tua salute nel tempo')}
           buttonText={t('viewSymptoms', 'Visualizza sintomi')}
           to="/sintomi"
           emptyState={symptoms.length === 0}
           data={symptoms}
+          color="symptom"
         />
         
         <TrackingCard
-            icon="fa-pills"
-            title={t('medications')}
+          icon={<FaPills />}
+          title={t('medications')}
           description={t('noMedicationsDescription', 'Aggiungi i tuoi farmaci per ricevere promemoria e monitorare l\'assunzione')}
           buttonText={t('viewMedications', 'Visualizza farmaci')}
           to="/farmaci"
           emptyState={medications.length === 0}
           data={medications}
+          color="medication"
         />
         
         <TrackingCard
-            icon="fa-smile"
-            title={t('wellness')}
+          icon={<FiHeart />}
+          title={t('wellness')}
           description={t('noWellnessDescription', 'Tieni traccia del tuo umore, sonno e attività fisica')}
           buttonText={t('viewWellness', 'Visualizza benessere')}
           to="/benessere"
           emptyState={wellness.length === 0}
           data={wellness}
+          color="wellness"
         />
       </div>
       
       <HealthTips />
+      
+      <div className="additional-features highlight-section">
+        <h2>
+          <span className="section-icon"><FiPieChart /></span>
+          Funzionalità avanzate
+        </h2>
+        
+        <p className="section-description">
+          Esplora le nuove funzionalità avanzate di Salus per migliorare la gestione della tua salute
+        </p>
+        
+        <div className="dashboard-cards">
+          <Link to="/medication-reminders" className="dashboard-card reminder-card">
+            <div className="card-icon"><FiBell /></div>
+            <div className="card-content">
+              <h3>Promemoria Farmaci</h3>
+              <p>Imposta promemoria personalizzati per i tuoi farmaci</p>
+            </div>
+            <span className="new-badge">Nuovo</span>
+          </Link>
+          
+          <Link to="/symptom-analytics" className="dashboard-card analytics-card">
+            <div className="card-icon"><FaChartLine /></div>
+            <div className="card-content">
+              <h3>Analisi Sintomi</h3>
+              <p>Visualizza grafici e correlazioni tra sintomi e farmaci</p>
+            </div>
+            <span className="new-badge">Nuovo</span>
+          </Link>
+          
+          <Link to="/appointments" className="dashboard-card appointment-card">
+            <div className="card-icon"><FiFileText /></div>
+            <div className="card-content">
+              <h3>Appuntamenti</h3>
+              <p>Gestisci i tuoi appuntamenti medici con promemoria</p>
+            </div>
+            <span className="new-badge">Nuovo</span>
+          </Link>
+        </div>
+      </div>
       
       <TodayModal />
     </div>
