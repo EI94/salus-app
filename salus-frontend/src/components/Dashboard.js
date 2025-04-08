@@ -16,8 +16,6 @@ import {
   FaSun, FaCloudRain, FaMoon, FaLightbulb, FaRobot
 } from 'react-icons/fa';
 import { sendMessageToAI } from '../api';
-import OpenAIStatusWidget from './OpenAIStatusWidget';
-import TranslationDebugger from './TranslationDebugger';
 
 const DashboardAIAssistant = () => {
   const { t } = useTranslation();
@@ -670,12 +668,6 @@ const Dashboard = () => {
       </div>
       
       <TodayModal />
-      
-      {/* Widget di stato OpenAI per verificare la configurazione */}
-      <OpenAIStatusWidget />
-      
-      {/* Componente diagnostico per le traduzioni */}
-      <TranslationDebugger />
       
       <div className="dashboard-section ai-assistant-section">
         <h2>
