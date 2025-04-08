@@ -16,13 +16,15 @@ import {
   FaSun, FaCloudRain, FaMoon, FaLightbulb, FaRobot
 } from 'react-icons/fa';
 import { sendMessageToAI } from '../api';
+import AppointmentsManager from './AppointmentsManager';
+import OnboardingDemo from './OnboardingDemo';
 
 const DashboardAIAssistant = () => {
   const { t } = useTranslation();
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: t('aiWelcomeMessage', 'Ciao! Sono il tuo assistente Salus. Come posso aiutarti con la tua salute oggi?')
+      content: t('aiWelcomeMessage', 'Ciao! Sono Salus AI, il tuo assistente personale per la salute. Come posso aiutarti oggi?')
     }
   ]);
   const [input, setInput] = useState('');
@@ -117,7 +119,7 @@ const DashboardAIAssistant = () => {
         <div className="ai-assistant-header">
           <div className="ai-assistant-title">
             <FaRobot />
-            <h3>{t('aiAssistant', 'Assistente Salus')}</h3>
+            <h3>Salus AI</h3>
           </div>
         </div>
 
@@ -175,6 +177,7 @@ const DashboardAIAssistant = () => {
             type="submit"
             disabled={isLoading || !input.trim()}
             title={t('sendMessage', 'Invia messaggio')}
+            className="send-button"
           >
             <FiMessageSquare />
           </button>
@@ -199,6 +202,8 @@ const Dashboard = () => {
   const [weather, setWeather] = useState(null);
   const [showTodayModal, setShowTodayModal] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('home');
+  const [showOnboarding, setShowOnboarding] = useState(true);
   
   // Consigli di salute casuali
   const healthTips = [
@@ -579,6 +584,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
+      {showOnboarding && <OnboardingDemo onComplete={() => setShowOnboarding(false)} />}
       <div className="dashboard-header">
         <h1 className="dashboard-title">Ciao, {userName}!</h1>
         <p className="dashboard-subtitle">Ecco il riepilogo della tua salute e benessere</p>
@@ -675,6 +681,18 @@ const Dashboard = () => {
           Assistente AI
         </h2>
         <DashboardAIAssistant />
+      </div>
+
+      <div className="dashboard-content">
+        {activeTab === 'home' && (
+          <div className="dashboard-home">
+            <h2>Benvenuto nel tuo pannello di controllo per la salute</h2>
+            <p>Qui puoi monitorare e gestire tutte le informazioni relative alla tua salute.</p>
+          </div>
+        )}
+        {activeTab === 'appointments' && (
+          <AppointmentsManager />
+        )}
       </div>
     </div>
   );
