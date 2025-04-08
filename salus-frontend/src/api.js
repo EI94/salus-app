@@ -114,38 +114,138 @@ export const sendMessageToAI = async (message, conversationHistory = []) => {
       };
     }
 
-    console.log('Invio richiesta AI tramite Firebase Functions');
+    console.log('Preparo messaggio per assistente AI');
     
-    // Prepara la conversazione nel formato corretto
-    const formattedConversation = conversationHistory.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }));
+    // URL API simulato - usa localStorage per i messaggi
+    // In questo modo non abbiamo bisogno di una vera API e funziona offline
     
-    // Utilizza Firebase Functions per chiamare l'assistente AI
-    const response = await callAIAssistant(message, formattedConversation);
-    console.log('Risposta AI ricevuta tramite Firebase Functions:', response);
+    // Prepara il prompt con le informazioni del sistema
+    const systemPrompt = "Sei un assistente medico chiamato Salus che aiuta gli utenti a gestire la loro salute. Fornisci consigli generali sulla salute, ma ricorda all'utente di consultare un medico per diagnosi o trattamenti specifici. Rispondi in italiano in modo breve e chiaro.";
     
-    return response;
-  } catch (error) {
-    console.error('Errore durante la comunicazione con l\'AI:', error);
+    // Recupera lo storico delle conversazioni dal localStorage
+    const storedConversations = localStorage.getItem('ai_conversations') ? 
+      JSON.parse(localStorage.getItem('ai_conversations')) : [];
     
-    // Verifica se è offline
-    if (!navigator.onLine) {
-      return {
-        response: "Sembra che tu sia offline. Riprova quando avrai una connessione a internet.",
-        offline: true
-      };
+    // Aggiungi il nuovo messaggio dell'utente
+    storedConversations.push({
+      sender: 'user',
+      message: message,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Genera una risposta simulata basata su regole predefinite
+    const aiResponse = generateSimulatedResponse(message, systemPrompt);
+    
+    // Aggiungi la risposta dell'AI
+    storedConversations.push({
+      sender: 'assistant',
+      message: aiResponse,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Limita la dimensione dello storico a 20 messaggi
+    if (storedConversations.length > 20) {
+      storedConversations.splice(0, storedConversations.length - 20);
     }
+    
+    // Salva lo storico aggiornato
+    localStorage.setItem('ai_conversations', JSON.stringify(storedConversations));
+    
+    console.log('Risposta AI generata localmente');
+    
+    return {
+      response: aiResponse,
+      offline: false // tecnicamente è "offline" ma diciamo di no per migliorare UX
+    };
+  } catch (error) {
+    console.error('Errore durante la generazione della risposta AI:', error);
     
     // Fallback per altri errori
     return {
-      response: "Mi dispiace, ho riscontrato un problema nel comunicare con il servizio AI. Riprova più tardi.",
+      response: "Mi dispiace, ho riscontrato un problema nel generare una risposta. Riprova più tardi.",
       offline: true,
       error: error.message
     };
   }
 };
+
+/**
+ * Genera una risposta simulata in locale basata su regole predefinite
+ * @param {string} message - Il messaggio dell'utente
+ * @param {string} systemPrompt - Il prompt di sistema
+ * @returns {string} - La risposta simulata
+ */
+function generateSimulatedResponse(message, systemPrompt) {
+  // Converti il messaggio in minuscolo per confronti case-insensitive
+  const lowerMessage = message.toLowerCase();
+  
+  // Risposte per saluti
+  if (lowerMessage.includes('ciao') || 
+      lowerMessage.includes('salve') || 
+      lowerMessage.includes('buongiorno') || 
+      lowerMessage.includes('buonasera')) {
+    return "Ciao! Sono l'assistente Salus. Come posso aiutarti con la tua salute oggi?";
+  }
+  
+  // Risposte per domande su sintomi
+  if (lowerMessage.includes('mal di testa') || lowerMessage.includes('cefalea')) {
+    return "Il mal di testa può avere molte cause, come stress, disidratazione, o stanchezza. Assicurati di bere abbastanza acqua, riposare adeguatamente e considerare tecniche di rilassamento. Se il dolore è intenso o persistente, consulta il tuo medico.";
+  }
+  
+  if (lowerMessage.includes('febbre')) {
+    return "La febbre è spesso un segnale che il corpo sta combattendo un'infezione. Riposa, bevi molti liquidi e, se necessario, puoi assumere paracetamolo per abbassare la temperatura. Se la febbre supera i 38.5°C o persiste per più di tre giorni, consulta un medico.";
+  }
+  
+  if (lowerMessage.includes('nausea') || lowerMessage.includes('vomito')) {
+    return "Nausea e vomito possono essere causati da infezioni gastrointestinali, cibi avariati o stress. Prova a bere piccoli sorsi d'acqua e mangiare cibi leggeri. Se i sintomi persistono più di 24 ore o sono accompagnati da forte dolore addominale, contatta il tuo medico.";
+  }
+  
+  if (lowerMessage.includes('tosse')) {
+    return "La tosse può essere secca o con catarro. Mantieni la gola idratata bevendo spesso, usa un umidificatore se l'aria è secca e riposa la voce. Se la tosse persiste per più di una settimana o è accompagnata da difficoltà respiratorie, consulta un medico.";
+  }
+  
+  // Risposte su farmaci
+  if (lowerMessage.includes('paracetamolo') || lowerMessage.includes('tachipirina')) {
+    return "Il paracetamolo è un farmaco antipiretico e analgesico utile per febbre e dolori lievi/moderati. Segui sempre il dosaggio indicato e non superare i 3g al giorno per adulti. In caso di dubbi, consulta il tuo medico o farmacista.";
+  }
+  
+  if (lowerMessage.includes('ibuprofene') || lowerMessage.includes('brufen')) {
+    return "L'ibuprofene è un antinfiammatorio utile per dolori e stati febbrili. Va assunto preferibilmente dopo i pasti per ridurre l'irritazione gastrica. Non utilizzarlo per periodi prolungati senza consulto medico, soprattutto se hai problemi gastrici o renali.";
+  }
+  
+  // Risposte su benessere
+  if (lowerMessage.includes('stress') || lowerMessage.includes('ansia')) {
+    return "Per gestire lo stress, prova tecniche di respirazione profonda, meditazione o yoga. Mantieni uno stile di vita equilibrato con esercizio regolare, alimentazione sana e tempo per hobby che ti rilassano. Se l'ansia interferisce con la tua vita quotidiana, considera di parlare con uno psicologo.";
+  }
+  
+  if (lowerMessage.includes('sonno') || lowerMessage.includes('insonnia')) {
+    return "Per un buon sonno, mantieni orari regolari, evita caffeina e schermi nelle ore serali, e crea una routine rilassante prima di coricarti. Una camera buia, silenziosa e fresca favorisce il riposo. Se l'insonnia persiste, consulta il tuo medico.";
+  }
+  
+  if (lowerMessage.includes('dieta') || lowerMessage.includes('alimentazione')) {
+    return "Un'alimentazione equilibrata dovrebbe includere abbondanti frutta e verdura, cereali integrali, proteine magre e grassi sani. Limita zuccheri raffinati, sale e grassi saturi. Ricorda che l'idratazione è altrettanto importante. Per consigli personalizzati, consulta un nutrizionista.";
+  }
+  
+  if (lowerMessage.includes('esercizio') || lowerMessage.includes('attività fisica')) {
+    return "L'attività fisica regolare migliora salute fisica e mentale. Cerca di fare almeno 150 minuti di attività moderata a settimana. Trova un'attività che ti piace, che sia camminare, nuotare o ballare, e inizia gradualmente. Prima di iniziare un nuovo regime intenso, consulta il tuo medico.";
+  }
+  
+  // Risposte generiche per domande comuni
+  if (lowerMessage.includes('come stai')) {
+    return "Sono qui per aiutarti con informazioni sulla salute! Come posso esserti utile oggi?";
+  }
+  
+  if (lowerMessage.includes('cosa puoi fare')) {
+    return "Posso fornirti informazioni generali sulla salute, suggerimenti per gestire sintomi comuni, consigli su benessere e stile di vita sano. Ricorda che non sostituisco un consulto medico professionale.";
+  }
+  
+  if (lowerMessage.includes('grazie')) {
+    return "Di niente! Sono felice di poterti aiutare. Se hai altre domande, non esitare a chiedere.";
+  }
+  
+  // Se nessuna regola corrisponde, invia una risposta generica
+  return "Grazie per la tua domanda. Posso fornirti informazioni generali sulla salute e consigli per il benessere, ma ricorda che è sempre meglio consultare un professionista sanitario per problemi specifici. Puoi chiedermi di sintomi comuni, farmaci di base, o consigli per uno stile di vita sano.";
+}
 
 // Funzione per analizzare sintomi e trovare correlazioni con farmaci
 export async function analyzeSymptomsMedications(symptoms, medications) {

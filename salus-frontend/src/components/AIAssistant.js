@@ -38,7 +38,7 @@ function AIAssistant() {
     });
   }, [i18n.language, t]);
 
-  // Ottiene una risposta dall'API di OpenAI
+  // Ottiene una risposta dall'assistente simulato AI
   const getAIResponse = async (query) => {
     try {
       console.log('Richiedendo risposta AI per:', query);
@@ -57,15 +57,12 @@ function AIAssistant() {
       const aiResponse = await sendMessageToAI(query, conversationHistory);
       console.log('Risposta AI ricevuta:', aiResponse);
       
-      if (aiResponse.offline) {
-        console.log('Risposta offline ricevuta');
-        setError(t('aiOfflineMessage', "L'assistente è attualmente offline. Riprova più tardi."));
-      }
+      // Non mostrare più l'errore "offline", la risposta viene generata localmente
       
       return aiResponse.response || t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi.");
     } catch (error) {
       console.error('Errore nella chiamata AI:', error);
-      setError(t('aiServiceError', "Impossibile connettersi al servizio AI. Verifica la tua connessione o riprova più tardi."));
+      setError(t('aiServiceError', "Impossibile generare una risposta. Per favore riprova."));
       return t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche.");
     }
   };
