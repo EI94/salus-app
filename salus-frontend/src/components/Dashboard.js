@@ -142,7 +142,7 @@ const DashboardAIAssistant = () => {
             disabled={isLoading || !input.trim()}
             title={t('sendMessage', 'Invia messaggio')}
           >
-            <i className="fa fa-paper-plane"></i>
+            <FiMessageSquare />
           </button>
         </form>
       </div>
