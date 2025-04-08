@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { auth } from './firebase/config';
 import { localStorageService } from './utils/localStorageUtil';
+import { callAIAssistant } from './firebase/functions';
 
 // URL di base per l'API
 export const apiUrl = process.env.REACT_APP_API_URL || 'https://salus-backend.onrender.com/api';
@@ -113,64 +114,19 @@ export const sendMessageToAI = async (message, conversationHistory = []) => {
       };
     }
 
-    // Ottieni il token di autenticazione
-    const token = await auth.currentUser.getIdToken();
+    console.log('Invio richiesta AI tramite Firebase Functions');
     
-    // Prepara la conversazione nel formato corretto per OpenAI
-    const messages = [
-      { role: "system", content: "Sei un assistente medico chiamato Salus che aiuta gli utenti a gestire la loro salute. Fornisci consigli generali sulla salute, ma ricorda all'utente di consultare un medico per diagnosi o trattamenti specifici. Rispondi in italiano." },
-      ...conversationHistory.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      { role: "user", content: message }
-    ];
+    // Prepara la conversazione nel formato corretto
+    const formattedConversation = conversationHistory.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
     
-    console.log('Invio richiesta AI a OpenAI');
+    // Utilizza Firebase Functions per chiamare l'assistente AI
+    const response = await callAIAssistant(message, formattedConversation);
+    console.log('Risposta AI ricevuta tramite Firebase Functions:', response);
     
-    // URL del serverless endpoint
-    const SERVERLESS_URL = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')
-      ? 'http://localhost:5000/api/chat'  // URL locale per sviluppo
-      : '/api/chat';  // URL relativo per produzione
-    
-    try {
-      // Invia la richiesta al nostro endpoint serverless
-      const response = await axios.post(SERVERLESS_URL, 
-        { messages },
-        { 
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-      
-      if (response.status !== 200) {
-        throw new Error(`Errore nella risposta: ${response.status}`);
-      }
-      
-      return {
-        response: response.data.message || response.data.response || response.data.reply || "Non ho capito la tua richiesta, puoi riprovare?",
-        offline: false
-      };
-    } catch (apiError) {
-      console.error('Errore nella chiamata API AI:', apiError);
-      
-      // Fallback a risposta locale
-      if (!navigator.onLine) {
-        console.log('Browser offline, usando risposta offline');
-        return {
-          response: "Sembra che tu sia offline. Riprova quando avrai una connessione a internet.",
-          offline: true
-        };
-      }
-      
-      return {
-        response: "Mi dispiace, in questo momento non riesco a connettermi al servizio AI. Il server potrebbe essere occupato o non disponibile. Riprova più tardi.",
-        offline: true,
-        error: apiError.message
-      };
-    }
+    return response;
   } catch (error) {
     console.error('Errore durante la comunicazione con l\'AI:', error);
     
@@ -184,7 +140,7 @@ export const sendMessageToAI = async (message, conversationHistory = []) => {
     
     // Fallback per altri errori
     return {
-      response: "Mi dispiace, ho riscontrato un problema nel comunicare con il server. Riprova più tardi.",
+      response: "Mi dispiace, ho riscontrato un problema nel comunicare con il servizio AI. Riprova più tardi.",
       offline: true,
       error: error.message
     };

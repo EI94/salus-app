@@ -1,0 +1,32 @@
+{
+  "name": "salus-functions",
+  "description": "Firebase Functions per Salus App",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "18"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "axios": "^1.5.0",
+    "express": "^4.18.2",
+    "firebase-admin": "^11.8.0",
+    "firebase-functions": "^4.3.1",
+    "openai": "^4.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "firebase-functions-test": "^3.1.0",
+    "typescript": "^5.1.6"
+  },
+  "private": true
+} 
