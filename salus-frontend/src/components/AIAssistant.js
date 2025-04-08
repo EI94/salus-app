@@ -1,10 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import '../styles/AIAssistant.css';
 import { sendMessageToAI } from '../api';
 import { useTranslation } from 'react-i18next';
+import { UserContext } from '../context/UserContext';
+import { FiMessageSquare, FiAlertTriangle } from 'react-icons/fi';
+import { FaRobot } from 'react-icons/fa';
 
 function AIAssistant() {
   const { t, i18n } = useTranslation();
+  const { user } = useContext(UserContext);
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -14,6 +18,7 @@ function AIAssistant() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
 
   // Aggiorna il messaggio di benvenuto quando cambia la lingua
@@ -36,17 +41,31 @@ function AIAssistant() {
   // Ottiene una risposta dall'API di OpenAI
   const getAIResponse = async (query) => {
     try {
-      // Utilizziamo la funzione sendMessageToAI dal nostro file api.js
-      // che gestisce sia le richieste online che la modalità offline
-      const response = await sendMessageToAI(query);
+      console.log('Richiedendo risposta AI per:', query);
+      setError(null);
       
-      if (response && response.reply) {
-        return response.reply;
-      } else {
-        throw new Error('Risposta non valida dal servizio AI');
+      if (!user) {
+        console.log('Nessun utente autenticato');
+        return t('aiAuthMessage', "Per utilizzare l'assistente AI devi effettuare l'accesso. Accedi o registrati per continuare.");
       }
+      
+      const conversationHistory = messages.map(m => ({ 
+        role: m.role, 
+        content: m.content 
+      }));
+      
+      const aiResponse = await sendMessageToAI(query, conversationHistory);
+      console.log('Risposta AI ricevuta:', aiResponse);
+      
+      if (aiResponse.offline) {
+        console.log('Risposta offline ricevuta');
+        setError(t('aiOfflineMessage', "L'assistente è attualmente offline. Riprova più tardi."));
+      }
+      
+      return aiResponse.response || t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi.");
     } catch (error) {
-      console.error('Errore nella chiamata API:', error);
+      console.error('Errore nella chiamata AI:', error);
+      setError(t('aiServiceError', "Impossibile connettersi al servizio AI. Verifica la tua connessione o riprova più tardi."));
       return t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche.");
     }
   };
@@ -56,6 +75,19 @@ function AIAssistant() {
     e.preventDefault();
 
     if (!input.trim()) return;
+    
+    // Verifica se l'utente è loggato
+    if (!user) {
+      setMessages(prev => [
+        ...prev, 
+        { 
+          role: 'assistant', 
+          content: t('aiAuthMessage', "Per utilizzare l'assistente AI devi effettuare l'accesso. Accedi o registrati per continuare.")
+        }
+      ]);
+      setInput('');
+      return;
+    }
 
     // Aggiunge il messaggio dell'utente
     const userMessage = { role: 'user', content: input };
@@ -98,7 +130,7 @@ function AIAssistant() {
     <div className={`ai-assistant-container ${isExpanded ? 'expanded' : 'collapsed'}`}>
       <div className="ai-assistant-header">
         <div className="ai-assistant-title">
-          <i className="fas fa-robot"></i>
+          <FaRobot />
           <h3>{t('aiAssistant', 'Assistente Salus')}</h3>
         </div>
         <div className="ai-assistant-controls">
@@ -107,7 +139,11 @@ function AIAssistant() {
             onClick={toggleExpansion}
             title={isExpanded ? t('collapse', 'Comprimi') : t('expand', 'Espandi')}
           >
-            <i className={`fas fa-${isExpanded ? 'minus' : 'plus'}`}></i>
+            {isExpanded ? 
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              :
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            }
           </button>
         </div>
       </div>
@@ -115,6 +151,12 @@ function AIAssistant() {
       {isExpanded && (
         <>
           <div className="ai-assistant-messages">
+            {error && (
+              <div className="ai-error-message">
+                <FiAlertTriangle /> {error}
+              </div>
+            )}
+          
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -122,7 +164,7 @@ function AIAssistant() {
               >
                 {msg.role === 'assistant' && (
                   <div className="avatar">
-                    <i className="fas fa-robot"></i>
+                    <FaRobot />
                   </div>
                 )}
                 <div className="content">
@@ -130,7 +172,7 @@ function AIAssistant() {
                 </div>
                 {msg.role === 'user' && (
                   <div className="avatar">
-                    <i className="fas fa-user"></i>
+                    <FiMessageSquare />
                   </div>
                 )}
               </div>
@@ -138,7 +180,7 @@ function AIAssistant() {
             {isLoading && (
               <div className="message assistant">
                 <div className="avatar">
-                  <i className="fas fa-robot"></i>
+                  <FaRobot />
                 </div>
                 <div className="content typing">
                   <span className="dot"></span>
@@ -163,7 +205,7 @@ function AIAssistant() {
               disabled={isLoading || !input.trim()}
               title={t('sendMessage', 'Invia messaggio')}
             >
-              <i className="fas fa-paper-plane"></i>
+              <FiMessageSquare />
             </button>
           </form>
         </>

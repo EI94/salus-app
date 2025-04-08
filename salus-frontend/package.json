@@ -14,10 +14,14 @@
     "firebase": "^11.6.0",
     "i18next": "^23.5.1",
     "i18next-browser-languagedetector": "^7.1.0",
+    "local-storage": "^2.0.0",
+    "moment": "^2.30.1",
     "react": "^18.2.0",
     "react-app-rewired": "^2.2.1",
+    "react-big-calendar": "^1.18.0",
     "react-calendar": "^4.8.0",
     "react-chartjs-2": "^5.3.0",
+    "react-datepicker": "^8.2.1",
     "react-dom": "^18.2.0",
     "react-i18next": "^13.2.2",
     "react-icons": "^5.5.0",
@@ -40,7 +44,8 @@
     "vercel-build": "cross-env CI=false npm run build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "generate-icons": "node scripts/generate-icons.js"
+    "generate-icons": "node scripts/generate-icons.js",
+    "proxy": "node proxy.js"
   },
   "eslintConfig": {
     "extends": [

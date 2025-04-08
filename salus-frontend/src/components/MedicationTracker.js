@@ -1,175 +1,233 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, addDoc, deleteDoc, doc, query, where, getDocs, serverTimestamp, orderBy } from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
 import { toast } from 'react-toastify';
-import { db } from '../firebase/config';
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  getDocs, 
-  addDoc, 
-  deleteDoc, 
-  doc, 
-  serverTimestamp 
-} from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { FaSearch, FaPills, FaPlus, FaTrashAlt } from 'react-icons/fa';
+
+// Importa gli stili
 import '../styles/MedicationTracker.css';
 
+// Definizione dei tipi di farmaci disponibili
 const typeOptions = [
-  { value: 'pillola', label: 'Pillola' },
-  { value: 'capsula', label: 'Capsula' },
-  { value: 'sciroppo', label: 'Sciroppo' },
-  { value: 'fiala', label: 'Fiala' },
-  { value: 'pomata', label: 'Pomata' },
-  { value: 'gocce', label: 'Gocce' },
+  { value: 'antibiotico', label: 'Antibiotico' },
+  { value: 'antidolorifico', label: 'Antidolorifico' },
+  { value: 'antiinfiammatorio', label: 'Antiinfiammatorio' },
+  { value: 'antistaminico', label: 'Antistaminico' },
+  { value: 'vitamina', label: 'Vitamina/Integratore' },
+  { value: 'antipertensivo', label: 'Antipertensivo' },
+  { value: 'insulina', label: 'Insulina' },
+  { value: 'anticoagulante', label: 'Anticoagulante' },
   { value: 'altro', label: 'Altro' }
 ];
 
-const MedicationTracker = () => {
-  const auth = getAuth();
-  const navigate = useNavigate();
-  
+function MedicationTracker() {
+  // Stato per l'utente autenticato
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Stato per i farmaci
   const [medications, setMedications] = useState([]);
+  
+  // Stato per il form
+  const [formData, setFormData] = useState({
+    name: '',
+    dosage: '',
+    type: typeOptions[0].value,
+    frequency: '',
+    notes: ''
+  });
+  
+  // Stato per il filtro e la ricerca
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   
-  // Form state
-  const [name, setName] = useState('');
-  const [dosage, setDosage] = useState('');
-  const [type, setType] = useState('pillola');
-  const [frequency, setFrequency] = useState('');
-  const [notes, setNotes] = useState('');
+  const navigate = useNavigate();
   
+  // Monitoraggio dello stato di autenticazione
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      if (!currentUser) {
-        navigate('/login');
-      } else {
+      if (currentUser) {
         loadMedications(currentUser.uid);
+      } else {
+        setMedications([]);
+        setLoading(false);
+        navigate('/login');
       }
     });
     
     return () => unsubscribe();
-  }, [auth, navigate]);
+  }, [navigate]);
   
+  // Funzione per caricare i farmaci da Firestore
   const loadMedications = async (userId) => {
-    setLoading(true);
     try {
-      const medicationsRef = collection(db, 'medications');
-      const q = query(
-        medicationsRef,
+      setLoading(true);
+      const medicationsQuery = query(
+        collection(db, 'medications'),
         where('userId', '==', userId),
         orderBy('createdAt', 'desc')
       );
       
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await getDocs(medicationsQuery);
       const medicationsList = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       
       setMedications(medicationsList);
-      setLoading(false);
     } catch (error) {
-      console.error('Errore nel caricamento dei medicinali:', error);
-      toast.error('Impossibile caricare i medicinali. Riprova più tardi.');
+      console.error('Errore nel caricamento dei farmaci:', error);
+      toast.error('Errore nel caricamento dei farmaci. Riprova più tardi.');
+    } finally {
       setLoading(false);
     }
   };
   
+  // Gestione dei cambiamenti nel form
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Invio del form
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!name || !dosage || !type) {
-      toast.error('Nome, dosaggio e tipo sono obbligatori');
+    if (!user) {
+      toast.warning("Devi effettuare l'accesso per aggiungere farmaci");
+      navigate('/login');
+      return;
+    }
+    
+    // Validazione campi obbligatori
+    if (!formData.name || !formData.dosage || !formData.type) {
+      toast.warning('Nome, dosaggio e tipo sono campi obbligatori');
       return;
     }
     
     try {
-      const newMedication = {
-        name,
-        dosage,
-        type,
-        frequency: frequency || 'Al bisogno',
-        notes,
+      // Preparazione dati
+      const medicationData = {
+        ...formData,
         userId: user.uid,
         createdAt: serverTimestamp()
       };
       
-      await addDoc(collection(db, 'medications'), newMedication);
+      // Salvataggio in Firestore
+      const docRef = await addDoc(collection(db, 'medications'), medicationData);
       
-      // Reset form
-      setName('');
-      setDosage('');
-      setType('pillola');
-      setFrequency('');
-      setNotes('');
+      // Aggiornamento dell'interfaccia
+      const newMedication = {
+        id: docRef.id,
+        ...medicationData,
+        createdAt: new Date() // Usato per la visualizzazione immediata
+      };
       
-      toast.success('Medicinale aggiunto con successo!');
-      loadMedications(user.uid);
+      setMedications(prev => [newMedication, ...prev]);
+      
+      // Reset del form
+      setFormData({
+        name: '',
+        dosage: '',
+        type: typeOptions[0].value,
+        frequency: '',
+        notes: ''
+      });
+      
+      toast.success('Farmaco aggiunto con successo!');
     } catch (error) {
-      console.error('Errore durante il salvataggio del medicinale:', error);
-      toast.error('Impossibile salvare il medicinale. Riprova più tardi.');
+      console.error('Errore nell\'aggiunta del farmaco:', error);
+      toast.error('Errore nell\'aggiunta del farmaco. Riprova più tardi.');
     }
   };
   
-  const handleDelete = async (id) => {
-    if (window.confirm('Sei sicuro di voler eliminare questo medicinale?')) {
-      try {
-        await deleteDoc(doc(db, 'medications', id));
-        toast.success('Medicinale eliminato con successo');
-        setMedications(medications.filter(medication => medication.id !== id));
-      } catch (error) {
-        console.error('Errore durante l\'eliminazione del medicinale:', error);
-        toast.error('Impossibile eliminare il medicinale. Riprova più tardi.');
-      }
+  // Eliminazione di un farmaco
+  const handleDelete = async (medicationId) => {
+    if (!window.confirm('Sei sicuro di voler eliminare questo farmaco?')) {
+      return;
+    }
+    
+    try {
+      // Eliminazione da Firestore
+      await deleteDoc(doc(db, 'medications', medicationId));
+      
+      // Aggiornamento dell'interfaccia
+      setMedications(prev => prev.filter(med => med.id !== medicationId));
+      
+      toast.success('Farmaco eliminato con successo!');
+    } catch (error) {
+      console.error('Errore nell\'eliminazione del farmaco:', error);
+      toast.error('Errore nell\'eliminazione del farmaco. Riprova più tardi.');
     }
   };
   
-  const filteredMedications = medications.filter(medication => {
-    const matchesSearchTerm = medication.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              (medication.notes && medication.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+  // Filtro dei farmaci in base a ricerca e tipo
+  const filteredMedications = medications.filter(med => {
+    const matchesSearch = med.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (med.notes && med.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesType = typeFilter === '' || med.type === typeFilter;
     
-    const matchesTypeFilter = typeFilter === '' || medication.type === typeFilter;
-    
-    return matchesSearchTerm && matchesTypeFilter;
+    return matchesSearch && matchesType;
   });
   
-  if (!user) {
-    return <div className="loading-state">Caricamento...</div>;
-  }
+  // Ottieni il nome completo del tipo di farmaco
+  const getTypeName = (typeValue) => {
+    const type = typeOptions.find(t => t.value === typeValue);
+    return type ? type.label : typeValue;
+  };
   
+  // Formatta la data
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'Data non disponibile';
+    
+    const date = timestamp instanceof Date ? timestamp : timestamp.toDate();
+    return date.toLocaleDateString('it-IT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  if (!user) {
+    return <div className="login-prompt">Effettua l'accesso per utilizzare questa funzionalità</div>;
+  }
+
   return (
     <div className="medication-tracker-container">
-      {/* Form Section */}
-      <div className="medication-form-section">
-        <h2>Aggiungi un nuovo medicinale</h2>
+      <h1 className="page-title">Gestione Farmaci</h1>
+      
+      {/* Form per aggiungere un farmaco */}
+      <div className="medication-form-container">
+        <h2>Aggiungi Nuovo Farmaco</h2>
         <form className="medication-form" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="name">Nome del medicinale *</label>
-              <input
+              <label htmlFor="name">Nome del Farmaco *</label>
+              <input 
+                type="text" 
                 id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="es. Tachipirina"
+                name="name" 
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Inserisci il nome del farmaco"
                 required
               />
             </div>
+            
             <div className="form-group">
               <label htmlFor="dosage">Dosaggio *</label>
               <input
-                id="dosage"
                 type="text"
-                value={dosage}
-                onChange={(e) => setDosage(e.target.value)}
-                placeholder="es. 1000mg"
+                id="dosage"
+                name="dosage"
+                value={formData.dosage}
+                onChange={handleChange}
+                placeholder="Es: 500mg, 1 compressa, 10ml"
                 required
               />
             </div>
@@ -177,11 +235,12 @@ const MedicationTracker = () => {
           
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="type">Tipo *</label>
+              <label htmlFor="type">Tipo di Farmaco *</label>
               <select
                 id="type"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
                 required
               >
                 {typeOptions.map(option => (
@@ -191,103 +250,121 @@ const MedicationTracker = () => {
                 ))}
               </select>
             </div>
+            
             <div className="form-group">
               <label htmlFor="frequency">Frequenza</label>
               <input
-                id="frequency"
                 type="text"
-                value={frequency}
-                onChange={(e) => setFrequency(e.target.value)}
-                placeholder="es. 1 volta al giorno"
+                id="frequency"
+                name="frequency"
+                value={formData.frequency}
+                onChange={handleChange}
+                placeholder="Es: 1 volta al giorno, ogni 8 ore"
               />
             </div>
           </div>
           
           <div className="form-group">
-            <label htmlFor="notes">Note</label>
+            <label htmlFor="notes">Note aggiuntive</label>
             <textarea
               id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Note aggiuntive sul medicinale..."
-              rows={3}
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              placeholder="Informazioni aggiuntive sul farmaco..."
+              rows="3"
             />
           </div>
           
-          <div className="form-actions">
-            <button type="submit" className="submit-button">
-              <FaPlus className="icon-left" />
-              Aggiungi medicinale
-            </button>
-          </div>
+          <button type="submit" className="submit-button">
+            Aggiungi Farmaco
+          </button>
         </form>
       </div>
       
-      {/* Medications History Section */}
-      <div className="medication-history-section">
-        <div className="history-header">
-          <h2>I tuoi medicinali</h2>
-          <div className="filters-container">
-            <div className="search-filter">
-              <FaSearch />
-              <input
-                type="text"
-                placeholder="Cerca medicinali..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="type-filter">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-              >
-                <option value="">Tutti i tipi</option>
-                {typeOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+      {/* Lista dei farmaci */}
+      <div className="medications-history">
+        <h2>Farmaci registrati</h2>
+          
+        <div className="filters">
+          <div className="search-box">
+            <input 
+              type="text" 
+              placeholder="Cerca farmaci..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+              
+          <div className="type-filter">
+            <select 
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <option value="">Tutti i tipi</option>
+              {typeOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
-        
+          
         {loading ? (
-          <div className="loading-state">Caricamento dei medicinali...</div>
-        ) : filteredMedications.length > 0 ? (
-          <div className="medications-grid">
-            {filteredMedications.map(medication => (
-              <div key={medication.id} className="medication-card">
-                <div className="medication-icon">
-                  <FaPills />
-                </div>
-                <div className="medication-details">
-                  <h3>{medication.name}</h3>
-                  <p className="medication-dosage">{medication.dosage}</p>
-                  <p className="medication-type">{medication.type}</p>
-                  <p className="medication-frequency">{medication.frequency}</p>
-                  {medication.notes && <p>{medication.notes}</p>}
-                  <button
-                    className="delete-button"
-                    onClick={() => handleDelete(medication.id)}
-                  >
-                    <FaTrashAlt /> Elimina
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="loading-state">Caricamento farmaci...</div>
+        ) : filteredMedications.length === 0 ? (
+          <div className="empty-state">
+            {medications.length === 0 
+              ? "Nessun farmaco registrato. Usa il form sopra per aggiungere il tuo primo farmaco."
+              : "Nessun farmaco corrisponde ai criteri di ricerca."}
           </div>
         ) : (
-          <div className="empty-state">
-            <img src="/assets/meds-empty.svg" alt="Nessun medicinale" />
-            <h3>Nessun medicinale trovato</h3>
-            <p>Aggiungi il tuo primo medicinale usando il form qui sopra.</p>
+          <div className="medications-list">
+            {filteredMedications.map(medication => (
+              <div key={medication.id} className="medication-card">
+                <div className="medication-header">
+                  <h3>{medication.name}</h3>
+                  <span className="medication-type">{getTypeName(medication.type)}</span>
+                </div>
+                
+                <div className="medication-details">
+                  <div className="detail-item">
+                    <strong>Dosaggio:</strong> {medication.dosage}
+                  </div>
+                  
+                  {medication.frequency && (
+                    <div className="detail-item">
+                      <strong>Frequenza:</strong> {medication.frequency}
+                    </div>
+                  )}
+                  
+                  {medication.notes && (
+                    <div className="detail-item notes">
+                      <strong>Note:</strong> {medication.notes}
+                    </div>
+                  )}
+                  
+                  <div className="detail-item date">
+                    <strong>Data registrazione:</strong> {
+                      medication.createdAt ? formatDate(medication.createdAt) : 'Data non disponibile'
+                    }
+                  </div>
+                </div>
+                
+                <button 
+                  className="delete-button" 
+                  onClick={() => handleDelete(medication.id)}
+                >
+                  Elimina
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </div>
     </div>
   );
-};
+}
 
 export default MedicationTracker; 

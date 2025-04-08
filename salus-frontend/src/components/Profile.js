@@ -71,7 +71,7 @@ function Profile({ activeTab = 'profile' }) {
       setLanguage(user.language || 'it');
     }
   }, [user]);
-  
+
   // Carica i dati dell'utente
   useEffect(() => {
     if (user?.id) {
@@ -124,7 +124,7 @@ function Profile({ activeTab = 'profile' }) {
 
   const userId = user.id;
   const userName = user.name || 'Utente';
-  
+
   // Gestisce il cambio di sezione
   const handleSectionChange = (section) => {
     setActiveSection(section);
@@ -164,11 +164,11 @@ function Profile({ activeTab = 'profile' }) {
     
     // Usa la funzione dal contesto utente per aggiornare la lingua
     updateLanguage(newLang)
-      .then(result => {
-        if (!result.success) {
-          console.error('Errore nel cambio lingua:', result.error);
-        }
-      });
+        .then(result => {
+          if (!result.success) {
+            console.error('Errore nel cambio lingua:', result.error);
+          }
+        });
   };
 
   // Salva le modifiche al profilo
@@ -189,7 +189,7 @@ function Profile({ activeTab = 'profile' }) {
     if (formData.name !== userName) {
       try {
         const result = await updateProfile({ name: formData.name });
-        if (!result.success) {
+          if (!result.success) {
           console.error('Errore nell\'aggiornamento del profilo:', result.error);
           alert('Si è verificato un errore nell\'aggiornamento del nome: ' + result.error);
           return;
@@ -229,12 +229,12 @@ function Profile({ activeTab = 'profile' }) {
     if (window.confirm('Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.')) {
       try {
         // Elimina i dati locali
-        localStorage.removeItem(`user_${userId}`);
+      localStorage.removeItem(`user_${userId}`);
         
         // Fa il logout dell'utente (in un'implementazione completa, qui si chiamerebbe un'API per eliminare l'account)
         await logout();
-        
-        // Reindirizza alla pagina di login
+      
+      // Reindirizza alla pagina di login
         navigate('/login');
       } catch (error) {
         console.error('Errore durante l\'eliminazione dell\'account:', error);

@@ -96,52 +96,100 @@ async function getAuthToken() {
     }
 }
 
-// Funzione per inviare un messaggio all'assistente AI
-export async function sendMessageToAI(message, conversationHistory = []) {
-    try {
-        const token = await getAuthToken();
-        
-        // Prepara il corpo della richiesta con la storia della conversazione
-        const requestBody = {
-            message,
-            conversation: conversationHistory
-        };
-        
-        const response = await fetch(`${apiUrl}/assistant`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Errore nella comunicazione con l\'assistente AI');
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('Errore nell\'invio del messaggio all\'AI:', error);
-        
-        // Fallback a risposte locali se offline o errore API
-        try {
-            // Salva la richiesta in attesa per sincronizzazione futura
-            localStorageService.setJson('pendingAIRequests', 
-                [...(localStorageService.getJson('pendingAIRequests') || []), 
-                { message, timestamp: new Date().toISOString() }]);
-                
-            return {
-                response: "Mi dispiace, sono attualmente in modalità offline. Ho salvato la tua richiesta e risponderò appena sarà possibile connettersi nuovamente.",
-                offline: true
-            };
-        } catch (localError) {
-            console.error('Errore nel fallback locale:', localError);
-            throw error;
-        }
+/**
+ * Invia un messaggio all'assistente AI e riceve una risposta
+ * @param {string} message - Il messaggio da inviare all'AI
+ * @param {Array} conversationHistory - La storia della conversazione
+ * @returns {Promise<Object>} - La risposta dell'AI
+ */
+export const sendMessageToAI = async (message, conversationHistory = []) => {
+  try {
+    // Prima verifica se l'utente è autenticato
+    if (!auth.currentUser) {
+      console.log('Utente non autenticato per AI assistant');
+      return {
+        response: "Per utilizzare l'assistente AI devi effettuare l'accesso. Accedi o registrati per continuare.",
+        offline: true
+      };
     }
-}
+
+    // Ottieni il token di autenticazione
+    const token = await auth.currentUser.getIdToken();
+    
+    // Prepara la conversazione nel formato corretto per OpenAI
+    const messages = [
+      { role: "system", content: "Sei un assistente medico chiamato Salus che aiuta gli utenti a gestire la loro salute. Fornisci consigli generali sulla salute, ma ricorda all'utente di consultare un medico per diagnosi o trattamenti specifici. Rispondi in italiano." },
+      ...conversationHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      { role: "user", content: message }
+    ];
+    
+    console.log('Invio richiesta AI a OpenAI');
+    
+    // Scegli tra chiamata diretta o tramite backend
+    let response;
+    
+    try {
+      // Prima prova la chiamata diretta a Vercel
+      response = await axios.post('https://salus-ai-backend.vercel.app/api/chat', 
+        { messages },
+        { 
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      console.log('Risposta AI ricevuta da Vercel');
+    } catch (vercelError) {
+      console.warn('Errore nella chiamata a Vercel, provo con il proxy:', vercelError);
+      
+      // Se la chiamata diretta fallisce, prova attraverso il proxy
+      response = await axios.post('/api/chat', 
+        { messages },
+        { 
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      console.log('Risposta AI ricevuta tramite proxy');
+    }
+    
+    // Verifica e restituisci la risposta
+    if (response.status !== 200) {
+      throw new Error(`Errore nella risposta: ${response.status}`);
+    }
+    
+    return {
+      response: response.data.message || response.data.response || response.data.reply || "Non ho capito la tua richiesta, puoi riprovare?",
+      offline: false
+    };
+    
+  } catch (error) {
+    console.error('Errore durante la comunicazione con l\'AI:', error);
+    
+    // Verifica se è offline
+    if (!navigator.onLine) {
+      return {
+        response: "Sembra che tu sia offline. Riprova quando avrai una connessione a internet.",
+        offline: true
+      };
+    }
+    
+    // Fallback per altri errori
+    return {
+      response: "Mi dispiace, ho riscontrato un problema nel comunicare con il server. Riprova più tardi.",
+      offline: true,
+      error: error.message
+    };
+  }
+};
 
 // Funzione per analizzare sintomi e trovare correlazioni con farmaci
 export async function analyzeSymptomsMedications(symptoms, medications) {

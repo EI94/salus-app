@@ -10,17 +10,19 @@
     "vercel-build": "cd salus-frontend && npm install && CI=false npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "install-client": "cd salus-frontend && npm install --legacy-peer-deps",
-    "build-client": "cd salus-frontend && DISABLE_WORKBOX=true npm run build"
+    "build-client": "cd salus-frontend && DISABLE_WORKBOX=true npm run build",
+    "proxy": "node proxy.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
-    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.3",
     "nodemailer": "^6.10.0",
-    "openai": "^3.3.0"
+    "openai": "^3.3.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

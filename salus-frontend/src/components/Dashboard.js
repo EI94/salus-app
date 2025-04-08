@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { 
   FiActivity, FiCalendar, FiPlusCircle, FiThermometer,
-  FiPieChart, FiFileText, FiHeart, FiTrendingUp, FiBell, FiMessageSquare
+  FiPieChart, FiFileText, FiHeart, FiTrendingUp, FiBell, FiMessageSquare, FiAlertTriangle
 } from 'react-icons/fi';
 import { 
   FaPills, FaChartLine, FaSmile, FaClipboardList, 
@@ -27,20 +27,37 @@ const DashboardAIAssistant = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { user } = useContext(UserContext);
   const messagesEndRef = React.useRef(null);
   
   // Ottiene una risposta dall'API di assistenza AI
   const getAIResponse = async (query) => {
     try {
-      const response = await sendMessageToAI(query, messages.map(m => ({ role: m.role, content: m.content })));
+      console.log('Richiedendo risposta AI per:', query);
+      setError(null);
       
-      if (response && response.response) {
-        return response.response;
-      } else {
-        throw new Error('Risposta non valida dal servizio AI');
+      if (!user) {
+        console.log('Nessun utente autenticato');
+        return t('aiAuthMessage', "Per utilizzare l'assistente AI devi effettuare l'accesso. Accedi o registrati per continuare.");
       }
+      
+      const conversationHistory = messages.map(m => ({ 
+        role: m.role, 
+        content: m.content 
+      }));
+      
+      const aiResponse = await sendMessageToAI(query, conversationHistory);
+      console.log('Risposta AI ricevuta:', aiResponse);
+      
+      if (aiResponse.offline) {
+        console.log('Risposta offline ricevuta');
+      }
+      
+      return aiResponse.response || t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi.");
     } catch (error) {
-      console.error('Errore nella chiamata API:', error);
+      console.error('Errore nella chiamata AI:', error);
+      setError('Impossibile connettersi al servizio AI. Verifica la tua connessione o riprova più tardi.');
       return t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi o consulta il tuo medico per informazioni specifiche.");
     }
   };
@@ -50,6 +67,19 @@ const DashboardAIAssistant = () => {
     e.preventDefault();
 
     if (!input.trim()) return;
+    
+    // Verifica se l'utente è loggato
+    if (!user) {
+      setMessages(prev => [
+        ...prev, 
+        { 
+          role: 'assistant', 
+          content: t('aiAuthMessage', "Per utilizzare l'assistente AI devi effettuare l'accesso. Accedi o registrati per continuare.")
+        }
+      ]);
+      setInput('');
+      return;
+    }
 
     // Aggiunge il messaggio dell'utente
     const userMessage = { role: 'user', content: input };
@@ -94,6 +124,12 @@ const DashboardAIAssistant = () => {
         </div>
 
         <div className="ai-assistant-messages">
+          {error && (
+            <div className="ai-error-message">
+              <FiAlertTriangle /> {error}
+            </div>
+          )}
+          
           {messages.map((msg, index) => (
             <div
               key={index}

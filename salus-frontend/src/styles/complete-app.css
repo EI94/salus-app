@@ -6,61 +6,94 @@
 }
 
 :root {
-  /* Palette colori moderna */
-  --primary-color: #4361EE;
-  --primary-color-light: #7B96FF;
-  --primary-color-dark: #3A56D4;
-  --primary-color-hover: #3051D3;
+  /* Sistema di colori Salus - Palette medicale moderna */
+  --primary-color: #4f8cc9;
+  --primary-light: #80b7e8;
+  --primary-dark: #2e699b;
   
-  --secondary-color: #2EC4B6;
-  --secondary-color-light: #48E5D7;
-  --secondary-color-dark: #25A99D;
-  --secondary-color-hover: #1FAB9E;
+  /* Colori secondari */
+  --secondary-color: #ff6b6b;
+  --secondary-light: #ff9a9a;
+  --secondary-dark: #d54b4b;
   
-  --accent-color: #FF9F1C;
-  --accent-color-light: #FFBF69;
-  --accent-color-dark: #E68B00;
+  /* Colori di supporto */
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  --info-color: #29b6f6;
   
-  /* Colori semantici */
-  --success: #38B000;
-  --warning: #FF9F1C;
-  --error: #E63946;
-  --info: #4CC9F0;
+  /* Neutrali */
+  --neutral-50: #f8f9fa;
+  --neutral-100: #f1f3f5;
+  --neutral-200: #e9ecef;
+  --neutral-300: #dee2e6;
+  --neutral-400: #ced4da;
+  --neutral-500: #adb5bd;
+  --neutral-600: #6c757d;
+  --neutral-700: #495057;
+  --neutral-800: #343a40;
+  --neutral-900: #212529;
   
-  /* Colori di sfondo */
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F8F9FA;
-  --bg-tertiary: #F1F3F9;
-  --card-bg: #FFFFFF;
-  --card-bg-hover: #F8F9FA;
+  /* Overlay e trasparenze */
+  --overlay-light: rgba(255, 255, 255, 0.85);
+  --overlay-dark: rgba(0, 0, 0, 0.7);
   
-  /* Colori del testo */
-  --text-primary: #2B2D42;
-  --text-secondary: #6C757D;
-  --text-tertiary: #ADB5BD;
-  --text-on-primary: #FFFFFF;
-  --text-on-secondary: #FFFFFF;
-  --text-on-accent: #2B2D42;
+  /* Colori specifici per categorie */
+  --symptom-color: #ff6b6b;
+  --medication-color: #4caf50;
+  --wellness-color: #29b6f6;
+  --reminder-color: #ff9800;
+  --analytics-color: #7e57c2;
+  
+  /* Spaziatura */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
   
   /* Bordi e ombre */
-  --border-color: #DEE2E6;
-  --border-color-focus: #7B96FF;
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.15);
-  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 20px;
+  --border-radius-circle: 50%;
   
-  /* Tema scuro */
-  --bg-primary-dark: #121212;
-  --bg-secondary-dark: #1E1E1E;
-  --bg-tertiary-dark: #252525;
-  --card-bg-dark: #1E1E1E;
-  --card-bg-hover-dark: #252525;
-  --text-primary-dark: #F8F9FA;
-  --text-secondary-dark: #CED4DA;
-  --text-tertiary-dark: #9DA3A8;
-  --border-color-dark: #3D3D3D;
+  --box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --box-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --box-shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  
+  /* Tipografia */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-family-heading: var(--font-family-base);
+  
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-md: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-4xl: 2.25rem;  /* 36px */
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  
+  /* Transizioni */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.3s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
+  
+  /* Z-index */
+  --z-background: -10;
+  --z-normal: 1;
+  --z-elevated: 10;
+  --z-modal: 100;
+  --z-popover: 200;
+  --z-toast: 300;
   
   /* Layout */
   --header-height: 64px;
@@ -68,14 +101,6 @@
   --sidebar-collapsed-width: 70px;
   --content-max-width: 1200px;
   --container-padding: 24px;
-  
-  /* Spaziatura */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
   
   /* Arrotondamenti */
   --radius-sm: 4px;
@@ -89,42 +114,24 @@
   --font-serif: Georgia, 'Times New Roman', serif;
   --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   
-  --font-size-xs: 0.75rem;   /* 12px */
-  --font-size-sm: 0.875rem;  /* 14px */
-  --font-size-md: 1rem;      /* 16px */
-  --font-size-lg: 1.125rem;  /* 18px */
-  --font-size-xl: 1.25rem;   /* 20px */
-  --font-size-2xl: 1.5rem;   /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
-  --font-size-4xl: 2.25rem;  /* 36px */
-  
-  --font-weight-light: 300;
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  
   --line-height-tight: 1.25;
   --line-height-normal: 1.5;
   --line-height-loose: 1.75;
   
   /* Animazioni */
-  --transition-fast: 150ms;
-  --transition-normal: 300ms;
-  --transition-slow: 500ms;
   --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
   --easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
 }
 
 body {
-  font-family: var(--font-sans);
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+  color: var(--neutral-800);
+  background-color: var(--neutral-100);
   transition: background-color var(--transition-normal) var(--easing-standard), 
               color var(--transition-normal) var(--easing-standard);
-  line-height: var(--line-height-normal);
-  font-size: var(--font-size-md);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -217,7 +224,8 @@ ul, ol {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: var(--danger-color);
+  background-color: var(--secondary-color);
+  color: white;
 }
 
 /* Menu profilo utente */
@@ -308,8 +316,9 @@ ul, ol {
 
 .sidebar {
   width: var(--sidebar-width);
-  background-color: white;
-  box-shadow: var(--shadow-sm);
+  background-color: var(--primary-dark);
+  color: white;
+  box-shadow: var(--box-shadow-lg);
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -355,6 +364,7 @@ ul, ol {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: var(--neutral-100);
 }
 
 .sidebar a {
@@ -363,7 +373,7 @@ ul, ol {
   padding: 12px 15px;
   margin-bottom: 5px;
   border-radius: var(--radius-md);
-  color: var(--text-light);
+  color: var(--neutral-200);
   font-weight: 500;
   transition: all var(--transition-speed);
 }
@@ -376,12 +386,12 @@ ul, ol {
 }
 
 .sidebar a:hover {
-  background-color: var(--secondary-color);
-  color: var(--primary-color);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .sidebar a.active {
-  background-color: var(--primary-color);
+  background-color: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
@@ -443,6 +453,7 @@ ul, ol {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+  background-color: var(--neutral-100);
 }
 
 /* Assistente IA Widget */
@@ -475,7 +486,7 @@ ul, ol {
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 5px solid var(--divider-color);
+  border: 5px solid var(--neutral-200);
   border-top: 5px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -610,5 +621,162 @@ ul, ol {
   .auth-logo {
     width: 64px;
     height: 64px;
+  }
+}
+
+/* Applicazione dei colori ai componenti esistenti */
+.app-layout {
+  background-color: var(--neutral-100);
+}
+
+.sidebar {
+  background-color: var(--primary-dark);
+  color: white;
+  box-shadow: var(--box-shadow-lg);
+}
+
+.sidebar-nav a {
+  color: var(--neutral-200);
+  transition: var(--transition-fast);
+}
+
+.sidebar-nav a:hover, 
+.sidebar-nav a.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.content {
+  background-color: var(--neutral-100);
+}
+
+/* Card e contenitori */
+.card, 
+.dashboard-card, 
+.reminder-item,
+.medication-reminder-container,
+.symptom-analytics-container {
+  background-color: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--box-shadow-sm);
+  transition: var(--transition-normal);
+}
+
+.card:hover, 
+.dashboard-card:hover {
+  box-shadow: var(--box-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Bottoni */
+.btn, 
+.action-button, 
+.add-button,
+.primary-button {
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-medium);
+  transition: var(--transition-fast);
+}
+
+.btn-primary,
+.primary-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover,
+.primary-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-secondary,
+.secondary-button {
+  background-color: var(--neutral-200);
+  color: var(--neutral-800);
+  border: none;
+}
+
+.action-button.complete {
+  background-color: var(--success-color);
+}
+
+.action-button.skip {
+  background-color: var(--warning-color);
+}
+
+.action-button.delete {
+  background-color: var(--error-color);
+}
+
+/* Forme e modali */
+form input, 
+form select, 
+form textarea {
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: var(--transition-fast);
+}
+
+form input:focus, 
+form select:focus, 
+form textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-light);
+  outline: none;
+}
+
+.modal-overlay {
+  background-color: var(--overlay-dark);
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-elevated);
+}
+
+/* Personalizzazione categoria-specifica */
+.symptom-item {
+  border-left: 4px solid var(--symptom-color);
+}
+
+.medication-item {
+  border-left: 4px solid var(--medication-color);
+}
+
+.wellness-item {
+  border-left: 4px solid var(--wellness-color);
+}
+
+.reminder-item {
+  border-left: 4px solid var(--reminder-color);
+}
+
+/* Animazioni e loading states */
+.loading-spinner {
+  border: 3px solid var(--neutral-200);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+}
+
+/* Stati di selezione */
+.selected {
+  background-color: var(--primary-light);
+  color: white;
+}
+
+/* Stili per accessibilità */
+:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 } 
