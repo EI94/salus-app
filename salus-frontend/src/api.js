@@ -114,55 +114,78 @@ export const sendMessageToAI = async (message, conversationHistory = []) => {
       };
     }
 
-    console.log('Preparo messaggio per assistente AI');
+    console.log('Invio richiesta AI ad OpenAI');
     
-    // URL API simulato - usa localStorage per i messaggi
-    // In questo modo non abbiamo bisogno di una vera API e funziona offline
+    // Prepara la conversazione nel formato richiesto da OpenAI
+    const messages = [
+      { 
+        role: "system", 
+        content: "Sei un assistente medico chiamato Salus che aiuta gli utenti a gestire la loro salute. Fornisci consigli generali sulla salute, ma ricorda all'utente di consultare un medico per diagnosi o trattamenti specifici. Rispondi in italiano in modo breve e chiaro." 
+      },
+      ...conversationHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      { role: "user", content: message }
+    ];
     
-    // Prepara il prompt con le informazioni del sistema
-    const systemPrompt = "Sei un assistente medico chiamato Salus che aiuta gli utenti a gestire la loro salute. Fornisci consigli generali sulla salute, ma ricorda all'utente di consultare un medico per diagnosi o trattamenti specifici. Rispondi in italiano in modo breve e chiaro.";
-    
-    // Recupera lo storico delle conversazioni dal localStorage
-    const storedConversations = localStorage.getItem('ai_conversations') ? 
-      JSON.parse(localStorage.getItem('ai_conversations')) : [];
-    
-    // Aggiungi il nuovo messaggio dell'utente
-    storedConversations.push({
-      sender: 'user',
-      message: message,
-      timestamp: new Date().toISOString()
+    // Invia direttamente la richiesta a OpenAI
+    // Nota: process.env.OPENAI_API_KEY viene inserito da Vercel al momento del build
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 500
+      })
     });
-    
-    // Genera una risposta simulata basata su regole predefinite
-    const aiResponse = generateSimulatedResponse(message, systemPrompt);
-    
-    // Aggiungi la risposta dell'AI
-    storedConversations.push({
-      sender: 'assistant',
-      message: aiResponse,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Limita la dimensione dello storico a 20 messaggi
-    if (storedConversations.length > 20) {
-      storedConversations.splice(0, storedConversations.length - 20);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Errore nella risposta OpenAI:', errorData);
+      throw new Error(errorData.error?.message || 'Errore nel servizio OpenAI');
     }
+
+    const data = await response.json();
+    const aiResponseText = data.choices[0]?.message?.content || 
+      "Mi dispiace, non sono riuscito a generare una risposta. Riprova più tardi.";
     
-    // Salva lo storico aggiornato
-    localStorage.setItem('ai_conversations', JSON.stringify(storedConversations));
-    
-    console.log('Risposta AI generata localmente');
+    console.log('Risposta AI ricevuta da OpenAI');
     
     return {
-      response: aiResponse,
-      offline: false // tecnicamente è "offline" ma diciamo di no per migliorare UX
+      response: aiResponseText,
+      offline: false
     };
+    
   } catch (error) {
-    console.error('Errore durante la generazione della risposta AI:', error);
+    console.error('Errore durante la comunicazione con OpenAI:', error);
+    
+    // Verifica se è offline
+    if (!navigator.onLine) {
+      console.log('Browser offline, usando risposta offline');
+      return {
+        response: "Sembra che tu sia offline. Riprova quando avrai una connessione a internet.",
+        offline: true
+      };
+    }
+    
+    // Se la chiave API non è valida o mancante
+    if (error.message?.includes('API key')) {
+      return {
+        response: "Non è stato possibile connettersi al servizio AI a causa di un problema di configurazione. Contatta l'amministratore.",
+        offline: true,
+        error: error.message
+      };
+    }
     
     // Fallback per altri errori
     return {
-      response: "Mi dispiace, ho riscontrato un problema nel generare una risposta. Riprova più tardi.",
+      response: "Mi dispiace, ho riscontrato un problema nel comunicare con il servizio AI. Riprova più tardi.",
       offline: true,
       error: error.message
     };
