@@ -204,7 +204,7 @@ const Dashboard = () => {
   const [showTodayModal, setShowTodayModal] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState('home');
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Consigli di salute casuali
   const healthTips = [
@@ -217,6 +217,14 @@ const Dashboard = () => {
   ];
 
   useEffect(() => {
+    // Verifica se è il primo accesso dell'utente
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    if (!hasSeenOnboarding && userContext?.user) {
+      setShowOnboarding(true);
+      // Salva che l'utente ha visto l'onboarding
+      localStorage.setItem('hasSeenOnboarding', 'true');
+    }
+    
     // Impostiamo la data corrente e la aggiorniamo ogni minuto
     const dateInterval = setInterval(() => {
       setCurrentDate(new Date());
@@ -239,7 +247,7 @@ const Dashboard = () => {
     }, 800);
     
     return () => clearInterval(dateInterval);
-  }, []);
+  }, [userContext?.user]);
 
   // Funzione per navigare direttamente alla schermata di aggiunta
   const navigateToAdd = (path, action) => {
