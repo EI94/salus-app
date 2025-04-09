@@ -6,6 +6,7 @@ import { UserContext } from '../context/UserContext';
 import { apiUrl, normalizePath } from '../api';
 import { apiPost } from '../utils/apiHelper';
 import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 
 // Icone SVG solo per la sezione delle feature
 const HeartPulseIcon = () => (
@@ -58,7 +59,6 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [language, setLanguage] = useState(i18n.language);
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -136,14 +136,6 @@ const Auth = () => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // Gestione cambio lingua
-  const handleLanguageChange = (e) => {
-    const selectedLanguage = e.target.value;
-    setLanguage(selectedLanguage);
-    i18n.changeLanguage(selectedLanguage);
-    localStorage.setItem('userLanguage', selectedLanguage);
   };
 
   // Cambio tra login e registrazione
@@ -659,13 +651,13 @@ const Auth = () => {
     <div className="auth-container">
       <div className="auth-left">
         <div className="auth-brand">
-          <img src="/logo-light.svg" alt="Salus Logo" className="auth-logo" />
-          <h1>{t('appTitle', 'Salus')}</h1>
-          <p>{t('appDescription', 'Monitora la tua salute in modo semplice e intuitivo')}</p>
+          <img src="/logo-dark.svg" alt="Salus Logo" className="auth-logo" />
+          <h1>Salus</h1>
+          <p>{t('healthManagement', 'Gestione semplificata della tua salute')}</p>
         </div>
         
         <div className="auth-features">
-          <h2>{t('appFeatures', 'Funzionalità')}</h2>
+          <h2>{t('features', 'Funzionalità')}</h2>
           
           <div className="feature-item">
             <div className="feature-icon">
@@ -673,7 +665,7 @@ const Auth = () => {
             </div>
             <div className="feature-text">
               <h3>{t('symptomTracking', 'Tracciamento sintomi')}</h3>
-              <p>{t('symptomTrackingDesc', 'Tieni traccia dei tuoi sintomi e monitora la tua salute')}</p>
+              <p>{t('symptomTrackingDesc', 'Tieni traccia dei tuoi sintomi quotidianamente')}</p>
             </div>
           </div>
           
@@ -683,7 +675,7 @@ const Auth = () => {
             </div>
             <div className="feature-text">
               <h3>{t('medicationManagement', 'Gestione farmaci')}</h3>
-              <p>{t('medicationManagementDesc', 'Gestisci i tuoi farmaci e ricevi promemoria')}</p>
+              <p>{t('medicationManagementDesc', 'Gestisci le tue medicine e imposta promemoria')}</p>
             </div>
           </div>
           
@@ -698,17 +690,9 @@ const Auth = () => {
           </div>
         </div>
         
-        <div className="language-selector">
+        <div className="language-selector-container">
           <label htmlFor="language-selector">{t('language', 'Lingua')}:</label>
-          <select
-            id="language-selector"
-            value={language}
-            onChange={handleLanguageChange}
-          >
-            <option value="it">{t('italian', 'Italiano')}</option>
-            <option value="en">{t('english', 'Inglese')}</option>
-            <option value="hi">{t('hindi', 'Hindi')}</option>
-          </select>
+          <LanguageSelector variant="dropdown" className="auth-language-selector" />
         </div>
       </div>
       

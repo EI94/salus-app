@@ -1,54 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import '../styles/Settings.css';
+import LanguageSelector from './LanguageSelector';
 
 const Settings = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [darkMode, setDarkMode] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('it');
-
+  
   useEffect(() => {
     // Carica le impostazioni salvate
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    const savedLanguage = localStorage.getItem('language') || 'it';
-    
     setDarkMode(savedDarkMode);
-    setSelectedLanguage(savedLanguage);
     
     // Applica il tema scuro se necessario
     if (savedDarkMode) {
       document.body.classList.add('dark-mode');
     }
   }, []);
-
-  const handleLanguageChange = async (language) => {
-    try {
-      // Salva la lingua nel localStorage
-      localStorage.setItem('language', language);
-      
-      // Aggiorna lo stato locale
-      setSelectedLanguage(language);
-      
-      // Cambia la lingua nell'app
-      await i18n.changeLanguage(language);
-      
-      // Aggiorna la lingua nel backend
-      const token = localStorage.getItem('token');
-      if (token) {
-        await fetch('http://localhost:5000/api/users/language', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ language })
-        });
-      }
-    } catch (error) {
-      console.error('Errore durante il cambio lingua:', error);
-      alert('Errore durante il cambio lingua. Riprova più tardi.');
-    }
-  };
 
   const handleDarkModeToggle = () => {
     const newDarkMode = !darkMode;
@@ -64,34 +32,23 @@ const Settings = () => {
 
   return (
     <div className="settings-container">
-      <h2>{t('settings')}</h2>
+      <h2>{t('settings', 'Impostazioni')}</h2>
       
       <div className="settings-section">
-        <h3>{t('language')}</h3>
+        <h3>{t('language', 'Lingua')}</h3>
+        <p className="settings-description">
+          {t('languageDescription', 'Seleziona la lingua dell\'applicazione')}
+        </p>
         <div className="language-options">
-          <button 
-            className={`language-btn ${selectedLanguage === 'it' ? 'active' : ''}`}
-            onClick={() => handleLanguageChange('it')}
-          >
-            Italiano
-          </button>
-          <button 
-            className={`language-btn ${selectedLanguage === 'en' ? 'active' : ''}`}
-            onClick={() => handleLanguageChange('en')}
-          >
-            English
-          </button>
-          <button 
-            className={`language-btn ${selectedLanguage === 'es' ? 'active' : ''}`}
-            onClick={() => handleLanguageChange('es')}
-          >
-            Español
-          </button>
+          <LanguageSelector />
         </div>
       </div>
 
       <div className="settings-section">
-        <h3>{t('darkMode')}</h3>
+        <h3>{t('darkMode', 'Modalità scura')}</h3>
+        <p className="settings-description">
+          {t('darkModeDescription', 'Attiva la modalità scura per ridurre l\'affaticamento degli occhi')}
+        </p>
         <label className="switch">
           <input
             type="checkbox"
@@ -100,6 +57,16 @@ const Settings = () => {
           />
           <span className="slider round"></span>
         </label>
+      </div>
+      
+      <div className="settings-section">
+        <h3>{t('dataExport', 'Esportazione dati')}</h3>
+        <p className="settings-description">
+          {t('dataExportDescription', 'Esporta i tuoi dati in formato CSV o PDF')}
+        </p>
+        <button className="export-button">
+          {t('exportCSV', 'Esporta in CSV')}
+        </button>
       </div>
     </div>
   );

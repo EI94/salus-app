@@ -10,6 +10,7 @@ import './styles/mobile.css';
 import { UserProvider, UserContext } from './context/UserContext';
 import MobileBottomNav from './components/MobileBottomNav';
 import FeedbackWidget from './components/FeedbackWidget';
+import LanguageSelector from './components/LanguageSelector';
 
 // Lazy loading dei componenti principali per migliorare le prestazioni, specialmente su mobile
 const Auth = lazyLoad('components/Auth', { type: 'page' });
@@ -70,16 +71,6 @@ function Layout({ children }) {
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Forza l'applicazione a usare l'italiano all'avvio del componente
-  useEffect(() => {
-    // Imposta la lingua italiana
-    i18n.changeLanguage('it');
-    
-    // Salva la scelta nella localStorage
-    localStorage.setItem('userLanguage', 'it');
-    console.log('Lingua forzata a italiano');
-  }, [i18n]);
   
   // Determina quale pagina è attiva in base all'URL
   const getActivePageClass = (path) => {
@@ -184,6 +175,10 @@ function Layout({ children }) {
               </ul>
             </nav>
             
+            <div className="sidebar-language">
+              <LanguageSelector />
+            </div>
+            
             <div className="sidebar-footer">
               <button 
                 className="notification-button"
@@ -219,24 +214,26 @@ function Layout({ children }) {
           </main>
         </div>
       ) : (
-        <MobileBottomNav />
+        <>
+          <MobileBottomNav />
+          <div className="mobile-language-selector-container">
+            <LanguageSelector variant="dropdown" />
+          </div>
+        </>
       )}
       
       <div className="main-content">
         {children}
       </div>
       
-      {/* Assistente AI compatto sempre visibile */}
       {showAIWidget && (
         <div className="ai-widget-container">
           <AIAssistant />
         </div>
       )}
       
-      {/* Centro notifiche */}
       {showNotifications && <NotificationCenter onClose={() => setShowNotifications(false)} />}
       
-      {/* Widget di feedback */}
       <FeedbackWidget />
     </div>
   );

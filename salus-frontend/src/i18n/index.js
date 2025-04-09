@@ -7,10 +7,10 @@ import en from './locales/en.json';
 import it from './locales/it.json';
 import hi from './locales/hi.json';
 
-// Debug flag per individuare problemi con i18n
-const DEBUG_I18N = true;
+// Debug flag per individuare problemi con i18n (solo in sviluppo)
+const DEBUG_I18N = process.env.NODE_ENV === 'development';
 
-// Verifica che le traduzioni siano caricate correttamente
+// Verifica che le traduzioni siano caricate correttamente in modalità sviluppo
 if (DEBUG_I18N) {
   console.log('Verifica traduzioni:');
   console.log('- Italiano:', Object.keys(it).length, 'chiavi');
@@ -26,27 +26,31 @@ if (DEBUG_I18N) {
   console.log('  Wellness:', en.wellness);
 }
 
-// Forza la lingua italiana come default
-const forcedLanguage = 'it';
-if (typeof window !== 'undefined') {
-  localStorage.setItem('userLanguage', forcedLanguage);
-  localStorage.setItem('i18nextLng', forcedLanguage);
-}
+// Ottieni la lingua salvata dall'utente o usa italiano come predefinito
+const getSavedLanguage = () => {
+  // Priorità: userLanguage (nostra chiave) -> i18nextLng (chiave di i18next) -> it (default)
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('userLanguage') || 
+           localStorage.getItem('i18nextLng') || 
+           'it';
+  }
+  return 'it';
+};
 
-// Aggiungi traduzioni mancanti per l'autenticazione
+// Aggiungi traduzioni mancanti per i messaggi di errore
 const addErrorMessages = (translations) => {
   return {
     ...translations,
     // Messaggi di errore per la validazione del form
-    errorEmailRequired: translations.emailRequired || 'Email required',
-    errorEmailInvalid: translations.invalidEmail || 'Invalid email',
-    errorPasswordRequired: translations.passwordRequired || 'Password required',
-    errorPasswordLength: translations.passwordTooShort || 'Password must be at least 6 characters',
-    errorPasswordMatch: translations.passwordsDoNotMatch || 'Passwords do not match',
-    errorGeneric: 'An error occurred. Please try again.',
+    errorEmailRequired: translations.emailRequired || 'Email richiesta',
+    errorEmailInvalid: translations.invalidEmail || 'Email non valida',
+    errorPasswordRequired: translations.passwordRequired || 'Password richiesta',
+    errorPasswordLength: translations.passwordTooShort || 'La password deve avere almeno 6 caratteri',
+    errorPasswordMatch: translations.passwordsDoNotMatch || 'Le password non corrispondono',
+    errorGeneric: translations.genericError || 'Si è verificato un errore. Riprova.',
     
     // Funzionalità in sviluppo
-    featureInDevelopment: 'This feature is currently in development'
+    featureInDevelopment: translations.featureInDevelopment || 'Questa funzionalità è in fase di sviluppo'
   };
 };
 
@@ -66,8 +70,8 @@ i18n
         translation: addErrorMessages(hi)
       }
     },
-    lng: forcedLanguage, // Forza la lingua italiana
-    fallbackLng: 'it', // Lingua predefinita
+    lng: getSavedLanguage(), // Usa la lingua salvata dall'utente
+    fallbackLng: 'it', // Lingua di fallback
     debug: DEBUG_I18N,
     
     interpolation: {
@@ -81,23 +85,26 @@ i18n
     }
   });
 
-// Forza l'uso dell'italiano dopo l'inizializzazione
-i18n.changeLanguage(forcedLanguage).then(() => {
-  if (DEBUG_I18N) {
-    console.log(`Lingua impostata a: ${i18n.language}`);
-    console.log(`Traduzione 'dashboard': ${i18n.t('dashboard')}`);
-    console.log(`Traduzione 'symptoms': ${i18n.t('symptoms')}`);
-    console.log(`Traduzione 'medications': ${i18n.t('medications')}`);
-    console.log(`Traduzione 'wellness': ${i18n.t('wellness')}`);
-  }
-});
-
-// Assicurati che la lingua sia aggiornata quando cambia
+// Assicurati che la lingua sia sincronizzata tra i18n e localStorage
 i18n.on('languageChanged', (lng) => {
   if (DEBUG_I18N) {
     console.log(`Lingua cambiata a: ${lng}`);
   }
+  
+  // Aggiorna localStorage
+  localStorage.setItem('userLanguage', lng);
+  localStorage.setItem('i18nextLng', lng);
+  
+  // Aggiorna l'attributo lang dell'HTML
   document.documentElement.setAttribute('lang', lng);
 });
+
+// API per cambiare la lingua e sincronizzare tutto
+export const changeLanguage = (lng) => {
+  i18n.changeLanguage(lng);
+  localStorage.setItem('userLanguage', lng);
+  localStorage.setItem('i18nextLng', lng);
+  return lng;
+};
 
 export default i18n;
