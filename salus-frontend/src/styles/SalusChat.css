@@ -1,0 +1,175 @@
+.salus-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.chat-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.chat-header h2 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 24px;
+}
+
+.chat-header p {
+  color: #7f8c8d;
+  margin: 5px 0 0;
+  font-size: 16px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  min-height: 300px;
+}
+
+.message {
+  margin: 10px 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 80%;
+  line-height: 1.5;
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message.user {
+  background: #007bff;
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.message.assistant {
+  background: #e9ecef;
+  color: #212529;
+  margin-right: auto;
+  border-bottom-left-radius: 4px;
+}
+
+.message.loading {
+  background: #e9ecef;
+  padding: 8px 16px;
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background: #6c757d;
+  border-radius: 50%;
+  animation: typing 1s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.chat-input input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.chat-input input:disabled {
+  background: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.chat-input button {
+  padding: 12px 24px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.chat-input button:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.chat-input button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.chat-input button.loading {
+  background: #0056b3;
+  cursor: wait;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .salus-chat {
+    padding: 10px;
+    height: calc(100vh - 20px);
+  }
+
+  .message {
+    max-width: 90%;
+  }
+
+  .chat-input {
+    padding: 8px;
+  }
+
+  .chat-input input,
+  .chat-input button {
+    padding: 10px;
+  }
+} 

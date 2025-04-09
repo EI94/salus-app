@@ -18,6 +18,7 @@ import {
 import { sendMessageToAI } from '../api';
 import AppointmentsManager from './AppointmentsManager';
 import OnboardingDemo from './OnboardingDemo';
+import SalusChat from './SalusChat';
 
 const DashboardAIAssistant = () => {
   const { t } = useTranslation();
@@ -693,6 +694,10 @@ const Dashboard = () => {
         {activeTab === 'appointments' && (
           <AppointmentsManager />
         )}
+      </div>
+
+      <div className="dashboard-sidebar">
+        <SalusChat />
       </div>
     </div>
   );

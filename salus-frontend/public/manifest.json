@@ -1,6 +1,7 @@
 {
   "short_name": "Salus",
-  "name": "Salus - Monitoraggio Salute",
+  "name": "Salus - Gestione Salute Personale",
+  "description": "Applicazione per la gestione della salute personale: farmaci, sintomi, benessere e assistente IA",
   "icons": [
     {
       "src": "favicon.ico",
@@ -16,13 +17,34 @@
       "src": "logo512.png",
       "type": "image/png",
       "sizes": "512x512"
+    },
+    {
+      "src": "maskable_icon.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#2196f3",
+  "theme_color": "#4CAF50",
   "background_color": "#ffffff",
   "orientation": "portrait",
-  "description": "App per il monitoraggio della salute personale",
-  "categories": ["health", "fitness", "medical"]
+  "categories": ["health", "medical", "wellness"],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "type": "image/png",
+      "sizes": "540x1200"
+    },
+    {
+      "src": "screenshot2.png",
+      "type": "image/png",
+      "sizes": "540x1200"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "scope": "/",
+  "lang": "it-IT"
 } 

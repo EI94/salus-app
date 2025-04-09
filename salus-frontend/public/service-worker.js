@@ -1,113 +1,154 @@
-/* eslint-disable no-restricted-globals */
+/**
+ * Service Worker per Salus App
+ * Questo file deve essere posizionato nella cartella public per essere disponibile alla root del sito
+ */
 
-// Questo service worker può essere personalizzato
-// https://developers.google.com/web/tools/workbox/
-
+// Nome della cache
 const CACHE_NAME = 'salus-cache-v1';
-const urlsToCache = [
+
+// Lista delle risorse da mettere in cache
+const PRECACHE_RESOURCES = [
   '/',
   '/index.html',
-  '/static/js/main.chunk.js',
-  '/static/js/vendors~main.chunk.js',
-  '/static/js/bundle.js',
-  '/static/css/main.chunk.css',
   '/manifest.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+  '/favicon.ico',
+  '/logo-light.svg',
+  '/logo-dark.svg',
+  '/placeholder.svg',
+  '/error-image.svg'
 ];
 
-// Installazione del service worker e memorizzazione delle risorse nella cache
-self.addEventListener('install', event => {
-  // Esegue l'installazione
+// URL dell'API
+const API_URL = self.location.origin.includes('localhost') 
+  ? 'http://localhost:5000/api' 
+  : 'https://salus-backend.onrender.com/api';
+
+/**
+ * Evento di installazione:
+ * Precaricare e memorizzare nella cache le risorse essenziali
+ */
+self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
+      .then((cache) => {
         console.log('Cache aperta');
-        return cache.addAll(urlsToCache);
+        return cache.addAll(PRECACHE_RESOURCES);
       })
   );
+  
+  // Forza l'attivazione immediata del service worker
+  self.skipWaiting();
 });
 
-// Funzione per verificare se un URL è valido per il caching
-function isValidCacheRequest(url) {
-  // Verifica che l'URL inizi con http o https
-  if (!url.startsWith('http')) {
-    return false;
-  }
-  
-  // Esclude gli schemi non supportati
-  if (url.startsWith('chrome-extension:') || 
-      url.startsWith('data:') ||
-      url.startsWith('blob:')) {
-    return false;
-  }
-  
-  return true;
-}
-
-// Gestione delle richieste di rete
-self.addEventListener('fetch', (event) => {
-  // Interrompe subito se non è una richiesta valida per il caching
-  if (!isValidCacheRequest(event.request.url)) {
-    return;
-  }
-  
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-
-        // Clona la richiesta
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest).then(
-          (response) => {
-            // Controlla se abbiamo ricevuto una risposta valida
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Clona la risposta
-            const responseToCache = response.clone();
-
-            // Salva nella cache solo se è un URL valido
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                try {
-                  if (isValidCacheRequest(event.request.url)) {
-                    cache.put(event.request, responseToCache);
-                  }
-                } catch (e) {
-                  console.error('Errore nel caching:', e);
-                }
-              });
-
-            return response;
-          }
-        ).catch(error => {
-          console.error('Errore nel fetch:', error);
-          // Fallback per richieste di rete fallite
-          return new Response('Errore di rete', { status: 503, statusText: 'Service Unavailable' });
-        });
-      })
-  );
-});
-
-// Aggiornamento della cache quando viene installata una nuova versione del service worker
-self.addEventListener('activate', event => {
+/**
+ * Evento di attivazione:
+ * Ripulisce le vecchie cache
+ */
+self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
+  
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map(cacheName => {
+        cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
-            // Rimuovi le cache precedenti
+            // Elimina le vecchie cache
             return caches.delete(cacheName);
           }
+          return null;
         })
       );
     })
   );
-}); 
+  
+  // Fa in modo che il service worker prenda il controllo immediatamente
+  self.clients.claim();
+});
+
+/**
+ * Evento fetch:
+ * Strategia di caching basata sul tipo di risorsa
+ */
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  
+  // Non memorizzare nella cache le chiamate API in POST o altre richieste non GET
+  if (request.method !== 'GET') {
+    return;
+  }
+  
+  try {
+    const url = new URL(request.url);
+    
+    // Strategia per le API: Network first, poi fallback alla cache
+    if (url.href.includes('/api/')) {
+      event.respondWith(networkFirstStrategy(request));
+      return;
+    }
+  } catch (e) {
+    // URL non valido, continua normalmente
+  }
+  
+  // Strategia per le risorse statiche: Cache first, poi fallback alla rete
+  event.respondWith(cacheFirstStrategy(request));
+});
+
+/**
+ * Strategia Network First:
+ * Prova prima la rete, se fallisce usa la cache
+ */
+function networkFirstStrategy(request) {
+  return fetch(request)
+    .then((response) => {
+      // Controlla se la risposta è valida
+      if (!response || response.status !== 200) {
+        return response;
+      }
+      
+      // Clona la risposta perché il body può essere usato solo una volta
+      const responseToCache = response.clone();
+      
+      // Memorizza nella cache la risposta per uso futuro
+      caches.open(CACHE_NAME).then((cache) => {
+        cache.put(request, responseToCache);
+      });
+      
+      return response;
+    })
+    .catch(() => {
+      // Se la rete fallisce, controlla la cache
+      return caches.match(request);
+    });
+}
+
+/**
+ * Strategia Cache First:
+ * Prova prima la cache, se non trova usa la rete
+ */
+function cacheFirstStrategy(request) {
+  return caches.match(request)
+    .then((cachedResponse) => {
+      // Se troviamo una risposta nella cache, la restituiamo
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      
+      // Altrimenti, prendiamo dalla rete
+      return fetch(request).then((response) => {
+        // Controlla se la risposta è valida
+        if (!response || response.status !== 200) {
+          return response;
+        }
+        
+        // Clona la risposta perché il body può essere usato solo una volta
+        const responseToCache = response.clone();
+        
+        // Memorizza nella cache la risposta per uso futuro
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, responseToCache);
+        });
+        
+        return response;
+      });
+    });
+} 

@@ -1,0 +1,431 @@
+/* Stili per la bottom navigation bar mobile */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.mobile-bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #666;
+  padding: 8px 0;
+  font-size: 0.8rem;
+  width: 20%;
+}
+
+.mobile-bottom-nav .nav-item i {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+.mobile-bottom-nav .nav-item.active {
+  color: #4CAF50;
+}
+
+/* Ottimizzazioni per schermi mobili */
+@media (max-width: 768px) {
+  .app-layout {
+    padding-bottom: 60px; /* Spazio per la bottom nav */
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .main-content {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  /* Aumenta le dimensioni dei touch target */
+  button, a, input, select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Ottimizza i form per mobile */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  input, select, textarea {
+    font-size: 16px; /* Previene lo zoom automatico su iOS */
+    padding: 12px;
+  }
+
+  /* Migliora la leggibilità */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.3;
+  }
+
+  p {
+    line-height: 1.5;
+  }
+
+  /* Ottimizza le card per mobile */
+  .card {
+    margin-bottom: 16px;
+    padding: 16px;
+  }
+
+  /* Migliora la spaziatura */
+  .container {
+    padding: 16px;
+  }
+
+  /* Ottimizza le tabelle per mobile */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Supporto per gesture swipe */
+.swipe-container {
+  overflow-x: hidden;
+  position: relative;
+}
+
+.swipe-content {
+  transition: transform 0.3s ease;
+}
+
+/* Feedback tattile */
+@media (hover: none) {
+  button:active, a:active {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Stili per i componenti lazy-loaded */
+.lazy-loading-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  height: 100%;
+  min-height: 200px;
+  text-align: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.lazy-loading-placeholder p {
+  margin-top: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Animazione di pulsazione per il caricamento */
+.pulse-animation {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+}
+
+/* Stili per le immagini ottimizzate */
+.optimized-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.optimized-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.optimized-image-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100px;
+  background-color: #f8f8f8;
+  border: 1px dashed #ccc;
+  color: #999;
+}
+
+/* Stili per il componente MobileCardList */
+.mobile-card-list {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.mobile-card-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.mobile-card-list-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.add-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-card-list-content {
+  margin-bottom: 16px;
+}
+
+.empty-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.empty-list .empty-icon {
+  font-size: 3rem;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.empty-list p {
+  margin: 0 0 16px;
+  color: #666;
+}
+
+.add-first-button {
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.card-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.card-item-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-item {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-item.active {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-item-content {
+  display: flex;
+  padding: 16px;
+  position: relative;
+}
+
+.card-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f0f8ff;
+  color: #4CAF50;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.card-item-icon i {
+  font-size: 1.2rem;
+}
+
+.card-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-item-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-item-description {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #666;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.card-item-date {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.card-item-date i {
+  margin-right: 4px;
+}
+
+.card-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.card-item-tag {
+  background-color: #f0f8ff;
+  color: #4CAF50;
+  padding: 2px 6px;
+  border-radius: 12px;
+  margin-right: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.card-item-tag-more {
+  color: #888;
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
+
+.card-item-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.card-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  z-index: -1;
+}
+
+.swipe-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.swipe-action i {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+.swipe-action-left {
+  background-color: #f44336;
+  margin-right: auto;
+}
+
+.swipe-action-right {
+  background-color: #2196F3;
+  margin-left: auto;
+}
+
+.swipe-hint {
+  text-align: center;
+  color: #888;
+  font-size: 0.8rem;
+  padding: 8px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.swipe-hint i {
+  margin-right: 4px;
+}
+
+/* Classi per la direzione dello swipe */
+.swiping-left .card-item-content {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.swiping-right .card-item-content {
+  background-color: rgba(255, 255, 255, 0.95);
+} 
