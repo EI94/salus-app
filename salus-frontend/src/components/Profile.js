@@ -76,12 +76,15 @@ function Profile({ activeTab = 'profile' }) {
   useEffect(() => {
     if (user?.id) {
       const data = loadUserData(user.id);
+      console.log('Dati utente caricati:', data);
       if (data) {
         setUserData(data);
         
         // Aggiorna form con i dati salvati localmente
         setFormData(prevFormData => ({
           ...prevFormData,
+          name: data.name || user.name || 'Utente',
+          email: data.email || user.email || '',
           phone: data.phone || '',
           birthdate: data.birthdate || '',
           gender: data.gender || '',
@@ -173,16 +176,23 @@ function Profile({ activeTab = 'profile' }) {
 
   // Salva le modifiche al profilo
   const handleSaveProfile = async () => {
+    console.log('Salvando il profilo con i dati:', formData);
+    
     const updatedUserData = {
       ...userData,
       ...formData,
       notificationSettings,
       privacySettings,
-      language
+      language,
+      // Aggiungiamo timestamp per debug
+      lastModified: new Date().toISOString()
     };
     
     // Salva i dati localmente
-    saveUserData(userId, updatedUserData);
+    const saveResult = saveUserData(userId, updatedUserData);
+    console.log('Risultato salvataggio:', saveResult);
+    
+    // Aggiorna lo stato locale con i dati aggiornati
     setUserData(updatedUserData);
     
     // Aggiorna il nome dell'utente in Firebase (solo se è cambiato)
@@ -208,6 +218,10 @@ function Profile({ activeTab = 'profile' }) {
     
     // Mostra messaggio di conferma
     alert('Profilo aggiornato con successo!');
+    
+    // Ricarica i dati per verificare che siano stati salvati correttamente
+    const refreshedData = loadUserData(userId);
+    console.log('Dati dopo salvataggio:', refreshedData);
   };
 
   // Esporta i dati dell'utente in formato JSON
