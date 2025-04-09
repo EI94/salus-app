@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import '../styles/AIAssistant.css';
-import { sendMessageToAI } from '../api';
+import { salusAI } from '../services/aiAssistant';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 import { FiMessageSquare, FiAlertTriangle } from 'react-icons/fi';
@@ -38,7 +38,7 @@ function AIAssistant() {
     });
   }, [i18n.language, t]);
 
-  // Ottiene una risposta dall'assistente simulato AI
+  // Ottiene una risposta dall'assistente AI
   const getAIResponse = async (query) => {
     try {
       console.log('Richiedendo risposta AI per:', query);
@@ -49,17 +49,11 @@ function AIAssistant() {
         return t('aiAuthMessage', "Per utilizzare l'assistente AI devi effettuare l'accesso. Accedi o registrati per continuare.");
       }
       
-      const conversationHistory = messages.map(m => ({ 
-        role: m.role, 
-        content: m.content 
-      }));
-      
-      const aiResponse = await sendMessageToAI(query, conversationHistory);
+      // Utilizzo il nuovo servizio AI
+      const aiResponse = await salusAI.handleUserQuery(query);
       console.log('Risposta AI ricevuta:', aiResponse);
       
-      // Non mostrare più l'errore "offline", la risposta viene generata localmente
-      
-      return aiResponse.response || t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi.");
+      return aiResponse || t('aiErrorMessage', "Mi dispiace, ho riscontrato un problema nel processare la tua richiesta. Riprova più tardi.");
     } catch (error) {
       console.error('Errore nella chiamata AI:', error);
       setError(t('aiServiceError', "Impossibile generare una risposta. Per favore riprova."));
