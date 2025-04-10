@@ -8,9 +8,11 @@ import './styles/mobile.css';
 
 // Importazioni non lazy-loaded (componenti piccoli e critici)
 import { UserProvider, UserContext } from './context/UserContext';
+import { TranslationProvider } from './context/TranslationContext';
 import MobileBottomNav from './components/MobileBottomNav';
 import FeedbackWidget from './components/FeedbackWidget';
 import LanguageSelector from './components/LanguageSelector';
+import { Trans } from './utils/translationUtils';
 
 // Lazy loading dei componenti principali per migliorare le prestazioni, specialmente su mobile
 const Auth = lazyLoad('components/Auth', { type: 'page' });
@@ -82,27 +84,6 @@ function Layout({ children }) {
     navigate('/login');
   };
   
-  // Traduzioni fisse come fallback se i18n non funziona correttamente
-  const menuLabels = {
-    dashboard: "Dashboard",
-    symptoms: "Sintomi",
-    medications: "Farmaci",
-    wellness: "Benessere",
-    profile: "Profilo",
-    settings: "Impostazioni",
-    aiAssistant: "Assistente IA",
-    notifications: "Notifiche",
-    quickAssistant: "Assistente Rapido",
-    logout: "Esci"
-  };
-  
-  // Funzione helper per ottenere la traduzione o usare il fallback
-  const getTranslation = (key, fallback) => {
-    const translation = t(key, fallback);
-    // Se la traduzione è uguale alla chiave, usa il fallback
-    return translation === key ? menuLabels[key] || fallback : translation;
-  };
-  
   return (
     <div className="app-layout">
       {window.innerWidth > 768 ? (
@@ -123,7 +104,7 @@ function Layout({ children }) {
                 <i className="fas fa-user-circle"></i>
               </div>
               <div className="user-details">
-                <h3>{user?.name || getTranslation('guest', 'Ospite')}</h3>
+                <h3>{user?.name || <Trans i18nKey="guest" fallback="Ospite" />}</h3>
                 <p>{user?.email || ''}</p>
               </div>
             </div>
@@ -133,43 +114,43 @@ function Layout({ children }) {
                 <li>
                   <Link to="/dashboard" className={getActivePageClass('/dashboard')}>
                     <i className="fas fa-home"></i>
-                    <span>{getTranslation('dashboard', 'Dashboard')}</span>
+                    <span><Trans i18nKey="dashboard" fallback="Dashboard" /></span>
                   </Link>
                 </li>
                 <li>
                   <Link to="/sintomi" className={getActivePageClass('/sintomi')}>
                     <i className="fas fa-heartbeat"></i>
-                    <span>{getTranslation('symptoms', 'Sintomi')}</span>
+                    <span><Trans i18nKey="symptoms" fallback="Sintomi" /></span>
                   </Link>
                 </li>
                 <li>
                   <Link to="/farmaci" className={getActivePageClass('/farmaci')}>
                     <i className="fas fa-pills"></i>
-                    <span>{getTranslation('medications', 'Farmaci')}</span>
+                    <span><Trans i18nKey="medications" fallback="Farmaci" /></span>
                   </Link>
                 </li>
                 <li>
                   <Link to="/benessere" className={getActivePageClass('/benessere')}>
                     <i className="fas fa-heart"></i>
-                    <span>{getTranslation('wellness', 'Benessere')}</span>
+                    <span><Trans i18nKey="wellness" fallback="Benessere" /></span>
                   </Link>
                 </li>
                 <li>
                   <Link to="/profile" className={getActivePageClass('/profile')}>
                     <i className="fas fa-user"></i>
-                    <span>{getTranslation('profile', 'Profilo')}</span>
+                    <span><Trans i18nKey="profile" fallback="Profilo" /></span>
                   </Link>
                 </li>
                 <li>
                   <Link to="/settings" className={getActivePageClass('/settings')}>
                     <i className="fas fa-cog"></i>
-                    <span>{getTranslation('settings', 'Impostazioni')}</span>
+                    <span><Trans i18nKey="settings" fallback="Impostazioni" /></span>
                   </Link>
                 </li>
                 <li>
                   <Link to="/assistente" className={getActivePageClass('/assistente')}>
                     <i className="fas fa-robot"></i>
-                    <span>{getTranslation('aiAssistant', 'Assistente IA')}</span>
+                    <span><Trans i18nKey="aiAssistant" fallback="Assistente IA" /></span>
                   </Link>
                 </li>
               </ul>
@@ -183,28 +164,28 @@ function Layout({ children }) {
               <button 
                 className="notification-button"
                 onClick={() => setShowNotifications(!showNotifications)}
-                title={getTranslation('notifications', 'Notifiche')}
+                title={t('notifications', 'Notifiche')}
               >
                 <i className="fas fa-bell"></i>
-                <span>{getTranslation('notifications', 'Notifiche')}</span>
+                <span><Trans i18nKey="notifications" fallback="Notifiche" /></span>
               </button>
               
               <button 
                 className="assistant-button"
                 onClick={() => setShowAIWidget(!showAIWidget)}
-                title={getTranslation('quickAssistant', 'Assistente Rapido')}
+                title={t('quickAssistant', 'Assistente Rapido')}
               >
                 <i className="fas fa-robot"></i>
-                <span>{getTranslation('quickAssistant', 'Assistente Rapido')}</span>
+                <span><Trans i18nKey="quickAssistant" fallback="Assistente Rapido" /></span>
               </button>
               
               <button 
                 className="logout-button"
                 onClick={handleLogout}
-                title={getTranslation('logout', 'Esci dall\'applicazione')}
+                title={t('logout', 'Esci dall\'applicazione')}
               >
                 <i className="fas fa-sign-out-alt"></i>
-                <span>{getTranslation('logout', 'Esci')}</span>
+                <span><Trans i18nKey="logout" fallback="Esci" /></span>
               </button>
             </div>
           </div>
@@ -352,7 +333,9 @@ function App() {
   return (
     <HashRouter>
       <UserProvider>
-        <AppContent />
+        <TranslationProvider>
+          <AppContent />
+        </TranslationProvider>
       </UserProvider>
     </HashRouter>
   );

@@ -7,6 +7,7 @@
   "italian": "Italiano",
   "english": "Inglese",
   "hindi": "Hindi",
+  "spanish": "Spagnolo",
   
   "login": "Accedi",
   "register": "Registrati",
@@ -86,5 +87,57 @@
   "copyright": "© 2023 Salus Health. Tutti i diritti riservati.",
   "quickAssistant": "Assistente Rapido",
   "notifications": "Notifiche",
-  "guest": "Ospite"
+  "guest": "Ospite",
+  
+  "onboarding": {
+    "welcome": {
+      "title": "Benvenuto in Salus",
+      "content": "Questa breve introduzione ti mostrerà come utilizzare Salus per gestire la tua salute in modo semplice ed efficace."
+    },
+    "symptoms": {
+      "title": "Traccia i tuoi sintomi",
+      "content": "Registra i tuoi sintomi quotidianamente per monitorare la tua salute. Potrai visualizzare statistiche e analisi nel tempo."
+    },
+    "medications": {
+      "title": "Gestisci i tuoi farmaci",
+      "content": "Tieni traccia dei tuoi farmaci, imposta promemoria per l'assunzione e non dimenticare mai una dose."
+    },
+    "wellness": {
+      "title": "Monitora il tuo benessere",
+      "content": "Registra umore, sonno e attività fisica per una visione completa del tuo benessere."
+    },
+    "appointments": {
+      "title": "Gestisci i tuoi appuntamenti",
+      "content": "Organizza le tue visite mediche, ricevi promemoria e mantieni uno storico completo."
+    },
+    "ai": {
+      "title": "Salus AI",
+      "content": "Il tuo assistente personale per la salute. Fai domande, ricevi consigli personalizzati e gestisci la tua salute con l'aiuto dell'intelligenza artificiale."
+    },
+    "skipIntro": "Salta introduzione",
+    "next": "Avanti",
+    "start": "Inizia"
+  },
+  
+  "privacyAndSecurity": "Privacy e Sicurezza",
+  "notificationSettings": "Impostazioni Notifiche",
+  "notificationDescription": "Gestisci come e quando ricevere notifiche dall'app Salus.",
+  "notificationChannels": "Canali di Notifica",
+  "emailNotificationsDesc": "Ricevi aggiornamenti e promemoria via email",
+  "pushNotificationsDesc": "Ricevi notifiche nel browser o sul dispositivo mobile",
+  "notificationType": "Tipo di Notifiche",
+  "medicationRemindersDesc": "Ricevi promemoria per l'assunzione dei farmaci programmati",
+  "appointmentRemindersDesc": "Ricevi promemoria per gli appuntamenti medici programmati",
+  "dataUpdates": "Aggiornamenti Dati",
+  "dataUpdatesDesc": "Ricevi notifiche su aggiornamenti importanti nei tuoi dati medici",
+  "saveSettings": "Salva Impostazioni",
+  "dataManagement": "Gestione Dati",
+  "exportData": "Esporta i Miei Dati",
+  "deleteAccount": "Elimina Account",
+  "deleteAccountConfirm": "Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.",
+  "deleteAccountError": "Si è verificato un errore durante l'eliminazione dell'account. Riprova più tardi.",
+  "profileUpdateError": "Si è verificato un errore nell'aggiornamento del nome: ",
+  "profileUpdateGenericError": "Si è verificato un errore nell'aggiornamento del nome.",
+  "profileUpdateSuccess": "Profilo aggiornato con successo!",
+  "languageDescription": "Scegli la lingua in cui visualizzare l'applicazione"
 } 

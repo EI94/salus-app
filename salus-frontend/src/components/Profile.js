@@ -4,12 +4,14 @@ import '../styles/Profile.css';
 import { useTranslation } from 'react-i18next';
 import { UserContext, useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import LanguageSelector from './LanguageSelector';
+import { Trans } from '../utils/translationUtils';
 
 function Profile({ activeTab = 'profile' }) {
   const [activeSection, setActiveSection] = useState(activeTab);
   const { user, updateLanguage, logout, loading, updateProfile } = useUser();
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   
   const [userData, setUserData] = useState({});
   const [isEditing, setIsEditing] = useState(false);
@@ -201,12 +203,12 @@ function Profile({ activeTab = 'profile' }) {
         const result = await updateProfile({ name: formData.name });
           if (!result.success) {
           console.error('Errore nell\'aggiornamento del profilo:', result.error);
-          alert('Si è verificato un errore nell\'aggiornamento del nome: ' + result.error);
+          alert(t('profileUpdateError', 'Si è verificato un errore nell\'aggiornamento del nome: ') + result.error);
           return;
         }
       } catch (error) {
         console.error('Errore durante l\'aggiornamento del profilo:', error);
-        alert('Si è verificato un errore nell\'aggiornamento del nome.');
+        alert(t('profileUpdateGenericError', 'Si è verificato un errore nell\'aggiornamento del nome.'));
         return;
       }
     }
@@ -217,7 +219,7 @@ function Profile({ activeTab = 'profile' }) {
     updateLanguage(language);
     
     // Mostra messaggio di conferma
-    alert('Profilo aggiornato con successo!');
+    alert(t('profileUpdateSuccess', 'Profilo aggiornato con successo!'));
     
     // Ricarica i dati per verificare che siano stati salvati correttamente
     const refreshedData = loadUserData(userId);
@@ -240,19 +242,19 @@ function Profile({ activeTab = 'profile' }) {
 
   // Elimina l'account dell'utente
   const handleDeleteAccount = async () => {
-    if (window.confirm('Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.')) {
+    if (window.confirm(t('deleteAccountConfirm', 'Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.'))) {
       try {
         // Elimina i dati locali
-      localStorage.removeItem(`user_${userId}`);
+        localStorage.removeItem(`user_${userId}`);
         
         // Fa il logout dell'utente (in un'implementazione completa, qui si chiamerebbe un'API per eliminare l'account)
         await logout();
       
-      // Reindirizza alla pagina di login
+        // Reindirizza alla pagina di login
         navigate('/login');
       } catch (error) {
         console.error('Errore durante l\'eliminazione dell\'account:', error);
-        alert('Si è verificato un errore durante l\'eliminazione dell\'account. Riprova più tardi.');
+        alert(t('deleteAccountError', 'Si è verificato un errore durante l\'eliminazione dell\'account. Riprova più tardi.'));
       }
     }
   };
@@ -543,15 +545,15 @@ function Profile({ activeTab = 'profile' }) {
   const renderNotificationsSection = () => {
     return (
       <div className="notifications-section">
-        <h2>Impostazioni Notifiche</h2>
-        <p className="section-description">Gestisci come e quando ricevere notifiche dall'app Salus.</p>
+        <h2><Trans i18nKey="notificationSettings" fallback="Impostazioni Notifiche" /></h2>
+        <p className="section-description"><Trans i18nKey="notificationDescription" fallback="Gestisci come e quando ricevere notifiche dall'app Salus." /></p>
         
         <div className="settings-card">
-          <h3>Canali di Notifica</h3>
+          <h3><Trans i18nKey="notificationChannels" fallback="Canali di Notifica" /></h3>
           <div className="settings-item">
             <div className="settings-info">
-              <h4>Notifiche Email</h4>
-              <p>Ricevi aggiornamenti e promemoria via email</p>
+              <h4><Trans i18nKey="emailNotifications" fallback="Notifiche Email" /></h4>
+              <p><Trans i18nKey="emailNotificationsDesc" fallback="Ricevi aggiornamenti e promemoria via email" /></p>
             </div>
             <label className="switch">
               <input 
@@ -566,8 +568,8 @@ function Profile({ activeTab = 'profile' }) {
           
           <div className="settings-item">
             <div className="settings-info">
-              <h4>Notifiche Push</h4>
-              <p>Ricevi notifiche nel browser o sul dispositivo mobile</p>
+              <h4><Trans i18nKey="pushNotifications" fallback="Notifiche Push" /></h4>
+              <p><Trans i18nKey="pushNotificationsDesc" fallback="Ricevi notifiche nel browser o sul dispositivo mobile" /></p>
             </div>
             <label className="switch">
               <input 
@@ -582,11 +584,11 @@ function Profile({ activeTab = 'profile' }) {
         </div>
         
         <div className="settings-card">
-          <h3>Tipo di Notifiche</h3>
+          <h3><Trans i18nKey="notificationType" fallback="Tipo di Notifiche" /></h3>
           <div className="settings-item">
             <div className="settings-info">
-              <h4>Promemoria Farmaci</h4>
-              <p>Ricevi promemoria per l'assunzione dei farmaci programmati</p>
+              <h4><Trans i18nKey="medicationReminders" fallback="Promemoria Farmaci" /></h4>
+              <p><Trans i18nKey="medicationRemindersDesc" fallback="Ricevi promemoria per l'assunzione dei farmaci programmati" /></p>
             </div>
             <label className="switch">
               <input 
@@ -601,8 +603,8 @@ function Profile({ activeTab = 'profile' }) {
           
           <div className="settings-item">
             <div className="settings-info">
-              <h4>Promemoria Appuntamenti</h4>
-              <p>Ricevi promemoria per gli appuntamenti medici programmati</p>
+              <h4><Trans i18nKey="appointmentReminders" fallback="Promemoria Appuntamenti" /></h4>
+              <p><Trans i18nKey="appointmentRemindersDesc" fallback="Ricevi promemoria per gli appuntamenti medici programmati" /></p>
             </div>
             <label className="switch">
               <input 
@@ -617,8 +619,8 @@ function Profile({ activeTab = 'profile' }) {
           
           <div className="settings-item">
             <div className="settings-info">
-              <h4>Aggiornamenti Dati</h4>
-              <p>Ricevi notifiche su aggiornamenti importanti nei tuoi dati medici</p>
+              <h4><Trans i18nKey="dataUpdates" fallback="Aggiornamenti Dati" /></h4>
+              <p><Trans i18nKey="dataUpdatesDesc" fallback="Ricevi notifiche su aggiornamenti importanti nei tuoi dati medici" /></p>
             </div>
             <label className="switch">
               <input 
@@ -636,7 +638,7 @@ function Profile({ activeTab = 'profile' }) {
           className="save-settings-btn"
           onClick={handleSaveProfile}
         >
-          Salva Impostazioni
+          <Trans i18nKey="saveSettings" fallback="Salva Impostazioni" />
         </button>
       </div>
     );
@@ -723,40 +725,32 @@ function Profile({ activeTab = 'profile' }) {
         </div>
         
         <div className="settings-card">
-          <h3>Lingua dell'Applicazione</h3>
+          <h3><Trans i18nKey="language" fallback="Lingua dell'Applicazione" /></h3>
           <div className="settings-item language-selection">
             <div className="settings-info">
-              <h4>Seleziona la Lingua</h4>
-              <p>Scegli la lingua in cui visualizzare l'applicazione</p>
+              <h4><Trans i18nKey="languageSelector" fallback="Seleziona la Lingua" /></h4>
+              <p><Trans i18nKey="languageDescription" fallback="Scegli la lingua in cui visualizzare l'applicazione" /></p>
             </div>
             <div className="language-options">
-              <select
-                value={language}
-                onChange={handleLanguageChange}
-                className="language-select"
-              >
-                <option value="it">Italiano</option>
-                <option value="en">English (Inglese)</option>
-                <option value="hi">हिन्दी (Hindi)</option>
-              </select>
+              <LanguageSelector variant="dropdown" className="profile-language-selector" />
             </div>
           </div>
         </div>
         
         <div className="settings-card">
-          <h3>Gestione Dati</h3>
+          <h3><Trans i18nKey="dataManagement" fallback="Gestione Dati" /></h3>
           <button 
             className="export-data-btn"
             onClick={handleExportData}
           >
-            Esporta i Miei Dati
+            <Trans i18nKey="exportData" fallback="Esporta i Miei Dati" />
           </button>
           
           <button 
             className="delete-account-btn"
             onClick={handleDeleteAccount}
           >
-            Elimina Account
+            <Trans i18nKey="deleteAccount" fallback="Elimina Account" />
           </button>
         </div>
         
@@ -764,7 +758,7 @@ function Profile({ activeTab = 'profile' }) {
           className="save-settings-btn"
           onClick={handleSaveProfile}
         >
-          Salva Impostazioni
+          <Trans i18nKey="saveSettings" fallback="Salva Impostazioni" />
         </button>
       </div>
     );
@@ -773,28 +767,28 @@ function Profile({ activeTab = 'profile' }) {
   return (
     <div className="profile-container">
       <div className="profile-sidebar">
-        <h2>Impostazioni</h2>
+        <h2><Trans i18nKey="settings" fallback="Impostazioni" /></h2>
         <ul className="profile-menu">
           <li 
             className={activeSection === 'profile' ? 'active' : ''}
             onClick={() => handleSectionChange('profile')}
           >
             <i className="fas fa-user"></i>
-            <span>Profilo</span>
+            <span><Trans i18nKey="profile" fallback="Profilo" /></span>
           </li>
           <li 
             className={activeSection === 'notifications' ? 'active' : ''}
             onClick={() => handleSectionChange('notifications')}
           >
             <i className="fas fa-bell"></i>
-            <span>Notifiche</span>
+            <span><Trans i18nKey="notifications" fallback="Notifiche" /></span>
           </li>
           <li 
             className={activeSection === 'privacy' ? 'active' : ''}
             onClick={() => handleSectionChange('privacy')}
           >
             <i className="fas fa-shield-alt"></i>
-            <span>Privacy e Sicurezza</span>
+            <span><Trans i18nKey="privacyAndSecurity" fallback="Privacy e Sicurezza" /></span>
           </li>
         </ul>
       </div>

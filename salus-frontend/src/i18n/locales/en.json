@@ -7,6 +7,7 @@
   "italian": "Italian",
   "english": "English",
   "hindi": "Hindi",
+  "spanish": "Spanish",
   
   "login": "Log in",
   "register": "Register",
@@ -86,5 +87,57 @@
   "copyright": "© 2023 Salus Health. All rights reserved.",
   "quickAssistant": "Quick Assistant",
   "notifications": "Notifications",
-  "guest": "Guest"
+  "guest": "Guest",
+  
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Salus",
+      "content": "This brief introduction will show you how to use Salus to manage your health simply and effectively."
+    },
+    "symptoms": {
+      "title": "Track your symptoms",
+      "content": "Record your symptoms daily to monitor your health. You'll be able to view statistics and analysis over time."
+    },
+    "medications": {
+      "title": "Manage your medications",
+      "content": "Keep track of your medications, set reminders for taking them, and never miss a dose."
+    },
+    "wellness": {
+      "title": "Monitor your wellness",
+      "content": "Record mood, sleep, and physical activity for a complete picture of your wellbeing."
+    },
+    "appointments": {
+      "title": "Manage your appointments",
+      "content": "Organize your medical visits, receive reminders, and maintain a complete history."
+    },
+    "ai": {
+      "title": "Salus AI",
+      "content": "Your personal health assistant. Ask questions, receive personalized advice, and manage your health with the help of artificial intelligence."
+    },
+    "skipIntro": "Skip introduction",
+    "next": "Next",
+    "start": "Start"
+  },
+  
+  "privacyAndSecurity": "Privacy and Security",
+  "notificationSettings": "Notification Settings",
+  "notificationDescription": "Manage how and when to receive notifications from the Salus app.",
+  "notificationChannels": "Notification Channels",
+  "emailNotificationsDesc": "Receive updates and reminders via email",
+  "pushNotificationsDesc": "Receive notifications in the browser or on your mobile device",
+  "notificationType": "Notification Types",
+  "medicationRemindersDesc": "Receive reminders for scheduled medication intake",
+  "appointmentRemindersDesc": "Receive reminders for scheduled medical appointments",
+  "dataUpdates": "Data Updates",
+  "dataUpdatesDesc": "Receive notifications about important updates to your medical data",
+  "saveSettings": "Save Settings",
+  "dataManagement": "Data Management",
+  "exportData": "Export My Data",
+  "deleteAccount": "Delete Account",
+  "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone.",
+  "deleteAccountError": "An error occurred while deleting the account. Please try again later.",
+  "profileUpdateError": "An error occurred while updating the name: ",
+  "profileUpdateGenericError": "An error occurred while updating the name.",
+  "profileUpdateSuccess": "Profile updated successfully!",
+  "languageDescription": "Choose the language in which to view the application"
 } 

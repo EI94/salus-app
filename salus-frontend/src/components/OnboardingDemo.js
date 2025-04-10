@@ -6,47 +6,50 @@ import {
 } from 'react-icons/fi';
 import { FaRobot, FaPills } from 'react-icons/fa';
 import '../styles/Onboarding.css';
+import { useAppTranslation } from '../context/TranslationContext';
+import { Trans } from '../utils/translationUtils';
 
 const OnboardingDemo = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [visible, setVisible] = useState(true);
   const navigate = useNavigate();
+  const { t } = useAppTranslation();
 
   // Demo steps for the onboarding tour
   const steps = [
     {
-      title: "Benvenuto in Salus",
-      content: "Questa breve introduzione ti mostrerà come utilizzare Salus per gestire la tua salute in modo semplice ed efficace.",
+      title: t('onboarding.welcome.title', "Benvenuto in Salus"),
+      content: t('onboarding.welcome.content', "Questa breve introduzione ti mostrerà come utilizzare Salus per gestire la tua salute in modo semplice ed efficace."),
       icon: <FiHome size={28} />,
       highlight: ".dashboard-header"
     },
     {
-      title: "Traccia i tuoi sintomi",
-      content: "Registra i tuoi sintomi quotidianamente per monitorare la tua salute. Potrai visualizzare statistiche e analisi nel tempo.",
+      title: t('onboarding.symptoms.title', "Traccia i tuoi sintomi"),
+      content: t('onboarding.symptoms.content', "Registra i tuoi sintomi quotidianamente per monitorare la tua salute. Potrai visualizzare statistiche e analisi nel tempo."),
       icon: <FiThermometer size={28} />,
       highlight: ".symptom-card"
     },
     {
-      title: "Gestisci i tuoi farmaci",
-      content: "Tieni traccia dei tuoi farmaci, imposta promemoria per l'assunzione e non dimenticare mai una dose.",
+      title: t('onboarding.medications.title', "Gestisci i tuoi farmaci"),
+      content: t('onboarding.medications.content', "Tieni traccia dei tuoi farmaci, imposta promemoria per l'assunzione e non dimenticare mai una dose."),
       icon: <FaPills size={28} />,
       highlight: ".medication-card"
     },
     {
-      title: "Monitora il tuo benessere",
-      content: "Registra umore, sonno e attività fisica per una visione completa del tuo benessere.",
+      title: t('onboarding.wellness.title', "Monitora il tuo benessere"),
+      content: t('onboarding.wellness.content', "Registra umore, sonno e attività fisica per una visione completa del tuo benessere."),
       icon: <FiHeart size={28} />,
       highlight: ".wellness-card"
     },
     {
-      title: "Gestisci i tuoi appuntamenti",
-      content: "Organizza le tue visite mediche, ricevi promemoria e mantieni uno storico completo.",
+      title: t('onboarding.appointments.title', "Gestisci i tuoi appuntamenti"),
+      content: t('onboarding.appointments.content', "Organizza le tue visite mediche, ricevi promemoria e mantieni uno storico completo."),
       icon: <FiCalendar size={28} />,
       highlight: ".dashboard-card.appointment-card"
     },
     {
-      title: "Salus AI",
-      content: "Il tuo assistente personale per la salute. Fai domande, ricevi consigli personalizzati e gestisci la tua salute con l'aiuto dell'intelligenza artificiale.",
+      title: t('onboarding.ai.title', "Salus AI"),
+      content: t('onboarding.ai.content', "Il tuo assistente personale per la salute. Fai domande, ricevi consigli personalizzati e gestisci la tua salute con l'aiuto dell'intelligenza artificiale."),
       icon: <FaRobot size={28} />,
       highlight: ".dashboard-section.ai-assistant-section"
     }
@@ -121,7 +124,7 @@ const OnboardingDemo = ({ onComplete }) => {
         
         <div className="onboarding-actions">
           <button className="onboarding-skip" onClick={handleSkip}>
-            Salta introduzione
+            <Trans i18nKey="onboarding.skipIntro" fallback="Salta introduzione" />
           </button>
           
           <button 
@@ -129,9 +132,9 @@ const OnboardingDemo = ({ onComplete }) => {
             onClick={handleNext}
           >
             {currentStep < steps.length - 1 ? (
-              <>Avanti <FiArrowRight /></>
+              <><Trans i18nKey="onboarding.next" fallback="Avanti" /> <FiArrowRight /></>
             ) : (
-              <>Inizia <FiCheckCircle /></>
+              <><Trans i18nKey="onboarding.start" fallback="Inizia" /> <FiCheckCircle /></>
             )}
           </button>
         </div>
