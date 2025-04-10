@@ -218,11 +218,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Verifica se è il primo accesso dell'utente
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    if (!hasSeenOnboarding && userContext?.user) {
+    // Usiamo la stessa chiave che viene utilizzata nel componente OnboardingDemo
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+    if (!onboardingCompleted && userContext?.user) {
       setShowOnboarding(true);
-      // Salva che l'utente ha visto l'onboarding
-      localStorage.setItem('hasSeenOnboarding', 'true');
+      // La chiave verrà impostata dal componente OnboardingDemo quando l'utente completa o salta l'onboarding
     }
     
     // Impostiamo la data corrente e la aggiorniamo ogni minuto
