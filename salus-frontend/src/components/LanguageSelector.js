@@ -67,7 +67,8 @@ const LanguageSelector = ({ variant = 'default', className = '' }) => {
           <option value="it">{t('italian', 'Italiano')}</option>
           <option value="en">{t('english', 'English')}</option>
           <option value="es">{t('spanish', 'Español')}</option>
-          <option value="hi">{t('hindi', 'हिन्दी (Hindi)')}</option>
+          <option value="hi">{t('hindi', 'हिंदी (Hindi)')}</option>
+          <option value="de">{t('german', 'Deutsch')}</option>
         </select>
       </div>
     );
@@ -103,10 +104,18 @@ const LanguageSelector = ({ variant = 'default', className = '' }) => {
       <button
         className={selectedLanguage === 'hi' ? 'active' : ''}
         onClick={() => handleLanguageChange('hi')}
-        aria-label={t('hindi', 'हिन्दी')}
-        title={t('hindi', 'हिन्दी')}
+        aria-label={t('hindi', 'हिंदी')}
+        title={t('hindi', 'हिंदी')}
       >
         HI
+      </button>
+      <button
+        className={selectedLanguage === 'de' ? 'active' : ''}
+        onClick={() => handleLanguageChange('de')}
+        aria-label={t('german', 'Deutsch')}
+        title={t('german', 'Deutsch')}
+      >
+        DE
       </button>
     </div>
   );

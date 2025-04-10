@@ -9,6 +9,7 @@ import en from './locales/en.json';
 import it from './locales/it.json';
 import hi from './locales/hi.json';
 import es from './locales/es.json';
+import de from './locales/de.json';
 
 // Debug flag per individuare problemi con i18n (solo in sviluppo)
 const DEBUG_I18N = process.env.NODE_ENV === 'development';
@@ -34,6 +35,8 @@ if (DEBUG_I18N) {
   console.log('- Hindi:', Object.keys(hi).length, 'chiavi');
   
   console.log('- Spagnolo:', Object.keys(es).length, 'chiavi');
+  
+  console.log('- Tedesco:', Object.keys(de).length, 'chiavi');
 }
 
 // Ottieni la lingua salvata dall'utente o usa italiano come predefinito
@@ -57,13 +60,15 @@ const validateTranslationCompleteness = () => {
     ...Object.keys(it),
     ...Object.keys(en),
     ...Object.keys(hi),
-    ...Object.keys(es)
+    ...Object.keys(es),
+    ...Object.keys(de)
   ]);
   
   const missingInIt = [...allKeys].filter(key => !it[key]);
   const missingInEn = [...allKeys].filter(key => !en[key]);
   const missingInHi = [...allKeys].filter(key => !hi[key]);
   const missingInEs = [...allKeys].filter(key => !es[key]);
+  const missingInDe = [...allKeys].filter(key => !de[key]);
   
   if (missingInIt.length > 0) {
     console.warn('🔴 Chiavi mancanti in ITALIANO:', missingInIt);
@@ -79,6 +84,10 @@ const validateTranslationCompleteness = () => {
   
   if (missingInEs.length > 0) {
     console.warn('🔴 Chiavi mancanti in SPAGNOLO:', missingInEs);
+  }
+  
+  if (missingInDe.length > 0) {
+    console.warn('🔴 Chiavi mancanti in TEDESCO:', missingInDe);
   }
 };
 
@@ -176,6 +185,9 @@ i18n
       },
       es: {
         translation: enhanceTranslations(es)
+      },
+      de: {
+        translation: enhanceTranslations(de)
       }
     },
     lng: getSavedLanguage(), // Usa la lingua salvata dall'utente
