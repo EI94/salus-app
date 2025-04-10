@@ -7,8 +7,24 @@ const TranslationContext = createContext({
   t: (key, fallback) => fallback || key,
   currentLanguage: 'it',
   changeLanguage: () => {},
-  isReady: false
+  isReady: false,
+  autoTranslate: (text) => text // Aggiungiamo la funzione di traduzione automatica
 });
+
+// Lista di stringhe comuni che devono essere tradotte direttamente
+const COMMON_STRINGS = [
+  'Salus', 'Salus Health', 'Dashboard', 'Sintomi', 'Farmaci', 'Benessere', 'Profilo', 'Impostazioni',
+  'Umore', 'Sonno', 'Meteo', 'Attività', 'Promemoria', 'Appuntamenti', 'Assistente',
+  'Il mio giorno', 'Azioni rapide', 'Oggi', 'Aggiungi', 'Modifica', 'Elimina', 'Salva', 'Annulla',
+  'Conferma', 'Chiudi', 'Indietro', 'Avanti', 'Fine', 'Inizia', 'Continua', 'Salta', 'Esci',
+  'Non registrato', 'Caricamento', 'Errore', 'Successo', 'Attenzione', 'Informazione',
+  'Soleggiato', 'Nuvoloso', 'Pioggia leggera', 'Sereno',
+  'Utente', 'Paziente', 'Dottore', 'Medico',
+  'Consigli di salute', 'Consiglio del giorno', 'Statistiche', 'Grafici', 'Analytics'
+];
+
+// Mappa per stringhe comuni già tradotte (cache)
+const translatedStringsCache = {};
 
 // Provider per il contesto di traduzione
 export const TranslationProvider = ({ children }) => {
@@ -44,10 +60,68 @@ export const TranslationProvider = ({ children }) => {
     };
   }, [t, currentLanguage]);
   
+  // Funzione per traduzione automatica di testo senza chiave
+  const autoTranslate = useMemo(() => {
+    return (text) => {
+      if (!text || typeof text !== 'string') return text;
+      
+      // Se la traduzione è già in cache, usala
+      if (translatedStringsCache[text]) {
+        return translatedStringsCache[text][currentLanguage] || text;
+      }
+      
+      // Se è una stringa comune, prova a ricavare una chiave e tradurla
+      if (COMMON_STRINGS.includes(text)) {
+        const possibleKey = text
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '.');
+        
+        // Prova diverse possibili chiavi
+        const tryKeys = [
+          possibleKey,
+          `common.${possibleKey}`,
+          `ui.${possibleKey}`,
+          text // prova la stringa stessa come chiave
+        ];
+        
+        for (const key of tryKeys) {
+          const translated = t(key, { lng: currentLanguage });
+          if (translated && translated !== key) {
+            // Salva in cache
+            if (!translatedStringsCache[text]) {
+              translatedStringsCache[text] = {};
+            }
+            translatedStringsCache[text][currentLanguage] = translated;
+            return translated;
+          }
+        }
+      }
+      
+      // Se non è possibile tradurre, restituisci il testo originale
+      return text;
+    };
+  }, [t, currentLanguage]);
+  
   // Effetto per gestire i cambiamenti di lingua
   useEffect(() => {
     const handleLanguageChange = () => {
-      setCurrentLanguage(i18n.language || 'it');
+      const newLang = i18n.language || 'it';
+      setCurrentLanguage(newLang);
+      
+      // Forza l'aggiornamento di tutti i componenti che usano traduzioni
+      document.documentElement.setAttribute('lang', newLang);
+      document.dispatchEvent(new CustomEvent('translationChanged', { detail: newLang }));
+      
+      // Ricarica la cache delle traduzioni
+      Object.keys(translatedStringsCache).forEach(key => {
+        // Mantieni solo la lingua corrente e quella di default nella cache
+        const newCache = {};
+        newCache[newLang] = translatedStringsCache[key][newLang];
+        if (newLang !== 'it') {
+          newCache['it'] = translatedStringsCache[key]['it'];
+        }
+        translatedStringsCache[key] = newCache;
+      });
     };
     
     // Imposta lo stato iniziale
@@ -70,6 +144,8 @@ export const TranslationProvider = ({ children }) => {
   const changeLanguage = async (lang) => {
     await i18n.changeLanguage(lang);
     setCurrentLanguage(lang);
+    // Forza l'aggiornamento degli elementi statici
+    document.dispatchEvent(new CustomEvent('translationChanged', { detail: lang }));
   };
   
   // Valore del contesto
@@ -77,7 +153,8 @@ export const TranslationProvider = ({ children }) => {
     t: translator,
     currentLanguage,
     changeLanguage,
-    isReady
+    isReady,
+    autoTranslate
   };
   
   return (
@@ -101,7 +178,7 @@ export const useAppTranslation = () => {
 // Componente HOC (Higher Order Component) per avvolgere altri componenti con traduzioni
 export const withTranslation = (Component) => {
   const WithTranslation = (props) => {
-    const { t, currentLanguage, changeLanguage, isReady } = useAppTranslation();
+    const { t, currentLanguage, changeLanguage, isReady, autoTranslate } = useAppTranslation();
     
     // Se le traduzioni non sono ancora pronte, mostra un loader o null
     if (!isReady) return null;
@@ -113,6 +190,7 @@ export const withTranslation = (Component) => {
         t={t}
         currentLanguage={currentLanguage}
         changeLanguage={changeLanguage}
+        autoTranslate={autoTranslate}
       />
     );
   };

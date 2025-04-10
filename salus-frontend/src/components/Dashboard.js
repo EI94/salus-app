@@ -6,7 +6,7 @@ import '../styles/AdvancedFeatures.css';
 import '../styles/AIAssistant.css';
 import { UserContext } from '../context/UserContext';
 import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { it, enUS, es } from 'date-fns/locale';
 import { 
   FiActivity, FiCalendar, FiPlusCircle, FiThermometer,
   FiPieChart, FiFileText, FiHeart, FiTrendingUp, FiBell, FiMessageSquare, FiAlertTriangle
@@ -19,6 +19,7 @@ import { sendMessageToAI } from '../api';
 import AppointmentsManager from './AppointmentsManager';
 import OnboardingDemo from './OnboardingDemo';
 import SalusChat from './SalusChat';
+import { Trans } from '../utils/translationUtils';
 
 const DashboardAIAssistant = () => {
   const { t } = useTranslation();
@@ -189,10 +190,10 @@ const DashboardAIAssistant = () => {
 };
 
 const Dashboard = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const userContext = useContext(UserContext);
-  const userName = userContext?.user?.name || 'Utente';
+  const userName = userContext?.user?.name || t('guest', 'Utente');
   
   // Stati per i dati
   const [symptoms, setSymptoms] = useState([]);
@@ -206,24 +207,46 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showOnboarding, setShowOnboarding] = useState(false);
   
-  // Consigli di salute casuali
+  // Funzione per ottenere la locale corrente per date-fns in base alla lingua selezionata
+  const getDateLocale = () => {
+    const currentLang = i18n.language;
+    switch (currentLang) {
+      case 'en': return enUS;
+      case 'es': return es;
+      default: return it; // italiano come fallback
+    }
+  };
+  
+  // Consigli di salute casuali tradotti
   const healthTips = [
-    "Bere 8 bicchieri d'acqua al giorno migliora il tuo benessere generale e la tua energia.",
-    "30 minuti di attività fisica moderata ogni giorno possono ridurre il rischio di malattie croniche.",
-    "Una dieta ricca di frutta e verdura aiuta a rafforzare il sistema immunitario.",
-    "Meditare per 10 minuti al giorno può ridurre lo stress e migliorare la concentrazione.",
-    "Un sonno regolare di 7-8 ore migliora la memoria e le funzioni cognitive.",
-    "Piccole pause durante il lavoro possono aumentare la produttività e ridurre l'affaticamento."
+    t('healthTips.water', "Bere 8 bicchieri d'acqua al giorno migliora il tuo benessere generale e la tua energia."),
+    t('healthTips.exercise', "30 minuti di attività fisica moderata ogni giorno possono ridurre il rischio di malattie croniche."),
+    t('healthTips.diet', "Una dieta ricca di frutta e verdura aiuta a rafforzare il sistema immunitario."),
+    t('healthTips.meditation', "Meditare per 10 minuti al giorno può ridurre lo stress e migliorare la concentrazione."),
+    t('healthTips.sleep', "Un sonno regolare di 7-8 ore migliora la memoria e le funzioni cognitive."),
+    t('healthTips.breaks', "Piccole pause durante il lavoro possono aumentare la produttività e ridurre l'affaticamento.")
   ];
 
   useEffect(() => {
     // Verifica se è il primo accesso dell'utente
-    // Usiamo la stessa chiave che viene utilizzata nel componente OnboardingDemo
-    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-    if (!onboardingCompleted && userContext?.user) {
-      setShowOnboarding(true);
-      // La chiave verrà impostata dal componente OnboardingDemo quando l'utente completa o salta l'onboarding
-    }
+    // Usiamo localStorage per tenere traccia dell'onboarding completato
+    const checkOnboardingStatus = () => {
+      const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+      
+      // Mostra l'onboarding solo se non è mai stato completato e l'utente è loggato
+      if (!onboardingCompleted && userContext?.user) {
+        console.log('Mostrando onboarding demo per nuovo utente');
+        setShowOnboarding(true);
+      } else {
+        console.log('Onboarding già completato:', onboardingCompleted);
+        setShowOnboarding(false);
+      }
+    };
+    
+    // Chiamiamo la funzione dopo un breve ritardo per assicurarci che localStorage sia inizializzato
+    const timer = setTimeout(() => {
+      checkOnboardingStatus();
+    }, 100);
     
     // Impostiamo la data corrente e la aggiorniamo ogni minuto
     const dateInterval = setInterval(() => {
@@ -246,8 +269,18 @@ const Dashboard = () => {
       });
     }, 800);
     
-    return () => clearInterval(dateInterval);
+    return () => {
+      clearInterval(dateInterval);
+      clearTimeout(timer);
+    };
   }, [userContext?.user]);
+
+  // Funzione per gestire il completamento dell'onboarding
+  const handleOnboardingComplete = () => {
+    console.log('Onboarding completato, impostando localStorage');
+    setShowOnboarding(false);
+    localStorage.setItem('onboardingCompleted', 'true');
+  };
 
   // Funzione per navigare direttamente alla schermata di aggiunta
   const navigateToAdd = (path, action) => {
@@ -255,22 +288,25 @@ const Dashboard = () => {
   };
   
   // Componente per data e ora corrente
-  const CurrentDateTime = () => (
-    <div className="current-date-time">
-      <div className="date-display">
-        <div className="day-name">{format(currentDate, 'EEEE', { locale: it })}</div>
-        <div className="date-number">
-          <span className="day">{format(currentDate, 'd', { locale: it })}</span>
-          <span className="month-year">
-            {format(currentDate, 'MMMM yyyy', { locale: it })}
-          </span>
+  const CurrentDateTime = () => {
+    const dateLocale = getDateLocale();
+    return (
+      <div className="current-date-time">
+        <div className="date-display">
+          <div className="day-name">{format(currentDate, 'EEEE', { locale: dateLocale })}</div>
+          <div className="date-number">
+            <span className="day">{format(currentDate, 'd', { locale: dateLocale })}</span>
+            <span className="month-year">
+              {format(currentDate, 'MMMM yyyy', { locale: dateLocale })}
+            </span>
+          </div>
+        </div>
+        <div className="time-display">
+          {format(currentDate, 'HH:mm', { locale: dateLocale })}
         </div>
       </div>
-      <div className="time-display">
-        {format(currentDate, 'HH:mm', { locale: it })}
-      </div>
-    </div>
-  );
+    );
+  };
   
   // Componente statistiche rapide  
   const QuickStats = () => (
@@ -281,7 +317,9 @@ const Dashboard = () => {
         </div>
         <div className="stat-data">
           <span className="stat-value">0/3</span>
-          <span className="stat-label">Attività completate oggi</span>
+          <span className="stat-label">
+            <Trans i18nKey="dashboard.stats.completedActivities" fallback="Attività completate oggi" />
+          </span>
         </div>
       </div>
       
@@ -291,7 +329,9 @@ const Dashboard = () => {
         </div>
         <div className="stat-data">
           <span className="stat-value">+2%</span>
-          <span className="stat-label">Benessere rispetto alla settimana scorsa</span>
+          <span className="stat-label">
+            <Trans i18nKey="dashboard.stats.wellnessComparison" fallback="Benessere rispetto alla settimana scorsa" />
+          </span>
         </div>
       </div>
       
@@ -301,7 +341,9 @@ const Dashboard = () => {
         </div>
         <div className="stat-data">
           <span className="stat-value">2</span>
-          <span className="stat-label">Promemoria per oggi</span>
+          <span className="stat-label">
+            <Trans i18nKey="dashboard.stats.remindersToday" fallback="Promemoria per oggi" />
+          </span>
         </div>
       </div>
     </div>
@@ -313,14 +355,14 @@ const Dashboard = () => {
       <div className="section-header">
         <h2>
           <span className="section-icon"><FiActivity /></span>
-          Il mio giorno
+          <Trans i18nKey="dashboard.myDay.title" fallback="Il mio giorno" />
         </h2>
         <button 
           className="add-today-button" 
           onClick={() => setShowTodayModal(true)}
-          aria-label="Aggiorna il mio stato"
+          aria-label={t('dashboard.myDay.updateStatus', "Aggiorna il mio stato")}
         >
-          <FiPlusCircle /> Aggiorna
+          <FiPlusCircle /> <Trans i18nKey="dashboard.myDay.update" fallback="Aggiorna" />
         </button>
       </div>
       
@@ -332,16 +374,24 @@ const Dashboard = () => {
             <div className="today-card-icon mood">
               <FaSmile />
             </div>
-            <div className="today-card-label">Umore</div>
-            <div className="today-card-value">Non registrato</div>
+            <div className="today-card-label">
+              <Trans i18nKey="dashboard.myDay.mood" fallback="Umore" />
+            </div>
+            <div className="today-card-value">
+              <Trans i18nKey="dashboard.myDay.notRecorded" fallback="Non registrato" />
+            </div>
           </div>
           
           <div className="today-card">
             <div className="today-card-icon sleep">
               <FaMoon />
             </div>
-            <div className="today-card-label">Sonno</div>
-            <div className="today-card-value">Non registrato</div>
+            <div className="today-card-label">
+              <Trans i18nKey="dashboard.myDay.sleep" fallback="Sonno" />
+            </div>
+            <div className="today-card-value">
+              <Trans i18nKey="dashboard.myDay.notRecorded" fallback="Non registrato" />
+            </div>
           </div>
           
           <div className="today-card">
@@ -350,8 +400,13 @@ const Dashboard = () => {
                 <FaSun /> : weather?.condition === 'Nuvoloso' ? 
                 <FaCloudRain opacity={0.5} /> : <FaCloudRain />}
             </div>
-            <div className="today-card-label">Meteo</div>
-            <div className="today-card-value">{weather ? `${weather.temp}°C, ${weather.condition}` : 'Caricamento...'}</div>
+            <div className="today-card-label">
+              <Trans i18nKey="dashboard.myDay.weather" fallback="Meteo" />
+            </div>
+            <div className="today-card-value">
+              {weather ? `${weather.temp}°C, ${t(`weather.${weather.condition.toLowerCase()}`, weather.condition)}` : 
+                t('dashboard.myDay.loading', 'Caricamento...')}
+            </div>
           </div>
         </div>
       </div>
@@ -363,35 +418,43 @@ const Dashboard = () => {
     <div className="quick-actions-section">
       <h2>
         <span className="section-icon"><FiPlusCircle /></span>
-        Azioni rapide
+        <Trans i18nKey="dashboard.quickActions.title" fallback="Azioni rapide" />
       </h2>
       <div className="quick-actions">
         <button className="action-button" onClick={() => navigateToAdd('/sintomi', 'add')}>
           <div className="action-icon symptom">
             <FiThermometer />
           </div>
-          <span className="action-label">Registra sintomo</span>
+          <span className="action-label">
+            <Trans i18nKey="dashboard.quickActions.recordSymptom" fallback="Registra sintomo" />
+          </span>
         </button>
         
         <button className="action-button" onClick={() => navigateToAdd('/farmaci', 'add')}>
           <div className="action-icon medication">
             <FaPills />
           </div>
-          <span className="action-label">Aggiungi farmaco</span>
+          <span className="action-label">
+            <Trans i18nKey="dashboard.quickActions.addMedication" fallback="Aggiungi farmaco" />
+          </span>
         </button>
         
         <button className="action-button" onClick={() => navigateToAdd('/benessere', 'add')}>
           <div className="action-icon wellness">
             <FiHeart />
           </div>
-          <span className="action-label">Aggiorna benessere</span>
+          <span className="action-label">
+            <Trans i18nKey="dashboard.quickActions.updateWellness" fallback="Aggiorna benessere" />
+          </span>
         </button>
         
         <button className="action-button" onClick={() => navigate('/assistente')}>
           <div className="action-icon assistant">
             <FaRobot />
           </div>
-          <span className="action-label">Chiedi all'assistente</span>
+          <span className="action-label">
+            <Trans i18nKey="dashboard.quickActions.askAssistant" fallback="Chiedi all'assistente" />
+          </span>
         </button>
       </div>
     </div>
@@ -402,7 +465,7 @@ const Dashboard = () => {
     <div className="health-tips-section">
       <h2>
         <span className="section-icon"><FaLightbulb /></span>
-        Suggerimento del giorno
+        <Trans i18nKey="dashboard.healthTips.title" fallback="Suggerimento del giorno" />
       </h2>
       <div className="tip-card">
         <div className="tip-content">
@@ -463,7 +526,7 @@ const Dashboard = () => {
       setShowTodayModal(false);
       
       // Esempio di messaggio di conferma che potremmo mostrare
-      alert("Dati salvati con successo!");
+      alert(t('dashboard.todayModal.saveSuccess', "Dati salvati con successo!"));
     };
     
     // Funzione per navigare all'aggiunta di un sintomo
@@ -477,11 +540,11 @@ const Dashboard = () => {
       <div className={`modal-overlay ${showTodayModal ? 'active' : ''}`} onClick={() => setShowTodayModal(false)}>
         <div className="modal-content" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
-            <h2>Come ti senti oggi?</h2>
+            <h2><Trans i18nKey="dashboard.todayModal.title" fallback="Come ti senti oggi?" /></h2>
             <button 
               className="close-modal" 
               onClick={() => setShowTodayModal(false)}
-              aria-label="Chiudi"
+              aria-label={t('common.close', "Chiudi")}
             >
               <span aria-hidden="true">&times;</span>
             </button>
@@ -489,49 +552,49 @@ const Dashboard = () => {
           
           <div className="modal-body">
             <div className="mood-selector">
-              <h3>Il tuo umore</h3>
+              <h3><Trans i18nKey="dashboard.todayModal.yourMood" fallback="Il tuo umore" /></h3>
               <div className="mood-options">
                 <button 
                   className={`mood-option ${selectedMood === 'sad' ? 'selected' : ''}`}
                   onClick={() => setSelectedMood('sad')}
                   type="button"
-                  aria-label="Umore triste"
+                  aria-label={t('mood.sad', "Umore triste")}
                 >
                   <span className="mood-emoji">😔</span>
-                  <span>Triste</span>
+                  <span><Trans i18nKey="mood.sad.label" fallback="Triste" /></span>
                 </button>
                 <button 
                   className={`mood-option ${selectedMood === 'neutral' ? 'selected' : ''}`}
                   onClick={() => setSelectedMood('neutral')}
                   type="button"
-                  aria-label="Umore neutro"
+                  aria-label={t('mood.neutral', "Umore neutro")}
                 >
                   <span className="mood-emoji">😐</span>
-                  <span>Neutro</span>
+                  <span><Trans i18nKey="mood.neutral.label" fallback="Neutro" /></span>
                 </button>
                 <button 
                   className={`mood-option ${selectedMood === 'good' ? 'selected' : ''}`}
                   onClick={() => setSelectedMood('good')}
                   type="button"
-                  aria-label="Umore buono"
+                  aria-label={t('mood.good', "Umore buono")}
                 >
                   <span className="mood-emoji">😊</span>
-                  <span>Bene</span>
+                  <span><Trans i18nKey="mood.good.label" fallback="Bene" /></span>
                 </button>
                 <button 
                   className={`mood-option ${selectedMood === 'great' ? 'selected' : ''}`}
                   onClick={() => setSelectedMood('great')}
                   type="button"
-                  aria-label="Umore ottimo"
+                  aria-label={t('mood.great', "Umore ottimo")}
                 >
                   <span className="mood-emoji">😄</span>
-                  <span>Ottimo</span>
+                  <span><Trans i18nKey="mood.great.label" fallback="Ottimo" /></span>
                 </button>
               </div>
             </div>
             
             <div className="sleep-selector">
-              <h3>Qualità del sonno</h3>
+              <h3><Trans i18nKey="dashboard.todayModal.sleepQuality" fallback="Qualità del sonno" /></h3>
               <div className="sleep-slider">
                 <input 
                   type="range" 
@@ -539,24 +602,24 @@ const Dashboard = () => {
                   max="5" 
                   value={sleepQuality}
                   onChange={(e) => setSleepQuality(parseInt(e.target.value))}
-                  aria-label="Seleziona qualità del sonno"
+                  aria-label={t('dashboard.todayModal.selectSleepQuality', "Seleziona qualità del sonno")}
                 />
                 <div className="range-labels">
-                  <span>Scarsa</span>
-                  <span>Media</span>
-                  <span>Ottima</span>
+                  <span><Trans i18nKey="sleep.poor" fallback="Scarsa" /></span>
+                  <span><Trans i18nKey="sleep.medium" fallback="Media" /></span>
+                  <span><Trans i18nKey="sleep.excellent" fallback="Ottima" /></span>
                 </div>
               </div>
             </div>
             
             <div className="symptoms-quick-add">
-              <h3>Hai sintomi oggi?</h3>
+              <h3><Trans i18nKey="dashboard.todayModal.haveSymptoms" fallback="Hai sintomi oggi?" /></h3>
               <button 
                 className="quick-add-button"
                 onClick={handleAddSymptom}
                 type="button"
               >
-                <FiPlusCircle /> Aggiungi sintomo
+                <FiPlusCircle /> <Trans i18nKey="dashboard.todayModal.addSymptom" fallback="Aggiungi sintomo" />
               </button>
             </div>
           </div>
@@ -567,14 +630,14 @@ const Dashboard = () => {
               onClick={() => setShowTodayModal(false)}
               type="button"
             >
-              Annulla
+              <Trans i18nKey="common.cancel" fallback="Annulla" />
             </button>
             <button 
               className="primary-button"
               onClick={handleSave}
               type="button"
             >
-              Salva
+              <Trans i18nKey="common.save" fallback="Salva" />
             </button>
           </div>
         </div>
@@ -586,17 +649,21 @@ const Dashboard = () => {
     return (
       <div className="dashboard-loading">
         <div className="loading-spinner"></div>
-        <p>Preparando la tua dashboard...</p>
+        <p><Trans i18nKey="dashboard.loading" fallback="Preparando la tua dashboard..." /></p>
       </div>
     );
   }
 
   return (
     <div className="dashboard-container">
-      {showOnboarding && <OnboardingDemo onComplete={() => setShowOnboarding(false)} />}
+      {showOnboarding && <OnboardingDemo onComplete={handleOnboardingComplete} />}
       <div className="dashboard-header">
-        <h1 className="dashboard-title">Ciao, {userName}!</h1>
-        <p className="dashboard-subtitle">Ecco il riepilogo della tua salute e benessere</p>
+        <h1 className="dashboard-title">
+          <Trans i18nKey="dashboard.greeting" fallback="Ciao" />, {userName}!
+        </h1>
+        <p className="dashboard-subtitle">
+          <Trans i18nKey="dashboard.subtitle" fallback="Ecco il riepilogo della tua salute e benessere" />
+        </p>
       </div>
       
       <QuickStats />
@@ -645,39 +712,39 @@ const Dashboard = () => {
       <div className="additional-features highlight-section">
         <h2>
           <span className="section-icon"><FiPieChart /></span>
-          Funzionalità avanzate
+          <Trans i18nKey="dashboard.advancedFeatures.title" fallback="Funzionalità avanzate" />
         </h2>
         
         <p className="section-description">
-          Esplora le nuove funzionalità avanzate di Salus per migliorare la gestione della tua salute
+          <Trans i18nKey="dashboard.advancedFeatures.description" fallback="Esplora le nuove funzionalità avanzate di Salus per migliorare la gestione della tua salute" />
         </p>
         
         <div className="dashboard-cards">
           <Link to="/medication-reminders" className="dashboard-card reminder-card">
             <div className="card-icon"><FiBell /></div>
             <div className="card-content">
-              <h3>Promemoria Farmaci</h3>
-              <p>Imposta promemoria personalizzati per i tuoi farmaci</p>
+              <h3><Trans i18nKey="dashboard.advancedFeatures.medicationReminders" fallback="Promemoria Farmaci" /></h3>
+              <p><Trans i18nKey="dashboard.advancedFeatures.medicationRemindersDesc" fallback="Imposta promemoria personalizzati per i tuoi farmaci" /></p>
             </div>
-            <span className="new-badge">Nuovo</span>
+            <span className="new-badge"><Trans i18nKey="dashboard.new" fallback="Nuovo" /></span>
           </Link>
           
           <Link to="/symptom-analytics" className="dashboard-card analytics-card">
             <div className="card-icon"><FaChartLine /></div>
             <div className="card-content">
-              <h3>Analisi Sintomi</h3>
-              <p>Visualizza grafici e correlazioni tra sintomi e farmaci</p>
+              <h3><Trans i18nKey="dashboard.advancedFeatures.symptomAnalytics" fallback="Analisi Sintomi" /></h3>
+              <p><Trans i18nKey="dashboard.advancedFeatures.symptomAnalyticsDesc" fallback="Visualizza grafici e correlazioni tra sintomi e farmaci" /></p>
             </div>
-            <span className="new-badge">Nuovo</span>
+            <span className="new-badge"><Trans i18nKey="dashboard.new" fallback="Nuovo" /></span>
           </Link>
           
           <Link to="/appointments" className="dashboard-card appointment-card">
             <div className="card-icon"><FiFileText /></div>
             <div className="card-content">
-              <h3>Appuntamenti</h3>
-              <p>Gestisci i tuoi appuntamenti medici con promemoria</p>
+              <h3><Trans i18nKey="dashboard.advancedFeatures.appointments" fallback="Appuntamenti" /></h3>
+              <p><Trans i18nKey="dashboard.advancedFeatures.appointmentsDesc" fallback="Gestisci i tuoi appuntamenti medici con promemoria" /></p>
             </div>
-            <span className="new-badge">Nuovo</span>
+            <span className="new-badge"><Trans i18nKey="dashboard.new" fallback="Nuovo" /></span>
           </Link>
         </div>
       </div>
@@ -687,7 +754,7 @@ const Dashboard = () => {
       <div className="dashboard-section ai-assistant-section">
         <h2>
           <span className="section-icon"><FaRobot /></span>
-          Assistente AI
+          <Trans i18nKey="dashboard.aiAssistant" fallback="Assistente AI" />
         </h2>
         <DashboardAIAssistant />
       </div>
@@ -695,8 +762,8 @@ const Dashboard = () => {
       <div className="dashboard-content">
         {activeTab === 'home' && (
           <div className="dashboard-home">
-            <h2>Benvenuto nel tuo pannello di controllo per la salute</h2>
-            <p>Qui puoi monitorare e gestire tutte le informazioni relative alla tua salute.</p>
+            <h2><Trans i18nKey="dashboard.welcome.title" fallback="Benvenuto nel tuo pannello di controllo per la salute" /></h2>
+            <p><Trans i18nKey="dashboard.welcome.description" fallback="Qui puoi monitorare e gestire tutte le informazioni relative alla tua salute." /></p>
           </div>
         )}
         {activeTab === 'appointments' && (
