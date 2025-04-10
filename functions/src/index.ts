@@ -149,7 +149,8 @@ export const aiAssistantHttp = functions.https.onRequest(async (request, respons
     
     // Verifica il token
     const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const uid = decodedToken.uid;
+    // Variabile uid utilizzata per log o per operazioni su Firestore
+    functions.logger.info('Richiesta da utente:', decodedToken.uid);
     
     // Estrai messaggio e conversazione
     const { messages } = request.body;
