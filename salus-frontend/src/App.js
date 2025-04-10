@@ -3,15 +3,15 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Outlet }
 import { UserContext, UserProvider } from './context/UserContext';
 import { TranslationProvider } from './context/TranslationContext';
 import { Trans } from './utils/translationUtils';
-import { auth } from './firebase';
+import { auth } from './firebase/config';
 import { useTranslation } from 'react-i18next';
 import './App.css';
 
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
-import Symptoms from './components/Symptoms';
-import Medications from './components/Medications';
-import Wellness from './components/Wellness';
+import SymptomTracker from './components/SymptomTracker';
+import MedicationTracker from './components/MedicationTracker';
+import WellnessTracker from './components/WellnessTracker';
 import LanguageSelector from './components/LanguageSelector';
 import Settings from './components/Settings';
 import Profile from './components/Profile';
@@ -64,9 +64,9 @@ function App() {
                 
                 <Route element={<ProtectedRoute />}>
                   <Route path="/" element={<Dashboard />} />
-                  <Route path="/symptoms" element={<Symptoms />} />
-                  <Route path="/medications" element={<Medications />} />
-                  <Route path="/wellness" element={<Wellness />} />
+                  <Route path="/symptoms" element={<SymptomTracker />} />
+                  <Route path="/medications" element={<MedicationTracker />} />
+                  <Route path="/wellness" element={<WellnessTracker />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/profile" element={<Profile />} />
                 </Route>
